@@ -1,0 +1,176 @@
+# NileTech Tour Guide Mobile Application
+
+**Official Project Documentation & Development Guidelines**
+
+**Version**: 1.0.0  
+**Platform**: Flutter (iOS & Android)  
+**Backend**: Laravel (Thoth Platform)  
+**Prepared by**: Senior Flutter Architect  
+**Date**: May 2026
+
+---
+
+## 1. Project Overview
+
+**NileTech Tour Guide App** is a professional mobile application designed **exclusively for Tour Guides**. The app serves as a complete professional hub allowing guides to:
+
+- Manage their public profile and visibility
+- Complete identity verification for platform activation
+- Browse and subscribe to marketplace tools/applications
+- Track earnings, commissions, and wallet balance
+- Request payouts
+- Manage referrals
+- Communicate with support via tickets
+- Stay updated with notifications and announcements
+
+**Goal**: Provide tour guides with all necessary tools in a single, intuitive mobile application.
+
+**Key Constraints**:
+- Only **Tour Guide** role is exposed
+- No admin, collector, or other roles
+- Email verification is mandatory for full access
+
+---
+
+## 2. Technical Overview
+
+### Authentication Model
+- **Method**: Bearer Token (JWT)
+- **Storage**: `flutter_secure_storage`
+- **API Base**: `/api/` (public) and `/api/guide/*` (authenticated)
+- **Guest Sessions**: Optional support via `guest_token`
+- **Push Notifications**: Device registration required (`POST /api/guide/device`)
+- **Email Verification**: Required to unlock full functionality
+
+### API Communication
+- RESTful JSON
+- All responses expected in standard format
+- Proper error handling and token refresh mechanism required
+
+---
+
+## 3. Detailed Features Specification
+
+### 3.1 Authentication & Account Management
+- **Registration**: Name, Email, Password, Password Confirmation, Optional Device Name & Guest Token
+- **Login**: Email + Password (returns token + `converted_from_guest_session` flag)
+- **Password Recovery**: Forgot → Reset flow
+- **Email Verification**: Mandatory (signed URL)
+- **Account Deletion**: With optional reason note + confirmation
+
+### 3.2 Guide Profile Management
+**View Profile Fields**:
+- Full Name, Profile Photo, Country & City, Languages (`["en", "ar"]`), Specializations, Years of Experience, Bio, Rating, Profile Completeness %
+
+**Editable Fields** (PATCH `/api/guide/profile`):
+- full_name, country, city, languages, specializations, years_of_experience, bio
+
+**Features**:
+- Profile photo upload (Multipart, max 2MB, JPEG/PNG)
+- Completeness progress bar (strongly encouraged)
+
+### 3.3 Identity Verification (Mandatory One-time)
+**Submit Fields**:
+- Passport Number
+- National ID
+- Guide License Number
+- Document URLs (array)
+
+**Statuses**:
+- `PENDING` → Yellow badge
+- `VERIFIED` → Green badge
+- `REJECTED` → Red badge (with resubmit)
+
+### 3.4 Applications & Subscriptions (Marketplace)
+- Browse all available apps with plans & pricing
+- Filter / Search capability
+- Subscribe via `POST /api/guide/subscriptions` with `plan_id`
+- Support for promo codes
+- Manage active and past subscriptions
+
+### 3.5 Financial Management
+- **Wallet**: Current balance + paginated transaction history
+- **Commissions**: Earnings from promo code redemptions
+- **Payout Requests**: Amount + Payment Method (validate ≤ balance)
+- **Referral System**: Generate unique code/link, track referred users & performance
+
+### 3.6 Promo Code System (Thoth Guide AI)
+- Validate: `POST /api/thoth-guide/promo-codes/validate`
+- Redeem: `POST /api/thoth-guide/promo-codes/redeem`
+
+### 3.7 Support & Communication
+- Create Ticket (Category, Priority, Subject, Message)
+- Ticket List with status
+- Ticket Detail + Reply thread
+- Categories: PAYMENT, TECHNICAL, GENERAL, etc.
+- Priorities: NORMAL, HIGH, URGENT
+
+### 3.8 Additional Modules
+- **Notifications**: Paginated list, mark as read, unread badge on tab
+- **Announcements**: Time-based active announcements (prominent display)
+- **Knowledge Center**: Articles by category or app_id
+- **Legal Agreements**: Fetch pending → Force acceptance before gated features
+- **Usage Analytics**: Silent event reporting (`POST /api/guide/analytics/event`)
+
+---
+
+## 4. Core User Flows
+
+### Onboarding Flow
+1. Register / Login
+2. Email Verification
+3. Complete Profile (with completeness indicator)
+4. Submit Identity Verification
+
+### Subscription Flow
+1. Browse Marketplace → Filter/Search
+2. View App Details & Plans
+3. Select Plan → Subscribe (with optional promo)
+4. Access unlocked features
+
+### Earnings Flow
+1. Earn via referrals & promo redemptions
+2. View Wallet & Transactions
+3. Request Payout
+
+### Support Flow
+1. Create Ticket
+2. Receive notifications on replies
+3. Reply in thread
+
+---
+
+## 5. Architecture & Technical Stack
+
+### Architecture
+**Clean Architecture + Feature-First Structure**
+
+### Folder Structure
+```bash
+lib/
+├── core/
+│   ├── config/
+│   ├── di/
+│   ├── error/
+│   ├── network/          # Dio + Retrofit + Interceptors
+│   ├── routes/           # GoRouter
+│   ├── theme/
+│   └── utils/
+├── features/
+│   ├── auth/
+│   ├── profile/
+│   ├── verification/
+│   ├── marketplace/
+│   ├── subscription/
+│   ├── wallet/
+│   ├── commissions/
+│   ├── referrals/
+│   ├── support/
+│   ├── notifications/
+│   ├── knowledge_center/
+│   └── agreements/
+├── shared/
+│   ├── widgets/
+│   ├── models/
+│   └── services/
+└── main.dart
