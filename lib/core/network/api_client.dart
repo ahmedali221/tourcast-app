@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:tourguide_app/core/constants/app_constants.dart';
 import 'package:tourguide_app/core/storage/app_storage.dart';
@@ -17,7 +18,10 @@ class ApiClient {
         baseUrl: AppConstants.apiBase,
         connectTimeout: const Duration(seconds: AppConstants.connectionTimeout),
         receiveTimeout: const Duration(seconds: AppConstants.receiveTimeout),
-        headers: {'Accept': 'application/json'},
+        headers: {
+          'Accept': 'application/json',
+          'X-App-Identifier': 'thoth_management',
+        },
       ),
     );
 
@@ -44,8 +48,16 @@ class ApiClient {
         handler.next(options);
       },
       onError: (error, handler) async {
-        // If the server says 401, clear the saved token so the app re-routes to login.
-        if (error.response?.statusCode == 401) {
+        final statusCode = error.response?.statusCode;
+        final responseData = error.response?.data;
+        debugPrint('╔╣ API Error ║ ${error.type}');
+        debugPrint('║  URL: ${error.requestOptions.uri}');
+        debugPrint('║  Status Code: $statusCode');
+        debugPrint('║  Message: ${error.message}');
+        if (responseData != null) debugPrint('║  Response: $responseData');
+        debugPrint('╚══════════════════════════════════════════════════════════');
+
+        if (statusCode == 401) {
           await AppStorage.deleteToken();
         }
         handler.next(error);

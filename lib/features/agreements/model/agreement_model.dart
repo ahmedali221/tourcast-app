@@ -14,7 +14,7 @@ class AgreementModel {
 
   factory AgreementModel.fromJson(Map<String, dynamic> json) {
     return AgreementModel(
-      id: json['id'] as int,
+      id: (json['id'] as num).toInt(),
       title: json['title'] as String,
       content: json['content'] as String,
       isAccepted: json['is_accepted'] as bool? ?? false,

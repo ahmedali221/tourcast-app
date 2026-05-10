@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:tourguide_app/core/theme/app_colors.dart';
 import 'package:tourguide_app/core/theme/app_text_styles.dart';
 
@@ -6,9 +7,9 @@ class AppTheme {
   AppTheme._();
 
   static ThemeData get light {
-    return ThemeData(
-      useMaterial3: true,
-      fontFamily: 'Poppins',
+    final base = ThemeData(useMaterial3: true);
+    return base.copyWith(
+      textTheme: GoogleFonts.plusJakartaSansTextTheme(base.textTheme),
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppColors.primary,
         primary: AppColors.primary,
@@ -18,7 +19,7 @@ class AppTheme {
       ),
       scaffoldBackgroundColor: AppColors.background,
 
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         backgroundColor: AppColors.surface,
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
@@ -53,12 +54,8 @@ class AppTheme {
 
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.surface,
-        hintStyle: const TextStyle(
-          color: AppColors.textHint,
-          fontSize: 14,
-          fontFamily: 'Poppins',
-        ),
+        fillColor: AppColors.surfaceVariant,
+        hintStyle: AppTextStyles.body.copyWith(color: AppColors.textHint),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.border),

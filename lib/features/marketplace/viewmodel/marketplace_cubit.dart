@@ -1,17 +1,42 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:tourguide_app/features/marketplace/model/app_model.dart';
+import 'package:tourguide_app/features/marketplace/repository/i_marketplace_repository.dart';
+
+// ---------- States ----------
 
 abstract class MarketplaceState {}
+
 class MarketplaceInitial extends MarketplaceState {}
+
 class MarketplaceLoading extends MarketplaceState {}
-class MarketplaceLoaded extends MarketplaceState {}
+
+class MarketplaceLoaded extends MarketplaceState {
+  final List<AppModel> apps;
+  MarketplaceLoaded(this.apps);
+}
+
 class MarketplaceError extends MarketplaceState {
   final String message;
   MarketplaceError(this.message);
 }
 
-class MarketplaceCubit extends Cubit<MarketplaceState> {
-  MarketplaceCubit() : super(MarketplaceInitial());
+// ---------- Cubit (ViewModel) ----------
 
-  Future<void> loadApps() async {}
-  Future<void> searchApps(String query) async {}
+class MarketplaceCubit extends Cubit<MarketplaceState> {
+  final IMarketplaceRepository _repository;
+
+  MarketplaceCubit(this._repository) : super(MarketplaceInitial());
+
+  Future<void> loadApps({String? search}) async {
+    emit(MarketplaceLoading());
+    try {
+      final apps = await _repository.getApps(search: search);
+      emit(MarketplaceLoaded(apps));
+    } on DioException catch (e) {
+      emit(MarketplaceError(e.response?.data['message'] ?? 'Failed to load apps'));
+    } catch (_) {
+      emit(MarketplaceError('Something went wrong. Please try again.'));
+    }
+  }
 }

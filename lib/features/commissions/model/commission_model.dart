@@ -16,7 +16,7 @@ class CommissionModel {
 
   factory CommissionModel.fromJson(Map<String, dynamic> json) {
     return CommissionModel(
-      id: json['id'] as int,
+      id: (json['id'] as num).toInt(),
       amount: (json['amount'] as num).toDouble(),
       promoCode: json['promo_code'] as String,
       redeemedBy: json['redeemed_by'] as String,

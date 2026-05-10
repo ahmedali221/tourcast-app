@@ -5,14 +5,14 @@ class AppConstants {
   static const String appName = 'NileTech Tour Guide';
 
   // API Base URLs
-  static const String baseUrl = 'https://api.niletech.com';
+  static const String baseUrl = 'https://app.niletechdev.com';
   static const String apiBase = '$baseUrl/api';
   static const String guideBase = '$baseUrl/api/guide';
   static const String thothBase = '$baseUrl/api/thoth-guide';
 
   // Timeouts (in seconds)
-  static const int connectionTimeout = 30;
-  static const int receiveTimeout = 30;
+  static const int connectionTimeout = 60;
+  static const int receiveTimeout = 120;
 
   // Pagination
   static const int pageSize = 15;

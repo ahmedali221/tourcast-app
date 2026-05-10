@@ -18,7 +18,7 @@ class ReferralModel {
     return ReferralModel(
       referralCode: json['referral_code'] as String,
       referralLink: json['referral_link'] as String,
-      totalReferred: json['total_referred'] as int? ?? 0,
+      totalReferred: (json['total_referred'] as num?)?.toInt() ?? 0,
       totalEarned: (json['total_earned'] as num?)?.toDouble() ?? 0,
       referredUsers: (json['referred_users'] as List? ?? [])
           .map((u) => ReferredUserModel.fromJson(u as Map<String, dynamic>))

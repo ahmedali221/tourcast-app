@@ -11,6 +11,7 @@ import 'package:tourguide_app/features/auth/view/verify_email_page.dart';
 import 'package:tourguide_app/features/profile/view/profile_page.dart';
 import 'package:tourguide_app/features/profile/view/edit_profile_page.dart';
 import 'package:tourguide_app/features/verification/view/verification_page.dart';
+import 'package:tourguide_app/features/marketplace/view/app_details_page.dart';
 import 'package:tourguide_app/features/marketplace/view/marketplace_page.dart';
 import 'package:tourguide_app/features/wallet/view/wallet_page.dart';
 import 'package:tourguide_app/features/commissions/view/commissions_page.dart';
@@ -19,7 +20,7 @@ import 'package:tourguide_app/features/support/view/support_page.dart';
 import 'package:tourguide_app/features/support/view/new_ticket_page.dart';
 import 'package:tourguide_app/features/support/view/ticket_detail_page.dart';
 import 'package:tourguide_app/features/notifications/view/notifications_page.dart';
-import 'package:tourguide_app/features/knowledge_center/view/knowledge_center_page.dart';
+// import 'package:tourguide_app/features/knowledge_center/view/knowledge_center_page.dart'; // OUT OF SCOPE — Phase 2
 import 'package:tourguide_app/features/agreements/view/agreements_page.dart';
 import 'package:tourguide_app/features/home/view/home_page.dart';
 
@@ -28,45 +29,49 @@ final appRouter = GoRouter(
   redirect: _redirect,
   routes: [
     // ---------- Auth ----------
-    GoRoute(path: AppRoutes.login, builder: (_, __) => const LoginPage()),
-    GoRoute(path: AppRoutes.register, builder: (_, __) => const RegisterPage()),
-    GoRoute(path: AppRoutes.forgotPassword, builder: (_, __) => const ForgotPasswordPage()),
-    GoRoute(path: AppRoutes.verifyEmail, builder: (_, __) => const VerifyEmailPage()),
+    GoRoute(path: AppRoutes.login, builder: (_, _) => const LoginPage()),
+    GoRoute(path: AppRoutes.register, builder: (_, _) => const RegisterPage()),
+    GoRoute(path: AppRoutes.forgotPassword, builder: (_, _) => const ForgotPasswordPage()),
+    GoRoute(path: AppRoutes.verifyEmail, builder: (_, _) => const VerifyEmailPage()),
 
     // ---------- Main ----------
-    GoRoute(path: AppRoutes.home, builder: (_, __) => const HomePage()),
+    GoRoute(path: AppRoutes.home, builder: (_, _) => const HomePage()),
 
     // ---------- Profile ----------
-    GoRoute(path: AppRoutes.profile, builder: (_, __) => const ProfilePage()),
-    GoRoute(path: AppRoutes.editProfile, builder: (_, __) => const EditProfilePage()),
+    GoRoute(path: AppRoutes.profile, builder: (_, _) => const ProfilePage()),
+    GoRoute(path: AppRoutes.editProfile, builder: (_, _) => const EditProfilePage()),
 
     // ---------- Verification ----------
-    GoRoute(path: AppRoutes.verification, builder: (_, __) => const VerificationPage()),
+    GoRoute(path: AppRoutes.verification, builder: (_, _) => const VerificationPage()),
 
     // ---------- Marketplace ----------
-    GoRoute(path: AppRoutes.marketplace, builder: (_, __) => const MarketplacePage()),
+    GoRoute(path: AppRoutes.marketplace, builder: (_, _) => const MarketplacePage()),
+    GoRoute(
+      path: AppRoutes.appDetails,
+      builder: (_, state) => AppDetailsPage(appId: state.pathParameters['id']!),
+    ),
 
     // ---------- Wallet & Finance ----------
-    GoRoute(path: AppRoutes.wallet, builder: (_, __) => const WalletPage()),
-    GoRoute(path: AppRoutes.commissions, builder: (_, __) => const CommissionsPage()),
-    GoRoute(path: AppRoutes.referrals, builder: (_, __) => const ReferralsPage()),
+    GoRoute(path: AppRoutes.wallet, builder: (_, _) => const WalletPage()),
+    GoRoute(path: AppRoutes.commissions, builder: (_, _) => const CommissionsPage()),
+    GoRoute(path: AppRoutes.referrals, builder: (_, _) => const ReferralsPage()),
 
     // ---------- Support ----------
-    GoRoute(path: AppRoutes.support, builder: (_, __) => const SupportPage()),
-    GoRoute(path: AppRoutes.newTicket, builder: (_, __) => const NewTicketPage()),
+    GoRoute(path: AppRoutes.support, builder: (_, _) => const SupportPage()),
+    GoRoute(path: AppRoutes.newTicket, builder: (_, _) => const NewTicketPage()),
     GoRoute(
       path: AppRoutes.ticketDetail,
       builder: (_, state) => TicketDetailPage(ticketId: state.pathParameters['id']!),
     ),
 
     // ---------- Notifications ----------
-    GoRoute(path: AppRoutes.notifications, builder: (_, __) => const NotificationsPage()),
+    GoRoute(path: AppRoutes.notifications, builder: (_, _) => const NotificationsPage()),
 
-    // ---------- Knowledge Center ----------
-    GoRoute(path: AppRoutes.knowledgeCenter, builder: (_, __) => const KnowledgeCenterPage()),
+    // ---------- Knowledge Center — OUT OF SCOPE Phase 2 ----------
+    // GoRoute(path: AppRoutes.knowledgeCenter, builder: (_, _) => const KnowledgeCenterPage()),
 
     // ---------- Agreements ----------
-    GoRoute(path: AppRoutes.agreements, builder: (_, __) => const AgreementsPage()),
+    GoRoute(path: AppRoutes.agreements, builder: (_, _) => const AgreementsPage()),
   ],
 );
 
