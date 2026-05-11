@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:tourguide_app/features/verification/model/verification_model.dart';
 import 'package:tourguide_app/features/verification/repository/i_verification_repository.dart';
@@ -19,13 +20,24 @@ class VerificationRepository implements IVerificationRepository {
     required String passportNumber,
     required String nationalId,
     required String guideLicenseNumber,
-    required List<String> documentUrls,
+    File? nationalIdFile,
+    File? licenseFile,
   }) async {
-    await _dio.post('/guide/verification', data: {
+    final formData = FormData.fromMap({
       'passport_number': passportNumber,
       'national_id': nationalId,
       'guide_license_number': guideLicenseNumber,
-      'document_urls': documentUrls,
+      if (nationalIdFile != null)
+        'national_id_photo': await MultipartFile.fromFile(
+          nationalIdFile.path,
+          filename: nationalIdFile.uri.pathSegments.last,
+        ),
+      if (licenseFile != null)
+        'guide_license': await MultipartFile.fromFile(
+          licenseFile.path,
+          filename: licenseFile.uri.pathSegments.last,
+        ),
     });
+    await _dio.post('/guide/verification', data: formData);
   }
 }

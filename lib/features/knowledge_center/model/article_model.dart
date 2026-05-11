@@ -18,11 +18,11 @@ class ArticleModel {
 
   factory ArticleModel.fromJson(Map<String, dynamic> json) {
     return ArticleModel(
-      id: json['id'] as int,
+      id: (json['id'] as num).toInt(),
       title: json['title'] as String,
       content: json['content'] as String,
       category: json['category'] as String?,
-      appId: json['app_id'] as int?,
+      appId: (json['app_id'] as num?)?.toInt(),
       publishedAt: DateTime.parse(json['published_at'] as String),
     );
   }

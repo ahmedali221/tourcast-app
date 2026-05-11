@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tourguide_app/features/verification/model/verification_model.dart';
@@ -46,7 +47,8 @@ class VerificationCubit extends Cubit<VerificationState> {
     required String passportNumber,
     required String nationalId,
     required String guideLicenseNumber,
-    required List<String> documentUrls,
+    File? nationalIdFile,
+    File? licenseFile,
   }) async {
     emit(VerificationLoading());
     try {
@@ -54,7 +56,8 @@ class VerificationCubit extends Cubit<VerificationState> {
         passportNumber: passportNumber,
         nationalId: nationalId,
         guideLicenseNumber: guideLicenseNumber,
-        documentUrls: documentUrls,
+        nationalIdFile: nationalIdFile,
+        licenseFile: licenseFile,
       );
       emit(VerificationSubmitted());
     } on DioException catch (e) {

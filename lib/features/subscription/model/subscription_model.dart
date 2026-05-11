@@ -20,7 +20,7 @@ class SubscriptionModel {
 
   factory SubscriptionModel.fromJson(Map<String, dynamic> json) {
     return SubscriptionModel(
-      id: json['id'] as int,
+      id: (json['id'] as num).toInt(),
       appName: json['app_name'] as String,
       planName: json['plan_name'] as String,
       price: (json['price'] as num).toDouble(),

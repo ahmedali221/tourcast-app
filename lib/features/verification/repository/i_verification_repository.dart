@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:tourguide_app/features/verification/model/verification_model.dart';
 
 abstract class IVerificationRepository {
@@ -7,6 +8,7 @@ abstract class IVerificationRepository {
     required String passportNumber,
     required String nationalId,
     required String guideLicenseNumber,
-    required List<String> documentUrls,
+    File? nationalIdFile,
+    File? licenseFile,
   });
 }

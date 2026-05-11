@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:tourguide_app/core/di/locator.dart';
 import 'package:tourguide_app/core/shared/widgets/app_button.dart';
+import 'package:tourguide_app/core/shared/widgets/auth_avatar.dart';
 import 'package:tourguide_app/core/shared/widgets/app_text_field.dart';
 import 'package:tourguide_app/core/theme/app_colors.dart';
 import 'package:tourguide_app/core/theme/app_text_styles.dart';
@@ -97,6 +98,7 @@ class _EditProfileViewState extends State<_EditProfileView> {
   List<String> _languages = [];
   List<String> _specializations = [];
   File? _photo;
+  String? _serverPhotoUrl;
   bool _initialized = false;
 
   @override
@@ -117,6 +119,7 @@ class _EditProfileViewState extends State<_EditProfileView> {
     _bioCtrl.text = p.bio ?? '';
     _experienceCtrl.text = p.yearsOfExperience?.toString() ?? '';
     _selectedCountry = p.country;
+    _serverPhotoUrl = p.photoUrl;
     _languages = List.from(p.languages);
     _specializations = List.from(p.specializations);
   }
@@ -215,17 +218,16 @@ class _EditProfileViewState extends State<_EditProfileView> {
                   Center(
                     child: Stack(
                       children: [
-                        CircleAvatar(
-                          radius: 45,
-                          backgroundColor: AppColors.primary,
-                          backgroundImage: _photo != null ? FileImage(_photo!) : null,
-                          child: _photo == null
-                              ? Text(
-                                  _nameCtrl.text.isNotEmpty ? _nameCtrl.text[0].toUpperCase() : '?',
-                                  style: AppTextStyles.heading1.copyWith(color: Colors.white),
-                                )
-                              : null,
-                        ),
+                        _photo != null
+                            ? CircleAvatar(
+                                radius: 45,
+                                backgroundImage: FileImage(_photo!),
+                              )
+                            : AuthAvatar(
+                                photoUrl: _serverPhotoUrl,
+                                initials: _nameCtrl.text,
+                                radius: 45,
+                              ),
                         Positioned(
                           bottom: 0,
                           right: 0,

@@ -29,37 +29,39 @@ class NotificationsCubit extends Cubit<NotificationsState> {
   NotificationsCubit(this._repository) : super(NotificationsInitial());
 
   Future<void> loadNotifications({int page = 1}) async {
+    if (isClosed) return;
     emit(NotificationsLoading());
     try {
       final notifications = await _repository.getNotifications(page: page);
-      emit(NotificationsLoaded(notifications));
+      if (!isClosed) emit(NotificationsLoaded(notifications));
     } on DioException catch (e) {
-      emit(NotificationsError(e.response?.data['message'] ?? 'Failed to load notifications'));
+      if (!isClosed) emit(NotificationsError(e.response?.data['message'] ?? 'Failed to load notifications'));
     } catch (_) {
-      emit(NotificationsError('Something went wrong. Please try again.'));
+      if (!isClosed) emit(NotificationsError('Something went wrong. Please try again.'));
     }
   }
 
   Future<void> markAsRead(int notificationId) async {
+    if (isClosed) return;
     try {
       await _repository.markAsRead(notificationId);
-      // optimistically reload
       await loadNotifications();
     } on DioException catch (e) {
-      emit(NotificationsError(e.response?.data['message'] ?? 'Failed to mark as read'));
+      if (!isClosed) emit(NotificationsError(e.response?.data['message'] ?? 'Failed to mark as read'));
     } catch (_) {
-      emit(NotificationsError('Something went wrong. Please try again.'));
+      if (!isClosed) emit(NotificationsError('Something went wrong. Please try again.'));
     }
   }
 
   Future<void> markAllAsRead() async {
+    if (isClosed) return;
     try {
       await _repository.markAllAsRead();
       await loadNotifications();
     } on DioException catch (e) {
-      emit(NotificationsError(e.response?.data['message'] ?? 'Failed to mark all as read'));
+      if (!isClosed) emit(NotificationsError(e.response?.data['message'] ?? 'Failed to mark all as read'));
     } catch (_) {
-      emit(NotificationsError('Something went wrong. Please try again.'));
+      if (!isClosed) emit(NotificationsError('Something went wrong. Please try again.'));
     }
   }
 }

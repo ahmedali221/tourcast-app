@@ -28,7 +28,7 @@ class ProfileRepository implements IProfileRepository {
       ),
     });
     final response = await _dio.post('/guide/profile/photo', data: formData);
-    return response.data['data']['photo_url'] as String;
+    return response.data['photo_url'] as String;
   }
 
   @override

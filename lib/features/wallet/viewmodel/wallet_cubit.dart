@@ -31,27 +31,29 @@ class WalletCubit extends Cubit<WalletState> {
   WalletCubit(this._repository) : super(WalletInitial());
 
   Future<void> loadWallet({int page = 1}) async {
+    if (isClosed) return;
     emit(WalletLoading());
     try {
       final wallet = await _repository.getWallet(page: page);
-      emit(WalletLoaded(wallet));
+      if (!isClosed) emit(WalletLoaded(wallet));
     } on DioException catch (e) {
-      emit(WalletError(e.response?.data['message'] ?? 'Failed to load wallet'));
+      if (!isClosed) emit(WalletError(e.response?.data['message'] ?? 'Failed to load wallet'));
     } catch (_) {
-      emit(WalletError('Something went wrong. Please try again.'));
+      if (!isClosed) emit(WalletError('Something went wrong. Please try again.'));
     }
   }
 
   Future<void> requestPayout(double amount, String paymentMethod) async {
+    if (isClosed) return;
     emit(WalletLoading());
     try {
       await _repository.requestPayout(amount, paymentMethod);
-      emit(PayoutSuccess());
+      if (!isClosed) emit(PayoutSuccess());
       await loadWallet();
     } on DioException catch (e) {
-      emit(WalletError(e.response?.data['message'] ?? 'Payout request failed'));
+      if (!isClosed) emit(WalletError(e.response?.data['message'] ?? 'Payout request failed'));
     } catch (_) {
-      emit(WalletError('Something went wrong. Please try again.'));
+      if (!isClosed) emit(WalletError('Something went wrong. Please try again.'));
     }
   }
 }

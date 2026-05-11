@@ -58,12 +58,12 @@ class _HomeScaffold extends StatelessWidget {
                   context.push(AppRoutes.marketplace);
                 case 2:
                   context.push(AppRoutes.wallet);
-                // case 3:
-                //   context.push(AppRoutes.support);
-                // case 4:
-                //   context.push(AppRoutes.profile);
-                // case 5:
-                //   _confirmLogout(context);
+                case 3:
+                  context.push(AppRoutes.support);
+                case 4:
+                  context.push(AppRoutes.profile);
+                case 5:
+                  _confirmLogout(context);
               }
             },
             type: BottomNavigationBarType.fixed,
@@ -93,20 +93,20 @@ class _HomeScaffold extends StatelessWidget {
                 activeIcon: Icon(Icons.account_balance_wallet),
                 label: 'Wallet',
               ),
-              // BottomNavigationBarItem(
-              //   icon: Icon(Icons.headset_mic_outlined),
-              //   activeIcon: Icon(Icons.headset_mic),
-              //   label: 'Support',
-              // ),
-              // BottomNavigationBarItem(
-              //   icon: Icon(Icons.person_outline),
-              //   activeIcon: Icon(Icons.person),
-              //   label: 'Profile',
-              // ),
-              // BottomNavigationBarItem(
-              //   icon: Icon(Icons.logout),
-              //   label: 'Logout',
-              // ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.headset_mic_outlined),
+                activeIcon: Icon(Icons.headset_mic),
+                label: 'Support',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.person_outline),
+                activeIcon: Icon(Icons.person),
+                label: 'Profile',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.logout),
+                label: 'Logout',
+              ),
             ],
           ),
         );
@@ -114,28 +114,28 @@ class _HomeScaffold extends StatelessWidget {
     );
   }
 
-  // void _confirmLogout(BuildContext context) {
-  //   showDialog(
-  //     context: context,
-  //     builder: (_) => AlertDialog(
-  //       title: const Text('Logout'),
-  //       content: const Text('Are you sure you want to logout?'),
-  //       actions: [
-  //         TextButton(
-  //           onPressed: () => Navigator.pop(context),
-  //           child: const Text('Cancel'),
-  //         ),
-  //         TextButton(
-  //           onPressed: () {
-  //             Navigator.pop(context);
-  //             context.read<AuthCubit>().logout();
-  //           },
-  //           child: const Text('Logout'),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
+  void _confirmLogout(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Logout'),
+        content: const Text('Are you sure you want to logout?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              context.read<AuthCubit>().logout();
+            },
+            child: const Text('Logout'),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _DashboardBody extends StatelessWidget {

@@ -18,15 +18,27 @@ class TicketModel {
     required this.replies,
   });
 
+  TicketModel copyWith({List<TicketReplyModel>? replies}) {
+    return TicketModel(
+      id: id,
+      subject: subject,
+      category: category,
+      priority: priority,
+      status: status,
+      createdAt: createdAt,
+      replies: replies ?? this.replies,
+    );
+  }
+
   factory TicketModel.fromJson(Map<String, dynamic> json) {
     return TicketModel(
-      id: json['id'] as int,
+      id: (json['id'] as num).toInt(),
       subject: json['subject'] as String,
       category: json['category'] as String,
       priority: json['priority'] as String,
       status: json['status'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
-      replies: (json['replies'] as List? ?? [])
+      replies: ((json['messages'] ?? json['replies']) as List? ?? [])
           .map((r) => TicketReplyModel.fromJson(r as Map<String, dynamic>))
           .toList(),
     );
@@ -38,19 +50,31 @@ class TicketReplyModel {
   final String message;
   final bool isFromSupport;
   final DateTime createdAt;
+  final bool isFailed;
 
   TicketReplyModel({
     required this.id,
     required this.message,
     required this.isFromSupport,
     required this.createdAt,
+    this.isFailed = false,
   });
+
+  TicketReplyModel copyWith({bool? isFailed}) {
+    return TicketReplyModel(
+      id: id,
+      message: message,
+      isFromSupport: isFromSupport,
+      createdAt: createdAt,
+      isFailed: isFailed ?? this.isFailed,
+    );
+  }
 
   factory TicketReplyModel.fromJson(Map<String, dynamic> json) {
     return TicketReplyModel(
-      id: json['id'] as int,
+      id: (json['id'] as num).toInt(),
       message: json['message'] as String,
-      isFromSupport: json['is_from_support'] as bool? ?? false,
+      isFromSupport: (json['sender_type'] as String?)?.toUpperCase() != 'GUIDE',
       createdAt: DateTime.parse(json['created_at'] as String),
     );
   }

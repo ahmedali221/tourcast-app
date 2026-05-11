@@ -33,8 +33,8 @@ class _LoginView extends StatefulWidget {
 
 class _LoginViewState extends State<_LoginView> {
   final _formKey = GlobalKey<FormState>();
-  final _emailCtrl = TextEditingController();
-  final _passwordCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController(text: 'ahmeedali332332@gmail.com');
+  final _passwordCtrl = TextEditingController(text: 'Ahmed@li123');
   bool _obscure = true;
 
   @override
@@ -60,7 +60,8 @@ class _LoginViewState extends State<_LoginView> {
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: ConstrainedBox(
                 constraints: BoxConstraints(
-                  minHeight: context.screenHeight -
+                  minHeight:
+                      context.screenHeight -
                       MediaQuery.of(context).padding.top -
                       MediaQuery.of(context).padding.bottom,
                 ),
@@ -153,9 +154,9 @@ class _LoginViewState extends State<_LoginView> {
                               onPressed: () {
                                 if (_formKey.currentState!.validate()) {
                                   context.read<AuthCubit>().login(
-                                        _emailCtrl.text.trim(),
-                                        _passwordCtrl.text,
-                                      );
+                                    _emailCtrl.text.trim(),
+                                    _passwordCtrl.text,
+                                  );
                                 }
                               },
                             ),

@@ -17,6 +17,7 @@ class AppRoutes {
 
   // Verification
   static const String verification = '/verification';
+  static const String verificationSuccess = '/verification/success';
 
   // Marketplace
   static const String marketplace = '/marketplace';

@@ -1,6 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:tourguide_app/core/di/locator.dart';
+import 'package:tourguide_app/core/router/app_routes.dart';
 import 'package:tourguide_app/core/shared/widgets/app_button.dart';
 import 'package:tourguide_app/core/shared/widgets/app_text_field.dart';
 import 'package:tourguide_app/core/shared/widgets/error_view.dart';
@@ -33,7 +37,7 @@ class _VerificationView extends StatelessWidget {
       body: BlocConsumer<VerificationCubit, VerificationState>(
         listener: (context, state) {
           if (state is VerificationSubmitted) {
-            context.showSnackBar('Documents submitted for review');
+            context.go(AppRoutes.verificationSuccess);
           }
           if (state is VerificationError) {
             context.showSnackBar(state.message, isError: true);
@@ -74,8 +78,8 @@ class _BodyViewState extends State<_BodyView> {
   final _nationalIdCtrl = TextEditingController();
   final _licenseCtrl = TextEditingController();
 
-  String? _nationalIdFile;
-  String? _licenseFile;
+  File? _nationalIdFile;
+  File? _licenseFile;
 
   @override
   void dispose() {
@@ -83,6 +87,22 @@ class _BodyViewState extends State<_BodyView> {
     _nationalIdCtrl.dispose();
     _licenseCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickNationalId() async {
+    final picked = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
+    if (picked != null) setState(() => _nationalIdFile = File(picked.path));
+  }
+
+  Future<void> _pickLicense() async {
+    final picked = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
+    if (picked != null) setState(() => _licenseFile = File(picked.path));
   }
 
   @override
@@ -132,22 +152,18 @@ class _BodyViewState extends State<_BodyView> {
                 subtitle: 'Front side of your national ID card',
                 acceptedFormats: 'JPEG or PNG • Max 2 MB',
                 icon: Icons.badge_outlined,
-                fileName: _nationalIdFile,
-                onTap: () => setState(
-                  () => _nationalIdFile = 'national_id_photo.jpg',
-                ),
+                fileName: _nationalIdFile?.uri.pathSegments.last,
+                onTap: _pickNationalId,
                 onRemove: () => setState(() => _nationalIdFile = null),
               ),
               const SizedBox(height: 12),
               _DocumentUploadCard(
                 title: 'Guide License',
                 subtitle: 'Official tour guide license document',
-                acceptedFormats: 'JPEG, PNG or PDF • Max 5 MB',
+                acceptedFormats: 'JPEG or PNG • Max 5 MB',
                 icon: Icons.workspace_premium_outlined,
-                fileName: _licenseFile,
-                onTap: () => setState(
-                  () => _licenseFile = 'guide_license.pdf',
-                ),
+                fileName: _licenseFile?.uri.pathSegments.last,
+                onTap: _pickLicense,
                 onRemove: () => setState(() => _licenseFile = null),
               ),
               const SizedBox(height: 28),
@@ -159,10 +175,8 @@ class _BodyViewState extends State<_BodyView> {
                           passportNumber: _passportCtrl.text.trim(),
                           nationalId: _nationalIdCtrl.text.trim(),
                           guideLicenseNumber: _licenseCtrl.text.trim(),
-                          documentUrls: [
-                            ?_nationalIdFile,
-                            ?_licenseFile,
-                          ],
+                          nationalIdFile: _nationalIdFile,
+                          licenseFile: _licenseFile,
                         );
                   }
                 },

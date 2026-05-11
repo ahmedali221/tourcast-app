@@ -11,6 +11,7 @@ import 'package:tourguide_app/features/auth/view/verify_email_page.dart';
 import 'package:tourguide_app/features/profile/view/profile_page.dart';
 import 'package:tourguide_app/features/profile/view/edit_profile_page.dart';
 import 'package:tourguide_app/features/verification/view/verification_page.dart';
+import 'package:tourguide_app/features/verification/view/verification_success_page.dart';
 import 'package:tourguide_app/features/marketplace/view/app_details_page.dart';
 import 'package:tourguide_app/features/marketplace/view/marketplace_page.dart';
 import 'package:tourguide_app/features/wallet/view/wallet_page.dart';
@@ -43,6 +44,7 @@ final appRouter = GoRouter(
 
     // ---------- Verification ----------
     GoRoute(path: AppRoutes.verification, builder: (_, _) => const VerificationPage()),
+    GoRoute(path: AppRoutes.verificationSuccess, builder: (_, _) => const VerificationSuccessPage()),
 
     // ---------- Marketplace ----------
     GoRoute(path: AppRoutes.marketplace, builder: (_, _) => const MarketplacePage()),

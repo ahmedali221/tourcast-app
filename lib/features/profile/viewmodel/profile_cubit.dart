@@ -32,50 +32,54 @@ class ProfileCubit extends Cubit<ProfileState> {
   ProfileCubit(this._repository) : super(ProfileInitial());
 
   Future<void> loadProfile() async {
+    if (isClosed) return;
     emit(ProfileLoading());
     try {
       final profile = await _repository.getProfile();
-      emit(ProfileLoaded(profile));
+      if (!isClosed) emit(ProfileLoaded(profile));
     } on DioException catch (e) {
-      emit(ProfileError(e.response?.data['message'] ?? 'Failed to load profile'));
+      if (!isClosed) emit(ProfileError(e.response?.data['message'] ?? 'Failed to load profile'));
     } catch (_) {
-      emit(ProfileError('Something went wrong. Please try again.'));
+      if (!isClosed) emit(ProfileError('Something went wrong. Please try again.'));
     }
   }
 
   Future<void> updateProfile(Map<String, dynamic> data) async {
+    if (isClosed) return;
     emit(ProfileLoading());
     try {
       await _repository.updateProfile(data);
       await loadProfile();
     } on DioException catch (e) {
-      emit(ProfileError(e.response?.data['message'] ?? 'Failed to update profile'));
+      if (!isClosed) emit(ProfileError(e.response?.data['message'] ?? 'Failed to update profile'));
     } catch (_) {
-      emit(ProfileError('Something went wrong. Please try again.'));
+      if (!isClosed) emit(ProfileError('Something went wrong. Please try again.'));
     }
   }
 
   Future<void> uploadPhoto(File photo) async {
+    if (isClosed) return;
     emit(ProfileLoading());
     try {
       await _repository.uploadPhoto(photo);
-      await loadProfile(); // refresh after upload
+      await loadProfile();
     } on DioException catch (e) {
-      emit(ProfileError(e.response?.data['message'] ?? 'Failed to upload photo'));
+      if (!isClosed) emit(ProfileError(e.response?.data['message'] ?? 'Failed to upload photo'));
     } catch (_) {
-      emit(ProfileError('Something went wrong. Please try again.'));
+      if (!isClosed) emit(ProfileError('Something went wrong. Please try again.'));
     }
   }
 
   Future<void> deleteAccount({String? reason}) async {
+    if (isClosed) return;
     emit(ProfileLoading());
     try {
       await _repository.deleteAccount(reason: reason);
-      emit(ProfileUpdated());
+      if (!isClosed) emit(ProfileUpdated());
     } on DioException catch (e) {
-      emit(ProfileError(e.response?.data['message'] ?? 'Failed to delete account'));
+      if (!isClosed) emit(ProfileError(e.response?.data['message'] ?? 'Failed to delete account'));
     } catch (_) {
-      emit(ProfileError('Something went wrong. Please try again.'));
+      if (!isClosed) emit(ProfileError('Something went wrong. Please try again.'));
     }
   }
 }
