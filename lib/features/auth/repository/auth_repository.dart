@@ -22,19 +22,22 @@ class AuthRepository implements IAuthRepository {
     required String email,
     required String password,
     required String passwordConfirmation,
+    String? referralCode,
   }) async {
     final response = await _dio.post('/register', data: {
       'name': name,
       'email': email,
       'password': password,
       'password_confirmation': passwordConfirmation,
+      if (referralCode != null && referralCode.isNotEmpty)
+        'referral_code': referralCode,
     });
     return AuthModel.fromJson(response.data);
   }
 
   @override
   Future<void> logout() async {
-    await _dio.post('/guide/logout');
+    await _dio.post('/api/logout');
   }
 
   @override

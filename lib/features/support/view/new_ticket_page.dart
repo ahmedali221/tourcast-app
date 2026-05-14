@@ -51,7 +51,7 @@ class _NewTicketViewState extends State<_NewTicketView> {
       listener: (context, state) {
         if (state is TicketCreated) {
           context.showSnackBar('Ticket submitted successfully!');
-          context.pop();
+          context.pop(true);
         }
         if (state is SupportError) {
           context.showSnackBar(state.message, isError: true);

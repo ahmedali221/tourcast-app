@@ -26,8 +26,8 @@ class AppRoutes {
 
   // Wallet & Finance
   static const String wallet = '/wallet';
-  static const String commissions = '/commissions';
-  static const String referrals = '/referrals';
+  static const String commissions = '/wallet/commissions';
+  static const String referrals = '/wallet/referrals';
   static const String payout = '/wallet/payout';
 
   // Support
@@ -44,4 +44,7 @@ class AppRoutes {
 
   // Agreements
   static const String agreements = '/agreements';
+
+  // Announcements
+  static const String announcementDetail = '/home/announcement/:id';
 }

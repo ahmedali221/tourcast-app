@@ -7,10 +7,12 @@ import 'package:tourguide_app/core/router/app_routes.dart';
 import 'package:tourguide_app/core/theme/app_colors.dart';
 import 'package:tourguide_app/core/theme/app_text_styles.dart';
 import 'package:tourguide_app/core/utils/extensions.dart';
+import 'package:tourguide_app/features/announcements/model/announcement_model.dart';
+import 'package:tourguide_app/features/announcements/viewmodel/announcements_cubit.dart';
 import 'package:tourguide_app/features/auth/viewmodel/auth_cubit.dart';
-import 'package:tourguide_app/features/notifications/model/notification_model.dart';
 import 'package:tourguide_app/features/notifications/viewmodel/notifications_cubit.dart';
 import 'package:tourguide_app/features/profile/viewmodel/profile_cubit.dart';
+import 'package:tourguide_app/features/verification/viewmodel/verification_cubit.dart';
 import 'package:tourguide_app/features/wallet/viewmodel/wallet_cubit.dart';
 
 class HomePage extends StatelessWidget {
@@ -22,8 +24,10 @@ class HomePage extends StatelessWidget {
       providers: [
         BlocProvider(create: (_) => locator<AuthCubit>()),
         BlocProvider(create: (_) => locator<ProfileCubit>()..loadProfile()),
+        BlocProvider(create: (_) => locator<VerificationCubit>()..loadStatus()),
         BlocProvider(create: (_) => locator<WalletCubit>()..loadWallet()),
         BlocProvider(create: (_) => locator<NotificationsCubit>()..loadNotifications()),
+        BlocProvider(create: (_) => locator<AnnouncementsCubit>()..loadAnnouncements()),
       ],
       child: BlocListener<AuthCubit, AuthState>(
         listener: (context, state) {
@@ -38,8 +42,17 @@ class HomePage extends StatelessWidget {
 class _HomeScaffold extends StatelessWidget {
   const _HomeScaffold();
 
+  // Tab indices that are always accessible.
+  static const _allowedWhenRestricted = {3, 4}; // support, profile
+
   @override
   Widget build(BuildContext context) {
+    final verificationState = context.watch<VerificationCubit>().state;
+    final isRestricted = verificationState is VerificationLoaded &&
+        verificationState.verification != null &&
+        (verificationState.verification!.status.toUpperCase() == 'PENDING' ||
+            verificationState.verification!.status.toUpperCase() == 'REJECTED');
+
     final selectedIndex = ValueNotifier<int>(0);
 
     return ValueListenableBuilder<int>(
@@ -51,6 +64,7 @@ class _HomeScaffold extends StatelessWidget {
           bottomNavigationBar: BottomNavigationBar(
             currentIndex: index,
             onTap: (i) {
+              if (isRestricted && !_allowedWhenRestricted.contains(i)) return;
               switch (i) {
                 case 0:
                   selectedIndex.value = 0;
@@ -77,33 +91,33 @@ class _HomeScaffold extends StatelessWidget {
             ),
             unselectedLabelStyle: AppTextStyles.caption.copyWith(fontSize: 10),
             elevation: 8,
-            items: const [
+            items: [
               BottomNavigationBarItem(
-                icon: Icon(Icons.home_outlined),
-                activeIcon: Icon(Icons.home),
+                icon: _navIcon(Icons.home_outlined, 0, isRestricted),
+                activeIcon: _navIcon(Icons.home, 0, isRestricted),
                 label: 'Home',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.storefront_outlined),
-                activeIcon: Icon(Icons.storefront),
+                icon: _navIcon(Icons.storefront_outlined, 1, isRestricted),
+                activeIcon: _navIcon(Icons.storefront, 1, isRestricted),
                 label: 'Marketplace',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.account_balance_wallet_outlined),
-                activeIcon: Icon(Icons.account_balance_wallet),
+                icon: _navIcon(Icons.account_balance_wallet_outlined, 2, isRestricted),
+                activeIcon: _navIcon(Icons.account_balance_wallet, 2, isRestricted),
                 label: 'Wallet',
               ),
-              BottomNavigationBarItem(
+              const BottomNavigationBarItem(
                 icon: Icon(Icons.headset_mic_outlined),
                 activeIcon: Icon(Icons.headset_mic),
                 label: 'Support',
               ),
-              BottomNavigationBarItem(
+              const BottomNavigationBarItem(
                 icon: Icon(Icons.person_outline),
                 activeIcon: Icon(Icons.person),
                 label: 'Profile',
               ),
-              BottomNavigationBarItem(
+              const BottomNavigationBarItem(
                 icon: Icon(Icons.logout),
                 label: 'Logout',
               ),
@@ -111,6 +125,23 @@ class _HomeScaffold extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  Widget _navIcon(IconData icon, int tabIndex, bool isRestricted) {
+    if (!isRestricted || _allowedWhenRestricted.contains(tabIndex)) {
+      return Icon(icon);
+    }
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Icon(icon, color: AppColors.textHint),
+        Positioned(
+          right: -4,
+          top: -4,
+          child: Icon(Icons.lock, size: 10, color: AppColors.textHint),
+        ),
+      ],
     );
   }
 
@@ -126,9 +157,10 @@ class _HomeScaffold extends StatelessWidget {
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              context.read<AuthCubit>().logout();
+              await context.read<AuthCubit>().logout();
+              if (context.mounted) context.go(AppRoutes.login);
             },
             child: const Text('Logout'),
           ),
@@ -143,6 +175,27 @@ class _DashboardBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return BlocBuilder<VerificationCubit, VerificationState>(
+      builder: (context, state) {
+        if (state is VerificationLoaded) {
+          if (state.verification == null) return const _StatusBanner(isNotSubmitted: true);
+          final status = state.verification!.status.toUpperCase();
+          if (status == 'PENDING') return const _StatusBanner(isPending: true);
+          if (status == 'REJECTED') {
+            return _StatusBanner(
+              rejectionReason: state.verification!.rejectionReason,
+            );
+          }
+        }
+        return _FullDashboard();
+      },
+    );
+  }
+}
+
+class _FullDashboard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
     return SafeArea(
       child: CustomScrollView(
         slivers: [
@@ -151,19 +204,152 @@ class _DashboardBody extends StatelessWidget {
             padding: EdgeInsets.fromLTRB(24, 12, 24, 100),
             sliver: SliverList(
               delegate: SliverChildListDelegate.fixed([
-                _VerificationBanner(),
-                SizedBox(height: 20),
                 _WalletCard(),
                 SizedBox(height: 20),
                 _QuickActions(),
                 SizedBox(height: 20),
                 _Announcements(),
-                SizedBox(height: 20),
-                _ProfileCompleteness(),
               ]),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+enum _BannerType { notSubmitted, pending, rejected }
+
+class _StatusBanner extends StatelessWidget {
+  final bool isNotSubmitted;
+  final bool isPending;
+  final String? rejectionReason;
+
+  const _StatusBanner({
+    this.isNotSubmitted = false,
+    this.isPending = false,
+    this.rejectionReason,
+  });
+
+  _BannerType get _type {
+    if (isNotSubmitted) return _BannerType.notSubmitted;
+    if (isPending) return _BannerType.pending;
+    return _BannerType.rejected;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final type = _type;
+
+    final color = switch (type) {
+      _BannerType.notSubmitted => AppColors.primary,
+      _BannerType.pending => const Color(0xFFD4A017),
+      _BannerType.rejected => AppColors.error,
+    };
+    final bg = switch (type) {
+      _BannerType.notSubmitted => AppColors.surfaceVariant,
+      _BannerType.pending => const Color(0xFFFFF8E6),
+      _BannerType.rejected => const Color(0xFFFFF0F0),
+    };
+    final icon = switch (type) {
+      _BannerType.notSubmitted => Icons.upload_file_outlined,
+      _BannerType.pending => Icons.hourglass_top_rounded,
+      _BannerType.rejected => Icons.cancel_outlined,
+    };
+    final title = switch (type) {
+      _BannerType.notSubmitted => 'Verification Required',
+      _BannerType.pending => 'Account Under Review',
+      _BannerType.rejected => 'Application Rejected',
+    };
+    final message = switch (type) {
+      _BannerType.notSubmitted =>
+        'You need to submit your verification documents before you can access the app.',
+      _BannerType.pending =>
+        'Your guide application is being reviewed by our team. You\'ll be notified once approved.',
+      _BannerType.rejected => rejectionReason?.isNotEmpty == true
+          ? rejectionReason!
+          : 'Your application was not approved. Please contact support for more details.',
+    };
+    final ctaLabel = switch (type) {
+      _BannerType.notSubmitted => 'Submit Verification',
+      _BannerType.pending => 'Contact Support',
+      _BannerType.rejected => 'Contact Support',
+    };
+    final ctaRoute = switch (type) {
+      _BannerType.notSubmitted => AppRoutes.verification,
+      _BannerType.pending => AppRoutes.support,
+      _BannerType.rejected => AppRoutes.support,
+    };
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _TopBar(),
+            const SizedBox(height: 24),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: bg,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: color.withValues(alpha: 0.35), width: 1.5),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.12),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(icon, color: color, size: 24),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: AppTextStyles.heading3.copyWith(color: color),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    message,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: color.withValues(alpha: 0.85),
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  GestureDetector(
+                    onTap: () => context.push(ctaRoute),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: color,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        ctaLabel,
+                        style: AppTextStyles.label.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -231,64 +417,6 @@ class _TopBar extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _VerificationBanner extends StatelessWidget {
-  const _VerificationBanner();
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<ProfileCubit, ProfileState>(
-      builder: (context, state) {
-        if (state is! ProfileLoaded) return const SizedBox.shrink();
-        if (state.profile.verificationStatus == 'VERIFIED') return const SizedBox.shrink();
-
-        final isRejected = state.profile.verificationStatus == 'REJECTED';
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-          decoration: BoxDecoration(
-            color: isRejected
-                ? AppColors.error.withValues(alpha: 0.08)
-                : AppColors.warningBg,
-            border: Border.all(
-              color: isRejected
-                  ? AppColors.error.withValues(alpha: 0.3)
-                  : AppColors.primary.withValues(alpha: 0.3),
-            ),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                isRejected ? Icons.cancel_outlined : Icons.warning_amber_outlined,
-                size: 18,
-                color: isRejected ? AppColors.error : AppColors.primary,
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  isRejected
-                      ? 'Verification was rejected. Please resubmit your documents.'
-                      : 'Complete identity verification to unlock all features',
-                  style: AppTextStyles.caption.copyWith(color: AppColors.textPrimary),
-                ),
-              ),
-              GestureDetector(
-                onTap: () => context.push(AppRoutes.verification),
-                child: Text(
-                  isRejected ? 'Resubmit' : 'Verify Now',
-                  style: AppTextStyles.label.copyWith(
-                    color: isRejected ? AppColors.error : AppColors.primary,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 }
@@ -384,8 +512,6 @@ class _QuickActions extends StatelessWidget {
   static const _actions = [
     (label: 'Commissions', icon: Icons.bar_chart_rounded, route: AppRoutes.commissions),
     (label: 'Referrals', icon: Icons.share_outlined, route: AppRoutes.referrals),
-    // (label: 'Subscriptions', icon: Icons.layers_outlined, route: AppRoutes.marketplace), // OUT OF SCOPE — Phase 2
-    // (label: 'Knowledge Center', icon: Icons.menu_book_outlined, route: AppRoutes.knowledgeCenter), // OUT OF SCOPE — Phase 2
   ];
 
   @override
@@ -434,6 +560,37 @@ class _QuickActions extends StatelessWidget {
 class _Announcements extends StatelessWidget {
   const _Announcements();
 
+  // TODO: remove when API is live
+  static final _demoAnnouncements = [
+    AnnouncementModel(
+      id: -1,
+      title: 'New Tour Package Available',
+      content: 'We\'ve launched an exclusive Nile Valley tour package for the upcoming summer season. Book early and get 20% off.',
+      imageUrl: 'https://images.unsplash.com/photo-1568322445389-f64ac2515020?w=800&q=80',
+      priority: 'HIGH',
+      startDate: DateTime(2026, 5, 1),
+      endDate: DateTime(2026, 6, 30),
+    ),
+    AnnouncementModel(
+      id: -2,
+      title: 'System Maintenance Notice',
+      content: 'The platform will be down for scheduled maintenance on May 20th from 2:00 AM to 4:00 AM (UTC). Plan accordingly.',
+      imageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80',
+      priority: 'URGENT',
+      startDate: DateTime(2026, 5, 18),
+      endDate: DateTime(2026, 5, 20),
+    ),
+    AnnouncementModel(
+      id: -3,
+      title: 'Updated Commission Rates',
+      content: 'Starting June 1st, commission rates for Premium tier guides will increase to 18%. Check your dashboard for details.',
+      imageUrl: null,
+      priority: 'NORMAL',
+      startDate: DateTime(2026, 5, 14),
+      endDate: DateTime(2026, 6, 1),
+    ),
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -444,65 +601,100 @@ class _Announcements extends StatelessWidget {
           style: AppTextStyles.label.copyWith(fontWeight: FontWeight.w500),
         ),
         const SizedBox(height: 12),
-        BlocBuilder<NotificationsCubit, NotificationsState>(
+        BlocBuilder<AnnouncementsCubit, AnnouncementsState>(
           builder: (context, state) {
-            if (state is NotificationsLoading || state is NotificationsInitial) {
+            if (state is AnnouncementsLoading || state is AnnouncementsInitial) {
               return SizedBox(
-                height: 96,
+                height: 200,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: 3,
                   separatorBuilder: (_, _) => const SizedBox(width: 12),
-                  itemBuilder: (_, _) => _ShimmerBox(width: 240, height: 96),
+                  itemBuilder: (_, _) => _ShimmerBox(width: 220, height: 200),
                 ),
               );
             }
 
-            final notifications = state is NotificationsLoaded
-                ? state.notifications
-                : <NotificationModel>[];
-
-            if (notifications.isEmpty) {
-              return Container(
-                height: 80,
-                alignment: Alignment.center,
-                child: Text(
-                  'No announcements yet.',
-                  style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
-                ),
-              );
-            }
+            final apiItems = state is AnnouncementsLoaded ? state.announcements : <AnnouncementModel>[];
+            final announcements = [..._demoAnnouncements, ...apiItems];
 
             return SizedBox(
-              height: 96,
+              height: 200,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
-                itemCount: notifications.length,
+                itemCount: announcements.length,
                 separatorBuilder: (_, _) => const SizedBox(width: 12),
                 itemBuilder: (_, i) {
-                  final item = notifications[i];
-                  return Container(
-                    width: 240,
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border(
-                        left: BorderSide(color: AppColors.primary, width: 3),
-                      ),
+                  final item = announcements[i];
+                  return GestureDetector(
+                    onTap: () => context.push(
+                      '/home/announcement/${item.id}',
+                      extra: item,
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(item.title, style: AppTextStyles.bodyMedium),
-                        const SizedBox(height: 6),
-                        Text(
-                          item.body,
-                          style: AppTextStyles.caption,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
+                    child: Container(
+                      width: 220,
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.divider),
+                      ),
+                      clipBehavior: Clip.hardEdge,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (item.imageUrl != null)
+                            Image.network(
+                              item.imageUrl!,
+                              width: double.infinity,
+                              height: 100,
+                              fit: BoxFit.cover,
+                              errorBuilder: (ctx, e, stack) => Container(
+                                height: 100,
+                                color: AppColors.surfaceVariant,
+                                alignment: Alignment.center,
+                                child: const Icon(
+                                  Icons.image_not_supported_outlined,
+                                  color: AppColors.textHint,
+                                  size: 28,
+                                ),
+                              ),
+                            )
+                          else
+                            Container(
+                              height: 100,
+                              color: AppColors.surfaceVariant,
+                              alignment: Alignment.center,
+                              child: const Icon(
+                                Icons.campaign_outlined,
+                                color: AppColors.primary,
+                                size: 32,
+                              ),
+                            ),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    item.title,
+                                    style: AppTextStyles.bodyMedium,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    item.content,
+                                    style: AppTextStyles.caption,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 },
@@ -511,65 +703,6 @@ class _Announcements extends StatelessWidget {
           },
         ),
       ],
-    );
-  }
-}
-
-class _ProfileCompleteness extends StatelessWidget {
-  const _ProfileCompleteness();
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<ProfileCubit, ProfileState>(
-      builder: (context, state) {
-        if (state is ProfileLoading || state is ProfileInitial) {
-          return Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _ShimmerBox(width: 180, height: 16),
-                  _ShimmerBox(width: 100, height: 16),
-                ],
-              ),
-              const SizedBox(height: 8),
-              _ShimmerBox(width: double.infinity, height: 6),
-            ],
-          );
-        }
-
-        final percent = state is ProfileLoaded ? state.profile.completenessPercent : 0;
-        return Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Profile $percent% Complete', style: AppTextStyles.label),
-                GestureDetector(
-                  onTap: () => context.push(AppRoutes.editProfile),
-                  child: Text(
-                    'Complete Profile',
-                    style: AppTextStyles.caption.copyWith(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(3),
-              child: LinearProgressIndicator(
-                value: percent / 100,
-                minHeight: 6,
-                backgroundColor: AppColors.divider,
-                valueColor: const AlwaysStoppedAnimation(AppColors.primary),
-              ),
-            ),
-          ],
-        );
-      },
     );
   }
 }

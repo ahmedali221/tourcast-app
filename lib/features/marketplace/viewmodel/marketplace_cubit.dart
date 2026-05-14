@@ -16,6 +16,11 @@ class MarketplaceLoaded extends MarketplaceState {
   MarketplaceLoaded(this.apps);
 }
 
+class MarketplaceDetailLoaded extends MarketplaceState {
+  final AppModel app;
+  MarketplaceDetailLoaded(this.app);
+}
+
 class MarketplaceError extends MarketplaceState {
   final String message;
   MarketplaceError(this.message);
@@ -35,6 +40,18 @@ class MarketplaceCubit extends Cubit<MarketplaceState> {
       emit(MarketplaceLoaded(apps));
     } on DioException catch (e) {
       emit(MarketplaceError(e.response?.data['message'] ?? 'Failed to load apps'));
+    } catch (_) {
+      emit(MarketplaceError('Something went wrong. Please try again.'));
+    }
+  }
+
+  Future<void> loadAppDetails(int appId) async {
+    emit(MarketplaceLoading());
+    try {
+      final app = await _repository.getAppDetails(appId);
+      emit(MarketplaceDetailLoaded(app));
+    } on DioException catch (e) {
+      emit(MarketplaceError(e.response?.data['message'] ?? 'Failed to load app details'));
     } catch (_) {
       emit(MarketplaceError('Something went wrong. Please try again.'));
     }

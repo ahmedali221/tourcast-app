@@ -10,8 +10,10 @@ class NotificationsRepository implements INotificationsRepository {
   @override
   Future<List<NotificationModel>> getNotifications({int page = 1}) async {
     final response = await _dio.get('/guide/notifications', queryParameters: {'page': page});
-    final list = response.data['data'] as List;
-    return list.map((e) => NotificationModel.fromJson(e)).toList();
+    final raw = response.data['data'];
+    // API may return a paginated map { data: [...], meta: {...} } or a bare list
+    final list = (raw is Map ? raw['data'] : raw) as List? ?? [];
+    return list.map((e) => NotificationModel.fromJson(e as Map<String, dynamic>)).toList();
   }
 
   @override

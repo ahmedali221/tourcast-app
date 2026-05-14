@@ -7,6 +7,8 @@ class TicketModel {
   final String status;   // open | pending | closed
   final DateTime createdAt;
   final List<TicketReplyModel> replies;
+  final bool hasUnread;
+  final String? lastMessage;
 
   TicketModel({
     required this.id,
@@ -16,6 +18,8 @@ class TicketModel {
     required this.status,
     required this.createdAt,
     required this.replies,
+    this.hasUnread = false,
+    this.lastMessage,
   });
 
   TicketModel copyWith({List<TicketReplyModel>? replies}) {
@@ -27,6 +31,8 @@ class TicketModel {
       status: status,
       createdAt: createdAt,
       replies: replies ?? this.replies,
+      hasUnread: hasUnread,
+      lastMessage: lastMessage,
     );
   }
 
@@ -41,6 +47,8 @@ class TicketModel {
       replies: ((json['messages'] ?? json['replies']) as List? ?? [])
           .map((r) => TicketReplyModel.fromJson(r as Map<String, dynamic>))
           .toList(),
+      hasUnread: (json['has_unread'] as bool?) ?? false,
+      lastMessage: json['last_message'] as String?,
     );
   }
 }

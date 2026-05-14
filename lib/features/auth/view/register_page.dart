@@ -37,6 +37,7 @@ class _RegisterViewState extends State<_RegisterView> {
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   final _confirmCtrl = TextEditingController();
+  final _referralCtrl = TextEditingController();
   bool _obscurePass = true;
   bool _obscureConfirm = true;
 
@@ -46,6 +47,7 @@ class _RegisterViewState extends State<_RegisterView> {
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
     _confirmCtrl.dispose();
+    _referralCtrl.dispose();
     super.dispose();
   }
 
@@ -157,6 +159,11 @@ class _RegisterViewState extends State<_RegisterView> {
                                     () => _obscureConfirm = !_obscureConfirm),
                               ),
                             ),
+                            AppTextField(
+                              label: 'Referral Code (Optional)',
+                              controller: _referralCtrl,
+                              textCapitalization: TextCapitalization.characters,
+                            ),
                           ],
                         ),
                         // Actions block
@@ -170,6 +177,7 @@ class _RegisterViewState extends State<_RegisterView> {
                                     email: _emailCtrl.text.trim(),
                                     password: _passwordCtrl.text,
                                     passwordConfirmation: _confirmCtrl.text,
+                                    referralCode: _referralCtrl.text.trim(),
                                   );
                             }
                           },

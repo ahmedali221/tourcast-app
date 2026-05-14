@@ -16,6 +16,38 @@ class ReferralsLoaded extends ReferralsState {
   ReferralsLoaded(this.referrals);
 }
 
+class ReferralsGenerating extends ReferralsState {
+  final ReferralModel referrals;
+  ReferralsGenerating(this.referrals);
+}
+
+class ReferralLinkGenerated extends ReferralsState {
+  final ReferralModel referrals;
+  final String referralLink;
+  final String referralCode;
+  ReferralLinkGenerated({
+    required this.referrals,
+    required this.referralLink,
+    required this.referralCode,
+  });
+}
+
+class ReferralActivityLoading extends ReferralsState {
+  final ReferralModel referrals;
+  ReferralActivityLoading(this.referrals);
+}
+
+class ReferralActivityLoaded extends ReferralsState {
+  final ReferralModel referrals;
+  final ReferralActivityModel activity;
+  final int referralId;
+  ReferralActivityLoaded({
+    required this.referrals,
+    required this.activity,
+    required this.referralId,
+  });
+}
+
 class ReferralsError extends ReferralsState {
   final String message;
   ReferralsError(this.message);
@@ -39,4 +71,60 @@ class ReferralsCubit extends Cubit<ReferralsState> {
       emit(ReferralsError('Something went wrong. Please try again.'));
     }
   }
+
+  Future<void> generateReferralLink() async {
+    final current = _currentReferrals;
+    if (current != null) emit(ReferralsGenerating(current));
+    try {
+      final result = await _repository.generateReferralLink();
+      if (result.referralLink != null && result.referralCode != null) {
+        emit(ReferralLinkGenerated(
+          referrals: result.referrals,
+          referralLink: result.referralLink!,
+          referralCode: result.referralCode!,
+        ));
+      } else {
+        emit(ReferralsLoaded(result.referrals));
+      }
+    } on DioException catch (e) {
+      if (current != null) emit(ReferralsLoaded(current));
+      await Future.microtask(
+        () => emit(ReferralsError(e.response?.data['message'] ?? 'Failed to generate referral link')),
+      );
+    } catch (_) {
+      if (current != null) emit(ReferralsLoaded(current));
+      await Future.microtask(
+        () => emit(ReferralsError('Something went wrong. Please try again.')),
+      );
+    }
+  }
+
+  Future<void> loadReferralActivity(int referralId) async {
+    final current = _currentReferrals;
+    if (current != null) emit(ReferralActivityLoading(current));
+    try {
+      final activity = await _repository.getReferralActivity(referralId);
+      final referrals = current ?? await _repository.getReferrals();
+      emit(ReferralActivityLoaded(referrals: referrals, activity: activity, referralId: referralId));
+    } on DioException catch (e) {
+      if (current != null) emit(ReferralsLoaded(current));
+      await Future.microtask(
+        () => emit(ReferralsError(e.response?.data['message'] ?? 'Failed to load activity')),
+      );
+    } catch (_) {
+      if (current != null) emit(ReferralsLoaded(current));
+      await Future.microtask(
+        () => emit(ReferralsError('Something went wrong. Please try again.')),
+      );
+    }
+  }
+
+  ReferralModel? get _currentReferrals => switch (state) {
+        ReferralsLoaded s => s.referrals,
+        ReferralsGenerating s => s.referrals,
+        ReferralActivityLoading s => s.referrals,
+        ReferralActivityLoaded s => s.referrals,
+        ReferralLinkGenerated s => s.referrals,
+        _ => null,
+      };
 }

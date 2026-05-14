@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:tourguide_app/core/storage/app_storage.dart';
 import 'package:tourguide_app/features/verification/model/verification_model.dart';
 import 'package:tourguide_app/features/verification/repository/i_verification_repository.dart';
 
@@ -35,6 +36,9 @@ class VerificationCubit extends Cubit<VerificationState> {
     emit(VerificationLoading());
     try {
       final verification = await _repository.getStatus();
+      if (verification?.status != null) {
+        await AppStorage.saveVerificationStatus(verification!.status);
+      }
       emit(VerificationLoaded(verification));
     } on DioException catch (e) {
       emit(VerificationError(e.response?.data['message'] ?? 'Failed to load status'));

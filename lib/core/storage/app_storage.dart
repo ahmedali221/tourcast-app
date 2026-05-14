@@ -40,6 +40,13 @@ class AppStorage {
   static Future<String?> getUserId() =>
       _storage.read(key: StorageKeys.userId);
 
+  // ---------- Verification Status ----------
+  static Future<void> saveVerificationStatus(String status) =>
+      _storage.write(key: StorageKeys.verificationStatus, value: status);
+
+  static Future<String?> getVerificationStatus() =>
+      _storage.read(key: StorageKeys.verificationStatus);
+
   // ---------- Clear everything (logout) ----------
   static Future<void> clearAll() => _storage.deleteAll();
 }

@@ -25,6 +25,11 @@ class TicketCreated extends SupportState {}
 
 class ReplySent extends SupportState {}
 
+class TicketRefreshing extends SupportState {
+  final TicketModel ticket;
+  TicketRefreshing(this.ticket);
+}
+
 class SupportError extends SupportState {
   final String message;
   SupportError(this.message);
@@ -36,6 +41,8 @@ class SupportCubit extends Cubit<SupportState> {
   final ISupportRepository _repository;
 
   SupportCubit(this._repository) : super(SupportInitial());
+
+  bool _refreshing = false;
 
   Future<void> loadTickets() async {
     if (isClosed) return;
@@ -60,6 +67,35 @@ class SupportCubit extends Cubit<SupportState> {
       if (!isClosed) emit(SupportError(e.response?.data['message'] ?? 'Failed to load ticket'));
     } catch (_) {
       if (!isClosed) emit(SupportError('Something went wrong. Please try again.'));
+    }
+  }
+
+  // Refresh without full loading screen — drops concurrent calls until done
+  Future<void> refreshTicket(int ticketId) async {
+    if (isClosed || _refreshing) return;
+    final current = state;
+    if (current is! TicketDetailLoaded) return;
+    _refreshing = true;
+    emit(TicketRefreshing(current.ticket));
+    try {
+      final ticket = await _repository.getTicket(ticketId);
+      if (!isClosed) emit(TicketDetailLoaded(ticket));
+    } on DioException catch (e) {
+      if (!isClosed) {
+        emit(TicketDetailLoaded(current.ticket));
+        await Future.microtask(
+          () => emit(SupportError(e.response?.data['message'] ?? 'Failed to refresh')),
+        );
+      }
+    } catch (_) {
+      if (!isClosed) {
+        emit(TicketDetailLoaded(current.ticket));
+        await Future.microtask(
+          () => emit(SupportError('Something went wrong. Please try again.')),
+        );
+      }
+    } finally {
+      _refreshing = false;
     }
   }
 

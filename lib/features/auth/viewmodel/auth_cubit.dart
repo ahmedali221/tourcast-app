@@ -45,6 +45,7 @@ class AuthCubit extends Cubit<AuthState> {
     required String email,
     required String password,
     required String passwordConfirmation,
+    String? referralCode,
   }) async {
     emit(AuthLoading());
     try {
@@ -53,6 +54,7 @@ class AuthCubit extends Cubit<AuthState> {
         email: email,
         password: password,
         passwordConfirmation: passwordConfirmation,
+        referralCode: referralCode,
       );
       await AppStorage.saveToken(result.token);
       emit(AuthSuccess());

@@ -13,6 +13,7 @@ class ProfileModel {
   final double? rating;
   final int completenessPercent;
   final String verificationStatus; // PENDING | VERIFIED | REJECTED
+  final String? rejectionReason;
 
   ProfileModel({
     required this.id,
@@ -28,6 +29,7 @@ class ProfileModel {
     this.rating,
     required this.completenessPercent,
     required this.verificationStatus,
+    this.rejectionReason,
   });
 
   factory ProfileModel.fromJson(Map<String, dynamic> json) {
@@ -45,7 +47,8 @@ class ProfileModel {
       bio: p['bio'] as String?,
       rating: (p['rating'] as num?)?.toDouble(),
       completenessPercent: (p['profile_completeness_score'] as num?)?.toInt() ?? 0,
-      verificationStatus: p['verification_status'] as String? ?? 'PENDING',
+      verificationStatus: (p['verification_status'] ?? json['verification_status']) as String? ?? 'PENDING',
+      rejectionReason: p['rejection_reason'] as String?,
     );
   }
 }

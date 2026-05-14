@@ -12,6 +12,7 @@ import 'package:tourguide_app/core/theme/app_colors.dart';
 import 'package:tourguide_app/core/theme/app_text_styles.dart';
 import 'package:tourguide_app/core/utils/extensions.dart';
 import 'package:tourguide_app/core/utils/validators.dart';
+import 'package:tourguide_app/features/verification/model/verification_model.dart';
 import 'package:tourguide_app/features/verification/viewmodel/verification_cubit.dart';
 
 class VerificationPage extends StatelessWidget {
@@ -54,8 +55,7 @@ class _VerificationView extends StatelessWidget {
             );
           }
           if (state is VerificationLoaded) {
-            final v = state.verification;
-            return _BodyView(status: v?.status);
+            return _BodyView(verification: state.verification);
           }
           return const SizedBox();
         },
@@ -65,8 +65,8 @@ class _VerificationView extends StatelessWidget {
 }
 
 class _BodyView extends StatefulWidget {
-  final String? status;
-  const _BodyView({this.status});
+  final VerificationModel? verification;
+  const _BodyView({this.verification});
 
   @override
   State<_BodyView> createState() => _BodyViewState();
@@ -114,8 +114,8 @@ class _BodyViewState extends State<_BodyView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _StatusBanner(status: widget.status),
-            if (widget.status == 'VERIFIED') ...[
+            _StatusBanner(verification: widget.verification),
+            if (widget.verification?.status == 'VERIFIED') ...[
               const SizedBox(height: 16),
               _VerifiedCard(),
             ] else ...[
@@ -338,15 +338,16 @@ class _DocumentUploadCard extends StatelessWidget {
 }
 
 class _StatusBanner extends StatelessWidget {
-  final String? status;
-  const _StatusBanner({this.status});
+  final VerificationModel? verification;
+  const _StatusBanner({this.verification});
 
   @override
   Widget build(BuildContext context) {
-    if (status == null) return const SizedBox();
-    if (status == 'VERIFIED') return const SizedBox();
+    final status = verification?.status;
+    if (status == null || status == 'VERIFIED') return const SizedBox();
 
-    final (bg, border, icon, text) = status == 'REJECTED'
+    final isRejected = status == 'REJECTED';
+    final (bg, border, icon, text) = isRejected
         ? (
             AppColors.errorBg,
             AppColors.error,
@@ -360,20 +361,73 @@ class _StatusBanner extends StatelessWidget {
             'Your documents are under review. We\'ll notify you.',
           );
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: bg,
-        border: Border(left: BorderSide(color: border, width: 4)),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 18, color: border),
-          const SizedBox(width: 10),
-          Expanded(child: Text(text, style: AppTextStyles.caption.copyWith(color: AppColors.textPrimary))),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: bg,
+            border: Border(left: BorderSide(color: border, width: 4)),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, size: 18, color: border),
+              const SizedBox(width: 10),
+              Expanded(child: Text(text, style: AppTextStyles.caption.copyWith(color: AppColors.textPrimary))),
+            ],
+          ),
+        ),
+        if (isRejected && verification?.rejectionReason != null) ...[
+          const SizedBox(height: 12),
+          Text('Review Notes', style: AppTextStyles.label),
+          const SizedBox(height: 6),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.errorBg,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.error.withValues(alpha: 0.2)),
+            ),
+            child: Text(
+              verification!.rejectionReason!,
+              style: AppTextStyles.caption.copyWith(color: AppColors.textPrimary),
+            ),
+          ),
         ],
-      ),
+        if (isRejected && verification!.documentUrls.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Text('Submitted Documents', style: AppTextStyles.label),
+          const SizedBox(height: 6),
+          ...verification!.documentUrls.map(
+            (url) => Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.divider),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.insert_drive_file_outlined, size: 18, color: AppColors.textSecondary),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      url.split('/').last,
+                      style: AppTextStyles.caption,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+        const SizedBox(height: 8),
+      ],
     );
   }
 }

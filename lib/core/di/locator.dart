@@ -8,6 +8,7 @@ import 'package:tourguide_app/features/auth/repository/i_auth_repository.dart';
 import 'package:tourguide_app/features/commissions/repository/i_commissions_repository.dart';
 // import 'package:tourguide_app/features/knowledge_center/repository/i_knowledge_center_repository.dart'; // OUT OF SCOPE — Phase 2
 import 'package:tourguide_app/features/marketplace/repository/i_marketplace_repository.dart';
+import 'package:tourguide_app/features/announcements/repository/i_announcements_repository.dart';
 import 'package:tourguide_app/features/notifications/repository/i_notifications_repository.dart';
 import 'package:tourguide_app/features/profile/repository/i_profile_repository.dart';
 import 'package:tourguide_app/features/referrals/repository/i_referrals_repository.dart';
@@ -22,6 +23,7 @@ import 'package:tourguide_app/features/auth/repository/auth_repository.dart';
 import 'package:tourguide_app/features/commissions/repository/commissions_repository.dart';
 // import 'package:tourguide_app/features/knowledge_center/repository/knowledge_center_repository.dart'; // OUT OF SCOPE — Phase 2
 import 'package:tourguide_app/features/marketplace/repository/marketplace_repository.dart';
+import 'package:tourguide_app/features/announcements/repository/announcements_repository.dart';
 import 'package:tourguide_app/features/notifications/repository/notifications_repository.dart';
 import 'package:tourguide_app/features/profile/repository/profile_repository.dart';
 import 'package:tourguide_app/features/referrals/repository/referrals_repository.dart';
@@ -36,6 +38,7 @@ import 'package:tourguide_app/features/auth/viewmodel/auth_cubit.dart';
 import 'package:tourguide_app/features/commissions/viewmodel/commissions_cubit.dart';
 // import 'package:tourguide_app/features/knowledge_center/viewmodel/knowledge_center_cubit.dart'; // OUT OF SCOPE — Phase 2
 import 'package:tourguide_app/features/marketplace/viewmodel/marketplace_cubit.dart';
+import 'package:tourguide_app/features/announcements/viewmodel/announcements_cubit.dart';
 import 'package:tourguide_app/features/notifications/viewmodel/notifications_cubit.dart';
 import 'package:tourguide_app/features/profile/viewmodel/profile_cubit.dart';
 import 'package:tourguide_app/features/referrals/viewmodel/referrals_cubit.dart';
@@ -104,6 +107,10 @@ Future<void> setupLocator() async {
     () => NotificationsRepository(locator()),
   );
 
+  locator.registerLazySingleton<IAnnouncementsRepository>(
+    () => AnnouncementsRepository(locator()),
+  );
+
   // OUT OF SCOPE — Phase 2
   // locator.registerLazySingleton<IKnowledgeCenterRepository>(
   //   () => KnowledgeCenterRepository(locator()),
@@ -129,6 +136,7 @@ Future<void> setupLocator() async {
   locator.registerFactory(() => ReferralsCubit(locator()));
   locator.registerFactory(() => SupportCubit(locator()));
   locator.registerFactory(() => NotificationsCubit(locator()));
+  locator.registerFactory(() => AnnouncementsCubit(locator()));
   // locator.registerFactory(() => KnowledgeCenterCubit(locator())); // OUT OF SCOPE — Phase 2
   locator.registerFactory(() => AgreementsCubit(locator()));
 }

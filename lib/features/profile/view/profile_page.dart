@@ -11,6 +11,7 @@ import 'package:tourguide_app/core/utils/extensions.dart';
 import 'package:tourguide_app/features/auth/viewmodel/auth_cubit.dart';
 import 'package:tourguide_app/features/profile/model/profile_model.dart';
 import 'package:tourguide_app/features/profile/viewmodel/profile_cubit.dart';
+import 'package:tourguide_app/features/verification/viewmodel/verification_cubit.dart';
 import 'package:shimmer/shimmer.dart';
 
 class ProfilePage extends StatelessWidget {
@@ -22,6 +23,7 @@ class ProfilePage extends StatelessWidget {
       providers: [
         BlocProvider(create: (_) => locator<ProfileCubit>()..loadProfile()),
         BlocProvider(create: (_) => locator<AuthCubit>()),
+        BlocProvider(create: (_) => locator<VerificationCubit>()..loadStatus()),
       ],
       child: const _ProfileView(),
     );
@@ -101,7 +103,14 @@ class _BodyView extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(profile.email, style: AppTextStyles.caption),
                 const SizedBox(height: 12),
-                _VerificationBadge(status: profile.verificationStatus),
+                BlocBuilder<VerificationCubit, VerificationState>(
+                  builder: (context, state) {
+                    final status = state is VerificationLoaded
+                        ? (state.verification?.status ?? 'PENDING')
+                        : profile.verificationStatus;
+                    return _VerificationBadge(status: status);
+                  },
+                ),
               ],
             ),
           ),
@@ -150,7 +159,7 @@ class _BodyView extends StatelessWidget {
                       ? '${profile.yearsOfExperience} years'
                       : '—',
                 ),
-                if (profile.rating != null) _RatingRow(rating: profile.rating!),
+                // if (profile.rating != null) _RatingRow(rating: profile.rating!),
                 if (profile.languages.isNotEmpty) ...[
                   const SizedBox(height: 12),
                   Text('Languages', style: AppTextStyles.caption),
@@ -234,9 +243,10 @@ class _BodyView extends StatelessWidget {
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              context.read<AuthCubit>().logout();
+              await context.read<AuthCubit>().logout();
+              if (context.mounted) context.go(AppRoutes.login);
             },
             child: const Text('Logout'),
           ),
@@ -294,43 +304,6 @@ class _InfoRow extends StatelessWidget {
   }
 }
 
-class _RatingRow extends StatelessWidget {
-  final double rating;
-  const _RatingRow({required this.rating});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.divider)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text('Rating', style: AppTextStyles.caption),
-          Row(
-            children: [
-              Text(rating.toStringAsFixed(1), style: AppTextStyles.bodyMedium),
-              const SizedBox(width: 4),
-
-              ...List.generate(
-                5,
-                (i) => Icon(
-                  i < rating.round()
-                      ? Icons.star_rounded
-                      : Icons.star_outline_rounded,
-                  size: 16,
-                  color: AppColors.primary,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _VerificationBadge extends StatelessWidget {
   final String status;

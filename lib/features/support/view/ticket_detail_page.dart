@@ -76,11 +76,18 @@ class _TicketDetailViewState extends State<_TicketDetailView> {
             ),
           );
         }
-        if (state is TicketDetailLoaded) {
+        final ticket = switch (state) {
+          TicketDetailLoaded s => s.ticket,
+          TicketRefreshing s => s.ticket,
+          _ => null,
+        };
+        if (ticket != null) {
           return _TicketChat(
-            ticket: state.ticket,
+            ticket: ticket,
+            isRefreshing: state is TicketRefreshing,
             replyCtrl: _replyCtrl,
             scrollCtrl: _scrollCtrl,
+            onRefresh: () => context.read<SupportCubit>().refreshTicket(widget.ticketId),
             onSend: () {
               final msg = _replyCtrl.text.trim();
               if (msg.isNotEmpty) {
@@ -98,11 +105,20 @@ class _TicketDetailViewState extends State<_TicketDetailView> {
 
 class _TicketChat extends StatelessWidget {
   final TicketModel ticket;
+  final bool isRefreshing;
   final TextEditingController replyCtrl;
   final ScrollController scrollCtrl;
+  final VoidCallback onRefresh;
   final VoidCallback onSend;
 
-  const _TicketChat({required this.ticket, required this.replyCtrl, required this.scrollCtrl, required this.onSend});
+  const _TicketChat({
+    required this.ticket,
+    required this.isRefreshing,
+    required this.replyCtrl,
+    required this.scrollCtrl,
+    required this.onRefresh,
+    required this.onSend,
+  });
 
   Color get _statusColor {
     switch (ticket.status.toLowerCase()) {
@@ -126,6 +142,21 @@ class _TicketChat extends StatelessWidget {
       appBar: AppBar(
         title: Text('#${ticket.id} — ${ticket.subject}', overflow: TextOverflow.ellipsis),
         actions: [
+          if (isRefreshing)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12),
+              child: SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            )
+          else
+            IconButton(
+              icon: const Icon(Icons.refresh_rounded),
+              tooltip: 'Refresh',
+              onPressed: onRefresh,
+            ),
           Container(
             margin: const EdgeInsets.only(right: 16),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),

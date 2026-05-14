@@ -5,4 +5,5 @@ class StorageKeys {
   static const String guestToken = 'guest_token';
   static const String deviceToken = 'device_token';
   static const String userId = 'user_id';
+  static const String verificationStatus = 'verification_status';
 }

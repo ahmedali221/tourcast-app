@@ -10,22 +10,31 @@ class ReferralsRepository implements IReferralsRepository {
   @override
   Future<ReferralModel> getReferrals() async {
     final response = await _dio.get('/guide/referrals');
-    final data = response.data['data'];
+    final list = (response.data['data'] as List? ?? [])
+        .map((e) => ReferralEntryModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+    final meta = response.data['meta'] as Map<String, dynamic>? ?? {};
+    final total = (meta['total'] as num?)?.toInt() ?? list.length;
+    return ReferralModel(entries: list, total: total);
+  }
 
-    // API returns a paginated list of referred users (not a summary object).
-    if (data is List) {
-      final meta = response.data['meta'] as Map<String, dynamic>? ?? {};
-      return ReferralModel(
-        referralCode: '',
-        referralLink: '',
-        totalReferred: (meta['total'] as num?)?.toInt() ?? data.length,
-        totalEarned: 0,
-        referredUsers: data
-            .map((u) => ReferredUserModel.fromJson(u as Map<String, dynamic>))
-            .toList(),
-      );
-    }
+  @override
+  Future<GeneratedReferralResult> generateReferralLink() async {
+    final response = await _dio.post('/guide/referral-link');
+    final data = response.data as Map<String, dynamic>? ?? {};
+    final referrals = await getReferrals();
+    return GeneratedReferralResult(
+      referrals: referrals,
+      referralLink: data['referral_link'] as String?,
+      referralCode: data['referral_code'] as String?,
+    );
+  }
 
-    return ReferralModel.fromJson(data as Map<String, dynamic>);
+  @override
+  Future<ReferralActivityModel> getReferralActivity(int referralId) async {
+    final response = await _dio.get('/guide/referrals/$referralId/activity');
+    return ReferralActivityModel.fromJson(
+      response.data as Map<String, dynamic>? ?? {},
+    );
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -5,6 +7,7 @@ import 'package:shimmer/shimmer.dart';
 import 'package:tourguide_app/core/di/locator.dart';
 import 'package:tourguide_app/core/router/app_routes.dart';
 import 'package:tourguide_app/core/shared/widgets/empty_state.dart';
+import 'package:tourguide_app/core/shared/widgets/logout_button.dart';
 import 'package:tourguide_app/core/shared/widgets/error_view.dart';
 import 'package:tourguide_app/core/theme/app_colors.dart';
 import 'package:tourguide_app/core/theme/app_text_styles.dart';
@@ -33,6 +36,7 @@ class _SupportView extends StatefulWidget {
 
 class _SupportViewState extends State<_SupportView> {
   String? _statusFilter;
+  Timer? _pollTimer;
 
   static const _filters = [
     (label: 'All', value: null),
@@ -40,6 +44,24 @@ class _SupportViewState extends State<_SupportView> {
     (label: 'Pending', value: 'PENDING'),
     (label: 'Closed', value: 'CLOSED'),
   ];
+
+  void _syncTimer(List<TicketModel> tickets) {
+    final hasOpen = tickets.any((t) => t.status.toUpperCase() == 'OPEN');
+    if (hasOpen && _pollTimer == null) {
+      _pollTimer = Timer.periodic(const Duration(minutes: 2), (_) {
+        if (mounted) context.read<SupportCubit>().loadTickets();
+      });
+    } else if (!hasOpen && _pollTimer != null) {
+      _pollTimer!.cancel();
+      _pollTimer = null;
+    }
+  }
+
+  @override
+  void dispose() {
+    _pollTimer?.cancel();
+    super.dispose();
+  }
 
   List<TicketModel> _applyFilter(List<TicketModel> tickets) {
     if (_statusFilter == null) return tickets;
@@ -50,9 +72,14 @@ class _SupportViewState extends State<_SupportView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Support Tickets')),
+      appBar: AppBar(title: const Text('Support Tickets'), actions: [const LogoutButton()]),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => context.push(AppRoutes.newTicket),
+        onPressed: () async {
+          final created = await context.push<bool>(AppRoutes.newTicket);
+          if (created == true && context.mounted) {
+            context.read<SupportCubit>().loadTickets();
+          }
+        },
         backgroundColor: AppColors.primary,
         child: const Icon(Icons.add, color: Colors.white),
       ),
@@ -102,6 +129,7 @@ class _SupportViewState extends State<_SupportView> {
                   );
                 }
                 if (state is TicketsLoaded) {
+                  _syncTimer(state.tickets);
                   return _TicketsList(tickets: _applyFilter(state.tickets));
                 }
                 return _ShimmerView();
@@ -179,26 +207,37 @@ class _TicketCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hasUnread = ticket.hasUnread;
+
     return GestureDetector(
-      onTap: () => context.push('/support/${ticket.id}'),
+      onTap: () async {
+        await context.push('/support/${ticket.id}');
+        if (context.mounted) context.read<SupportCubit>().loadTickets();
+      },
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.divider),
+          border: Border.all(
+            color: hasUnread ? AppColors.primary.withValues(alpha: 0.35) : AppColors.divider,
+            width: hasUnread ? 1.5 : 1,
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Subject + Status badge
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
                   child: Text(
                     ticket.subject,
-                    style: AppTextStyles.bodyMedium,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      fontWeight: hasUnread ? FontWeight.w700 : FontWeight.w500,
+                    ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -222,7 +261,38 @@ class _TicketCard extends StatelessWidget {
                 ),
               ],
             ),
+            const SizedBox(height: 8),
+            // Last unread message preview + unread badge
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Text(
+                    ticket.lastMessage ?? '',
+                    style: AppTextStyles.caption.copyWith(
+                      color: hasUnread ? AppColors.textPrimary : AppColors.textSecondary,
+                      fontWeight: hasUnread ? FontWeight.w500 : FontWeight.w400,
+                      fontSize: 12,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (hasUnread) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ],
+              ],
+            ),
             const SizedBox(height: 10),
+            // Category + Priority chips + Date
             Row(
               children: [
                 _Chip(label: ticket.category, color: AppColors.primary),
