@@ -61,9 +61,10 @@ class PayoutProfileModel {
   });
 
   factory PayoutProfileModel.fromJson(Map<String, dynamic> json) {
+    final method = json['payout_method'] as Map<String, dynamic>? ?? {};
     return PayoutProfileModel(
-      payoutMethodId: (json['payout_method_id'] as num).toInt(),
-      methodName: json['method_name'] as String? ?? '',
+      payoutMethodId: (method['id'] as num).toInt(),
+      methodName: method['name'] as String? ?? '',
       details: json['details'] as Map<String, dynamic>? ?? {},
     );
   }

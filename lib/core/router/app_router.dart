@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tourguide_app/core/router/app_routes.dart';
 import 'package:tourguide_app/core/storage/app_storage.dart';
@@ -15,6 +16,9 @@ import 'package:tourguide_app/features/verification/view/verification_success_pa
 import 'package:tourguide_app/features/marketplace/view/app_details_page.dart';
 import 'package:tourguide_app/features/marketplace/view/marketplace_page.dart';
 import 'package:tourguide_app/features/wallet/view/wallet_page.dart';
+import 'package:tourguide_app/features/wallet/model/payout_profile_model.dart';
+import 'package:tourguide_app/features/wallet/view/payout_page.dart';
+import 'package:tourguide_app/features/wallet/viewmodel/wallet_cubit.dart';
 import 'package:tourguide_app/features/commissions/view/commissions_page.dart';
 import 'package:tourguide_app/features/referrals/view/referrals_page.dart';
 import 'package:tourguide_app/features/support/view/support_page.dart';
@@ -55,6 +59,21 @@ final appRouter = GoRouter(
 
     // ---------- Wallet & Finance ----------
     GoRoute(path: AppRoutes.wallet, builder: (_, _) => const WalletPage()),
+    GoRoute(
+      path: AppRoutes.payout,
+      builder: (_, state) {
+        final extra = state.extra! as Map<String, dynamic>;
+        final cubit = extra['cubit'] as WalletCubit;
+        return BlocProvider.value(
+          value: cubit,
+          child: PayoutPage(
+            balance: extra['balance'] as double,
+            methods: extra['methods'] as List<PayoutMethodModel>,
+            savedProfile: extra['savedProfile'] as PayoutProfileModel?,
+          ),
+        );
+      },
+    ),
     GoRoute(path: AppRoutes.commissions, builder: (_, _) => const CommissionsPage()),
     GoRoute(path: AppRoutes.referrals, builder: (_, _) => const ReferralsPage()),
 
