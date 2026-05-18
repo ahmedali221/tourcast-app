@@ -36,7 +36,7 @@ class AppRoutes {
   static const String ticketDetail = '/support/:id';
 
   // Notifications
-  static const String notifications = '/notifications';
+  static const String notifications = '/home/notifications';
 
   // Knowledge Center
   static const String knowledgeCenter = '/knowledge-center';

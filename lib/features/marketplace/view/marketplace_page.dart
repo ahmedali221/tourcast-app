@@ -6,7 +6,6 @@ import 'package:tourguide_app/core/shared/widgets/empty_state.dart';
 import 'package:tourguide_app/core/shared/widgets/error_view.dart';
 import 'package:tourguide_app/core/theme/app_colors.dart';
 import 'package:tourguide_app/core/theme/app_text_styles.dart';
-import 'package:tourguide_app/core/shared/widgets/logout_button.dart';
 import 'package:tourguide_app/features/marketplace/model/app_model.dart';
 import 'package:tourguide_app/features/marketplace/viewmodel/marketplace_cubit.dart';
 import 'package:shimmer/shimmer.dart';
@@ -30,10 +29,7 @@ class _MarketplaceView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Marketplace'),
-        actions: [const LogoutButton()],
-      ),
+      appBar: AppBar(title: const Text('Marketplace')),
       body: BlocBuilder<MarketplaceCubit, MarketplaceState>(
         builder: (context, state) {
           if (state is MarketplaceLoading || state is MarketplaceInitial) {
