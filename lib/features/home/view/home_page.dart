@@ -9,7 +9,6 @@ import 'package:tourguide_app/core/theme/app_text_styles.dart';
 import 'package:tourguide_app/core/utils/extensions.dart';
 import 'package:tourguide_app/features/announcements/model/announcement_model.dart';
 import 'package:tourguide_app/features/announcements/viewmodel/announcements_cubit.dart';
-import 'package:tourguide_app/features/auth/viewmodel/auth_cubit.dart';
 import 'package:tourguide_app/features/notifications/viewmodel/notifications_cubit.dart';
 import 'package:tourguide_app/features/profile/viewmodel/profile_cubit.dart';
 import 'package:tourguide_app/features/verification/viewmodel/verification_cubit.dart';
@@ -22,19 +21,13 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => locator<AuthCubit>()),
         BlocProvider(create: (_) => locator<ProfileCubit>()..loadProfile()),
         BlocProvider(create: (_) => locator<VerificationCubit>()..loadStatus()),
         BlocProvider(create: (_) => locator<WalletCubit>()..loadWallet()),
         BlocProvider(create: (_) => locator<NotificationsCubit>()..loadNotifications()),
         BlocProvider(create: (_) => locator<AnnouncementsCubit>()..loadAnnouncements()),
       ],
-      child: BlocListener<AuthCubit, AuthState>(
-        listener: (context, state) {
-          if (state is AuthInitial) context.go(AppRoutes.login);
-        },
-        child: const _HomeScaffold(),
-      ),
+      child: const _HomeScaffold(),
     );
   }
 }
@@ -42,130 +35,11 @@ class HomePage extends StatelessWidget {
 class _HomeScaffold extends StatelessWidget {
   const _HomeScaffold();
 
-  // Tab indices that are always accessible.
-  static const _allowedWhenRestricted = {3, 4}; // support, profile
-
   @override
   Widget build(BuildContext context) {
-    final verificationState = context.watch<VerificationCubit>().state;
-    final isRestricted = verificationState is VerificationLoaded &&
-        verificationState.verification != null &&
-        (verificationState.verification!.status.toUpperCase() == 'PENDING' ||
-            verificationState.verification!.status.toUpperCase() == 'REJECTED');
-
-    final selectedIndex = ValueNotifier<int>(0);
-
-    return ValueListenableBuilder<int>(
-      valueListenable: selectedIndex,
-      builder: (context, index, _) {
-        return Scaffold(
-          backgroundColor: AppColors.background,
-          body: const _DashboardBody(),
-          bottomNavigationBar: BottomNavigationBar(
-            currentIndex: index,
-            onTap: (i) {
-              if (isRestricted && !_allowedWhenRestricted.contains(i)) return;
-              switch (i) {
-                case 0:
-                  selectedIndex.value = 0;
-                case 1:
-                  context.push(AppRoutes.marketplace);
-                case 2:
-                  context.push(AppRoutes.wallet);
-                case 3:
-                  context.push(AppRoutes.support);
-                case 4:
-                  context.push(AppRoutes.profile);
-                case 5:
-                  _confirmLogout(context);
-              }
-            },
-            type: BottomNavigationBarType.fixed,
-            backgroundColor: AppColors.surface,
-            selectedItemColor: AppColors.primary,
-            unselectedItemColor: AppColors.textSecondary,
-            selectedLabelStyle: AppTextStyles.caption.copyWith(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w600,
-              fontSize: 10,
-            ),
-            unselectedLabelStyle: AppTextStyles.caption.copyWith(fontSize: 10),
-            elevation: 8,
-            items: [
-              BottomNavigationBarItem(
-                icon: _navIcon(Icons.home_outlined, 0, isRestricted),
-                activeIcon: _navIcon(Icons.home, 0, isRestricted),
-                label: 'Home',
-              ),
-              BottomNavigationBarItem(
-                icon: _navIcon(Icons.storefront_outlined, 1, isRestricted),
-                activeIcon: _navIcon(Icons.storefront, 1, isRestricted),
-                label: 'Marketplace',
-              ),
-              BottomNavigationBarItem(
-                icon: _navIcon(Icons.account_balance_wallet_outlined, 2, isRestricted),
-                activeIcon: _navIcon(Icons.account_balance_wallet, 2, isRestricted),
-                label: 'Wallet',
-              ),
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.headset_mic_outlined),
-                activeIcon: Icon(Icons.headset_mic),
-                label: 'Support',
-              ),
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.person_outline),
-                activeIcon: Icon(Icons.person),
-                label: 'Profile',
-              ),
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.logout),
-                label: 'Logout',
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _navIcon(IconData icon, int tabIndex, bool isRestricted) {
-    if (!isRestricted || _allowedWhenRestricted.contains(tabIndex)) {
-      return Icon(icon);
-    }
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Icon(icon, color: AppColors.textHint),
-        Positioned(
-          right: -4,
-          top: -4,
-          child: Icon(Icons.lock, size: 10, color: AppColors.textHint),
-        ),
-      ],
-    );
-  }
-
-  void _confirmLogout(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to logout?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await context.read<AuthCubit>().logout();
-              if (context.mounted) context.go(AppRoutes.login);
-            },
-            child: const Text('Logout'),
-          ),
-        ],
-      ),
+    return const Scaffold(
+      backgroundColor: AppColors.background,
+      body: _DashboardBody(),
     );
   }
 }
@@ -480,7 +354,7 @@ class _WalletCard extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               GestureDetector(
-                onTap: () => context.push(AppRoutes.wallet),
+                onTap: () => context.go(AppRoutes.wallet),
                 child: Container(
                   height: 36,
                   padding: const EdgeInsets.symmetric(horizontal: 16),

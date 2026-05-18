@@ -2,42 +2,50 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tourguide_app/core/router/app_routes.dart';
-
 import 'package:tourguide_app/core/theme/app_colors.dart';
 import 'package:tourguide_app/core/theme/app_text_styles.dart';
 import 'package:tourguide_app/features/auth/viewmodel/auth_cubit.dart';
+import 'package:tourguide_app/features/verification/viewmodel/verification_cubit.dart';
 
 class AppShell extends StatelessWidget {
-  final Widget child;
-  const AppShell({super.key, required this.child});
-
-  static const _tabs = [
-    AppRoutes.home,
-    AppRoutes.marketplace,
-    AppRoutes.wallet,
-    AppRoutes.support,
-    AppRoutes.profile,
-  ];
-
-  int _selectedIndex(String loc) {
-    for (int i = 0; i < _tabs.length; i++) {
-      if (loc.startsWith(_tabs[i])) return i;
-    }
-    return 0;
-  }
+  final StatefulNavigationShell navigationShell;
+  const AppShell({super.key, required this.navigationShell});
 
   @override
   Widget build(BuildContext context) {
-    final loc = GoRouterState.of(context).matchedLocation;
-    final index = _selectedIndex(loc);
+    return BlocListener<AuthCubit, AuthState>(
+      listener: (context, state) {
+        if (state is AuthInitial) context.go(AppRoutes.login);
+      },
+      child: _ShellScaffold(navigationShell: navigationShell),
+    );
+  }
+}
+
+class _ShellScaffold extends StatelessWidget {
+  final StatefulNavigationShell navigationShell;
+  const _ShellScaffold({required this.navigationShell});
+
+  static const _allowedWhenRestricted = {3, 4}; // support, profile
+
+  @override
+  Widget build(BuildContext context) {
+    final verificationState = context.watch<VerificationCubit>().state;
+    final isRestricted = verificationState is VerificationLoaded &&
+        verificationState.verification != null &&
+        (verificationState.verification!.status.toUpperCase() == 'PENDING' ||
+            verificationState.verification!.status.toUpperCase() == 'REJECTED');
+
+    final index = navigationShell.currentIndex;
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: child,
+      body: navigationShell,
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: index,
         onTap: (i) {
-          if (i < _tabs.length) context.go(_tabs[i]);
+          if (isRestricted && !_allowedWhenRestricted.contains(i)) return;
+          navigationShell.goBranch(i, initialLocation: i == index);
         },
         type: BottomNavigationBarType.fixed,
         backgroundColor: AppColors.surface,
@@ -50,28 +58,28 @@ class AppShell extends StatelessWidget {
         ),
         unselectedLabelStyle: AppTextStyles.caption.copyWith(fontSize: 10),
         elevation: 8,
-        items: const [
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
+            icon: _navIcon(Icons.home_outlined, 0, isRestricted),
+            activeIcon: _navIcon(Icons.home, 0, isRestricted),
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.storefront_outlined),
-            activeIcon: Icon(Icons.storefront),
+            icon: _navIcon(Icons.storefront_outlined, 1, isRestricted),
+            activeIcon: _navIcon(Icons.storefront, 1, isRestricted),
             label: 'Marketplace',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.account_balance_wallet_outlined),
-            activeIcon: Icon(Icons.account_balance_wallet),
+            icon: _navIcon(Icons.account_balance_wallet_outlined, 2, isRestricted),
+            activeIcon: _navIcon(Icons.account_balance_wallet, 2, isRestricted),
             label: 'Wallet',
           ),
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             icon: Icon(Icons.headset_mic_outlined),
             activeIcon: Icon(Icons.headset_mic),
             label: 'Support',
           ),
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),
             activeIcon: Icon(Icons.person),
             label: 'Profile',
@@ -81,27 +89,20 @@ class AppShell extends StatelessWidget {
     );
   }
 
-  static void showLogoutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to logout?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await context.read<AuthCubit>().logout();
-              if (context.mounted) context.go(AppRoutes.login);
-            },
-            child: const Text('Logout'),
-          ),
-        ],
-      ),
+  Widget _navIcon(IconData icon, int tabIndex, bool isRestricted) {
+    if (!isRestricted || _allowedWhenRestricted.contains(tabIndex)) {
+      return Icon(icon);
+    }
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Icon(icon, color: AppColors.textHint),
+        Positioned(
+          right: -4,
+          top: -4,
+          child: Icon(Icons.lock, size: 10, color: AppColors.textHint),
+        ),
+      ],
     );
   }
 }

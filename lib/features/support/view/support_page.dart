@@ -7,7 +7,6 @@ import 'package:shimmer/shimmer.dart';
 import 'package:tourguide_app/core/di/locator.dart';
 import 'package:tourguide_app/core/router/app_routes.dart';
 import 'package:tourguide_app/core/shared/widgets/empty_state.dart';
-import 'package:tourguide_app/core/shared/widgets/logout_button.dart';
 import 'package:tourguide_app/core/shared/widgets/error_view.dart';
 import 'package:tourguide_app/core/theme/app_colors.dart';
 import 'package:tourguide_app/core/theme/app_text_styles.dart';
@@ -72,7 +71,7 @@ class _SupportViewState extends State<_SupportView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Support Tickets'), actions: [const LogoutButton()]),
+      appBar: AppBar(title: const Text('Support Tickets')),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           final created = await context.push<bool>(AppRoutes.newTicket);
