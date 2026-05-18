@@ -50,9 +50,11 @@ class RedemptionModel {
   });
 
   factory RedemptionModel.fromJson(Map<String, dynamic> json) {
+    final user = json['redeemed_by_user'];
+    final proj = json['project'];
     return RedemptionModel(
-      userName: json['user_name'] as String? ?? 'Unknown',
-      project: json['project'] as String?,
+      userName: (user is Map ? user['name'] : null) as String? ?? 'Unknown',
+      project: (proj is Map ? proj['name'] : null) as String?,
       commissionBase: json['commission_base'] as num? ?? 0,
       redeemedAt: DateTime.parse(json['redeemed_at'] as String),
     );

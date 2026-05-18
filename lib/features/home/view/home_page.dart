@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
@@ -9,6 +10,8 @@ import 'package:tourguide_app/core/theme/app_text_styles.dart';
 import 'package:tourguide_app/core/utils/extensions.dart';
 import 'package:tourguide_app/features/announcements/model/announcement_model.dart';
 import 'package:tourguide_app/features/announcements/viewmodel/announcements_cubit.dart';
+import 'package:tourguide_app/features/home/viewmodel/home_promo_codes_cubit.dart';
+import 'package:tourguide_app/features/marketplace/model/app_model.dart';
 import 'package:tourguide_app/features/notifications/viewmodel/notifications_cubit.dart';
 import 'package:tourguide_app/features/profile/viewmodel/profile_cubit.dart';
 import 'package:tourguide_app/features/verification/viewmodel/verification_cubit.dart';
@@ -26,6 +29,7 @@ class HomePage extends StatelessWidget {
         BlocProvider(create: (_) => locator<WalletCubit>()..loadWallet()),
         BlocProvider(create: (_) => locator<NotificationsCubit>()..loadNotifications()),
         BlocProvider(create: (_) => locator<AnnouncementsCubit>()..loadAnnouncements()),
+        BlocProvider(create: (_) => locator<HomePromoCodesCubit>()..load()),
       ],
       child: const _HomeScaffold(),
     );
@@ -81,6 +85,8 @@ class _FullDashboard extends StatelessWidget {
                 _WalletCard(),
                 SizedBox(height: 20),
                 _QuickActions(),
+                SizedBox(height: 20),
+                _PromoCodesSection(),
                 SizedBox(height: 20),
                 _Announcements(),
               ]),
@@ -577,6 +583,127 @@ class _Announcements extends StatelessWidget {
           },
         ),
       ],
+    );
+  }
+}
+
+class _PromoCodesSection extends StatelessWidget {
+  const _PromoCodesSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<HomePromoCodesCubit, HomePromoCodesState>(
+      builder: (context, state) {
+        if (state is HomePromoCodesLoading || state is HomePromoCodesInitial) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('My Promo Codes', style: AppTextStyles.label.copyWith(fontWeight: FontWeight.w500)),
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 96,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: 3,
+                  separatorBuilder: (_, _) => const SizedBox(width: 12),
+                  itemBuilder: (_, _) => _ShimmerBox(width: 200, height: 96),
+                ),
+              ),
+            ],
+          );
+        }
+
+        if (state is! HomePromoCodesLoaded || state.entries.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        final entries = state.entries;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('My Promo Codes', style: AppTextStyles.label.copyWith(fontWeight: FontWeight.w500)),
+            const SizedBox(height: 12),
+            Builder(builder: (ctx) {
+              final flat = [
+                for (final e in entries)
+                  for (final code in e.codes) (app: e.app, code: code),
+              ];
+              return SizedBox(
+                height: 96,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: flat.length,
+                  separatorBuilder: (_, _) => const SizedBox(width: 12),
+                  itemBuilder: (ctx, i) => _PromoCodeCard(app: flat[i].app, code: flat[i].code),
+                ),
+              );
+            }),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _PromoCodeCard extends StatelessWidget {
+  final AppModel app;
+  final PromoCodeModel code;
+
+  const _PromoCodeCard({required this.app, required this.code});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => context.push('/marketplace/app/${app.id}'),
+      child: Container(
+        width: 200,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.divider),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              app.name,
+              style: AppTextStyles.caption.copyWith(
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    code.code,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.2,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    Clipboard.setData(ClipboardData(text: code.code));
+                    context.showSnackBar('Copied!');
+                  },
+                  child: const Icon(Icons.copy_rounded, size: 18, color: AppColors.primary),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
