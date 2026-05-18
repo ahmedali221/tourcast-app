@@ -37,6 +37,7 @@ import 'package:tourguide_app/features/agreements/viewmodel/agreements_cubit.dar
 import 'package:tourguide_app/features/auth/viewmodel/auth_cubit.dart';
 import 'package:tourguide_app/features/commissions/viewmodel/commissions_cubit.dart';
 // import 'package:tourguide_app/features/knowledge_center/viewmodel/knowledge_center_cubit.dart'; // OUT OF SCOPE — Phase 2
+import 'package:tourguide_app/features/home/viewmodel/home_promo_codes_cubit.dart';
 import 'package:tourguide_app/features/marketplace/viewmodel/marketplace_cubit.dart';
 import 'package:tourguide_app/features/announcements/viewmodel/announcements_cubit.dart';
 import 'package:tourguide_app/features/notifications/viewmodel/notifications_cubit.dart';
@@ -130,6 +131,7 @@ Future<void> setupLocator() async {
   locator.registerFactory(() => ProfileCubit(locator()));
   locator.registerFactory(() => VerificationCubit(locator()));
   locator.registerFactory(() => MarketplaceCubit(locator()));
+  locator.registerFactory(() => HomePromoCodesCubit(locator()));
   // locator.registerFactory(() => SubscriptionCubit(locator())); // OUT OF SCOPE — Phase 2
   locator.registerFactory(() => WalletCubit(locator()));
   locator.registerFactory(() => CommissionsCubit(locator()));
