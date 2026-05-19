@@ -33,14 +33,29 @@ class ProfileCubit extends Cubit<ProfileState> {
 
   Future<void> loadProfile() async {
     if (isClosed) return;
-    emit(ProfileLoading());
+
+    // Show cached data immediately to avoid loading flicker.
+    final cached = await _repository.getCachedProfile();
+    if (!isClosed) {
+      if (cached != null) {
+        emit(ProfileLoaded(cached));
+      } else {
+        emit(ProfileLoading());
+      }
+    }
+
+    // Always refresh from network in the background.
     try {
       final profile = await _repository.getProfile();
       if (!isClosed) emit(ProfileLoaded(profile));
     } on DioException catch (e) {
-      if (!isClosed) emit(ProfileError(e.response?.data['message'] ?? 'Failed to load profile'));
+      if (cached == null && !isClosed) {
+        emit(ProfileError(e.response?.data['message'] ?? 'Failed to load profile'));
+      }
     } catch (_) {
-      if (!isClosed) emit(ProfileError('Something went wrong. Please try again.'));
+      if (cached == null && !isClosed) {
+        emit(ProfileError('Something went wrong. Please try again.'));
+      }
     }
   }
 
@@ -49,7 +64,9 @@ class ProfileCubit extends Cubit<ProfileState> {
     emit(ProfileLoading());
     try {
       await _repository.updateProfile(data);
-      await loadProfile();
+      // Fetch directly — bypasses stale cache so user sees updated values immediately.
+      final profile = await _repository.getProfile();
+      if (!isClosed) emit(ProfileLoaded(profile));
     } on DioException catch (e) {
       if (!isClosed) emit(ProfileError(e.response?.data['message'] ?? 'Failed to update profile'));
     } catch (_) {
@@ -62,7 +79,9 @@ class ProfileCubit extends Cubit<ProfileState> {
     emit(ProfileLoading());
     try {
       await _repository.uploadPhoto(photo);
-      await loadProfile();
+      // Fetch directly — bypasses stale cache so user sees the new photo immediately.
+      final profile = await _repository.getProfile();
+      if (!isClosed) emit(ProfileLoaded(profile));
     } on DioException catch (e) {
       if (!isClosed) emit(ProfileError(e.response?.data['message'] ?? 'Failed to upload photo'));
     } catch (_) {

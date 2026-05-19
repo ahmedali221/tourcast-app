@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:tourguide_app/core/cache/cache_service.dart';
+import 'package:tourguide_app/core/constants/storage_keys.dart';
 import 'package:tourguide_app/features/verification/model/verification_model.dart';
 import 'package:tourguide_app/features/verification/repository/i_verification_repository.dart';
 
@@ -9,10 +11,22 @@ class VerificationRepository implements IVerificationRepository {
   VerificationRepository(this._dio);
 
   @override
+  Future<VerificationModel?> getCachedStatus() async {
+    final data = await CacheService.get(
+      StorageKeys.verificationCache,
+      ttl: CacheTTL.verification,
+    );
+    if (data == null) return null;
+    return VerificationModel.fromJson(data);
+  }
+
+  @override
   Future<VerificationModel?> getStatus() async {
     final response = await _dio.get('/guide/verification');
     if (response.data['data'] == null) return null;
-    return VerificationModel.fromJson(response.data['data']);
+    final data = response.data['data'] as Map<String, dynamic>;
+    CacheService.set(StorageKeys.verificationCache, data).ignore();
+    return VerificationModel.fromJson(data);
   }
 
   @override
