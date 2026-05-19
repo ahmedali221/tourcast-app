@@ -32,7 +32,7 @@ class PromoCodeModel {
 
   String get discountLabel => discountType == 'percent'
       ? '${discountValue.toStringAsFixed(0)}%'
-      : '${discountValue.toStringAsFixed(0)} EGP';
+      : '${discountValue.toStringAsFixed(0)} USD';
 }
 
 // GET /api/affiliate/redemptions

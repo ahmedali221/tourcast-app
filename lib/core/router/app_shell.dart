@@ -13,10 +13,23 @@ class AppShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthCubit, AuthState>(
-      listener: (context, state) {
-        if (state is AuthInitial) context.go(AppRoutes.login);
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<AuthCubit, AuthState>(
+          listener: (context, state) {
+            if (state is AuthInitial) context.go(AppRoutes.login);
+          },
+        ),
+        BlocListener<VerificationCubit, VerificationState>(
+          listener: (context, state) {
+            if (state is VerificationLoaded &&
+                state.verification != null &&
+                state.verification!.status.toUpperCase() == 'REJECTED') {
+              context.go(AppRoutes.verification);
+            }
+          },
+        ),
+      ],
       child: _ShellScaffold(navigationShell: navigationShell),
     );
   }
@@ -26,14 +39,16 @@ class _ShellScaffold extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
   const _ShellScaffold({required this.navigationShell});
 
-  static const _allowedWhenRestricted = {3, 4}; // support, profile
+  // Tabs unlocked only when verification is not blocking (support + profile).
+  static const _allowedWhenRestricted = {3, 4};
 
   @override
   Widget build(BuildContext context) {
     final verificationState = context.watch<VerificationCubit>().state;
+
     final isRestricted = verificationState is VerificationLoaded &&
-        verificationState.verification != null &&
-        (verificationState.verification!.status.toUpperCase() == 'PENDING' ||
+        (verificationState.verification == null ||
+            verificationState.verification!.status.toUpperCase() == 'PENDING' ||
             verificationState.verification!.status.toUpperCase() == 'REJECTED');
 
     final index = navigationShell.currentIndex;

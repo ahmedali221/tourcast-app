@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:tourguide_app/core/di/locator.dart';
 import 'package:tourguide_app/core/router/app_routes.dart';
 import 'package:tourguide_app/core/shared/widgets/app_button.dart';
+import 'package:tourguide_app/core/shared/widgets/nt_logo.dart';
 import 'package:tourguide_app/core/theme/app_colors.dart';
 import 'package:tourguide_app/core/theme/app_text_styles.dart';
 import 'package:tourguide_app/core/utils/extensions.dart';
@@ -42,6 +43,8 @@ class _VerifyEmailView extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  const NtLogo(size: 72),
+                  const SizedBox(height: 32),
                   Container(
                     width: 140,
                     height: 140,

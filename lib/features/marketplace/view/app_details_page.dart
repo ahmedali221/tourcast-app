@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tourguide_app/core/di/locator.dart';
 import 'package:tourguide_app/core/shared/widgets/app_button.dart';
+import 'package:tourguide_app/features/verification/viewmodel/verification_cubit.dart';
 import 'package:tourguide_app/core/shared/widgets/error_view.dart';
 import 'package:tourguide_app/core/theme/app_colors.dart';
 import 'package:tourguide_app/core/theme/app_text_styles.dart';
@@ -341,23 +342,43 @@ class _PromoCodeSectionState extends State<_PromoCodeSection> {
                 style: AppTextStyles.label.copyWith(color: AppColors.badgePending)),
             const Spacer(),
             if (!_loadingCodes)
-              GestureDetector(
-                onTap: _generating ? null : _generate,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: _generating
-                      ? const SizedBox(
-                          width: 14, height: 14,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                        )
-                      : Text('+ Generate',
-                          style: AppTextStyles.caption.copyWith(
-                              color: Colors.white, fontWeight: FontWeight.w600)),
-                ),
+              BlocBuilder<VerificationCubit, VerificationState>(
+                builder: (context, verState) {
+                  final canGenerate = verState is VerificationLoaded &&
+                      verState.verification != null &&
+                      verState.verification!.status.toUpperCase() == 'VERIFIED';
+                  return GestureDetector(
+                    onTap: _generating
+                        ? null
+                        : canGenerate
+                            ? _generate
+                            : () => context.showSnackBar(
+                                  'Promo codes are available once your account is verified.',
+                                  isError: true,
+                                ),
+                    child: Opacity(
+                      opacity: canGenerate ? 1.0 : 0.5,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: _generating
+                            ? const SizedBox(
+                                width: 14,
+                                height: 14,
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2, color: Colors.white),
+                              )
+                            : Text('+ Generate',
+                                style: AppTextStyles.caption.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600)),
+                      ),
+                    ),
+                  );
+                },
               ),
           ],
         ),
@@ -704,7 +725,7 @@ class _PromoCodeFormSheetState extends State<_PromoCodeFormSheet> {
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               decoration: InputDecoration(
                 hintText: _discountType == 'percent' ? 'e.g. 10' : 'e.g. 50',
-                suffixText: _discountType == 'percent' ? '%' : 'EGP',
+                suffixText: _discountType == 'percent' ? '%' : 'USD',
               ),
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return 'Required';

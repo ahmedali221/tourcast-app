@@ -40,9 +40,24 @@ class _ProfileView extends StatelessWidget {
       appBar: AppBar(
         title: const Text('My Profile'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.edit_outlined, color: AppColors.primary),
-            onPressed: () => context.push(AppRoutes.editProfile),
+          BlocBuilder<VerificationCubit, VerificationState>(
+            builder: (context, verState) {
+              final canEdit = verState is VerificationLoaded &&
+                  verState.verification != null &&
+                  verState.verification!.status.toUpperCase() == 'VERIFIED';
+              return IconButton(
+                icon: Icon(
+                  Icons.edit_outlined,
+                  color: canEdit ? AppColors.primary : AppColors.textHint,
+                ),
+                onPressed: canEdit
+                    ? () => context.push(AppRoutes.editProfile)
+                    : () => context.showSnackBar(
+                          'Profile editing is available once your account is verified.',
+                          isError: true,
+                        ),
+              );
+            },
           ),
         ],
       ),

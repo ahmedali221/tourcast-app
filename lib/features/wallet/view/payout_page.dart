@@ -395,7 +395,7 @@ class _AmountFormBodyState extends State<_AmountFormBody> {
               ),
               const SizedBox(height: 20),
             ],
-            _FieldLabel('Amount (EGP)'),
+            _FieldLabel('Amount (USD)'),
             const SizedBox(height: 6),
             TextFormField(
               controller: _amountCtrl,

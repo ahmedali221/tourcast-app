@@ -28,6 +28,9 @@ dependencies:
   # Routing
   go_router: ^14.6.2
 
+  # Media
+  video_player: ^2.9.2
+
   # UI Helpers
   cached_network_image: ^3.4.1
   image_picker: ^1.1.2

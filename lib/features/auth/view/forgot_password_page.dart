@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tourguide_app/core/di/locator.dart';
 import 'package:tourguide_app/core/shared/widgets/app_button.dart';
 import 'package:tourguide_app/core/shared/widgets/app_text_field.dart';
+import 'package:tourguide_app/core/shared/widgets/nt_logo.dart';
 import 'package:tourguide_app/core/theme/app_colors.dart';
 import 'package:tourguide_app/core/theme/app_text_styles.dart';
 import 'package:tourguide_app/core/utils/extensions.dart';
@@ -89,6 +90,8 @@ class _FormView extends StatelessWidget {
         child: Column(
           children: [
             const SizedBox(height: 16),
+            const NtLogo(size: 72),
+            const SizedBox(height: 24),
             Container(
               width: 96,
               height: 96,

@@ -6,6 +6,7 @@ import 'package:shimmer/shimmer.dart';
 import 'package:tourguide_app/core/di/locator.dart';
 import 'package:tourguide_app/core/router/app_routes.dart';
 import 'package:tourguide_app/core/theme/app_colors.dart';
+import 'package:tourguide_app/features/notifications/view/notifications_page.dart';
 import 'package:tourguide_app/core/theme/app_text_styles.dart';
 import 'package:tourguide_app/core/utils/extensions.dart';
 import 'package:tourguide_app/features/announcements/model/announcement_model.dart';
@@ -78,17 +79,18 @@ class _FullDashboard extends StatelessWidget {
       child: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(child: _TopBar()),
-          const SliverPadding(
-            padding: EdgeInsets.fromLTRB(24, 12, 24, 100),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(24, 12, 24, 100),
             sliver: SliverList(
               delegate: SliverChildListDelegate.fixed([
-                _WalletCard(),
-                SizedBox(height: 20),
-                _QuickActions(),
-                SizedBox(height: 20),
-                _PromoCodesSection(),
-                SizedBox(height: 20),
-                _Announcements(),
+                const _AccountStatusBanner(),
+                const _WalletCard(),
+                const SizedBox(height: 20),
+                const _QuickActions(),
+                const SizedBox(height: 20),
+                const _PromoCodesSection(),
+                const SizedBox(height: 20),
+                const _Announcements(),
               ]),
             ),
           ),
@@ -275,7 +277,7 @@ class _TopBar extends StatelessWidget {
                   IconButton(
                     icon: const Icon(Icons.notifications_outlined, size: 24),
                     color: AppColors.textPrimary,
-                    onPressed: () => context.push(AppRoutes.notifications),
+                    onPressed: () => showNotificationsTray(context),
                   ),
                   if (unread > 0)
                     Positioned(
@@ -359,24 +361,41 @@ class _WalletCard extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 16),
-              GestureDetector(
-                onTap: () => context.go(AppRoutes.wallet),
-                child: Container(
-                  height: 36,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.8), width: 1.5),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    'Request Payout',
-                    style: AppTextStyles.label.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
+              BlocBuilder<VerificationCubit, VerificationState>(
+                builder: (context, verState) {
+                  final canPayout = verState is VerificationLoaded &&
+                      verState.verification != null &&
+                      verState.verification!.status.toUpperCase() == 'VERIFIED';
+                  return GestureDetector(
+                    onTap: canPayout
+                        ? () => context.go(AppRoutes.wallet)
+                        : () => context.showSnackBar(
+                              'Payouts are available once your account is verified.',
+                              isError: true,
+                            ),
+                    child: Opacity(
+                      opacity: canPayout ? 1.0 : 0.5,
+                      child: Container(
+                        height: 36,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.8),
+                              width: 1.5),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          'Request Payout',
+                          style: AppTextStyles.label.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
             ],
           ),
@@ -440,37 +459,6 @@ class _QuickActions extends StatelessWidget {
 class _Announcements extends StatelessWidget {
   const _Announcements();
 
-  // TODO: remove when API is live
-  static final _demoAnnouncements = [
-    AnnouncementModel(
-      id: -1,
-      title: 'New Tour Package Available',
-      content: 'We\'ve launched an exclusive Nile Valley tour package for the upcoming summer season. Book early and get 20% off.',
-      imageUrl: 'https://images.unsplash.com/photo-1568322445389-f64ac2515020?w=800&q=80',
-      priority: 'HIGH',
-      startDate: DateTime(2026, 5, 1),
-      endDate: DateTime(2026, 6, 30),
-    ),
-    AnnouncementModel(
-      id: -2,
-      title: 'System Maintenance Notice',
-      content: 'The platform will be down for scheduled maintenance on May 20th from 2:00 AM to 4:00 AM (UTC). Plan accordingly.',
-      imageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80',
-      priority: 'URGENT',
-      startDate: DateTime(2026, 5, 18),
-      endDate: DateTime(2026, 5, 20),
-    ),
-    AnnouncementModel(
-      id: -3,
-      title: 'Updated Commission Rates',
-      content: 'Starting June 1st, commission rates for Premium tier guides will increase to 18%. Check your dashboard for details.',
-      imageUrl: null,
-      priority: 'NORMAL',
-      startDate: DateTime(2026, 5, 14),
-      endDate: DateTime(2026, 6, 1),
-    ),
-  ];
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -495,8 +483,7 @@ class _Announcements extends StatelessWidget {
               );
             }
 
-            final apiItems = state is AnnouncementsLoaded ? state.announcements : <AnnouncementModel>[];
-            final announcements = [..._demoAnnouncements, ...apiItems];
+            final announcements = state is AnnouncementsLoaded ? state.announcements : <AnnouncementModel>[];
 
             return SizedBox(
               height: 200,
@@ -704,6 +691,102 @@ class _PromoCodeCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _AccountStatusBanner extends StatelessWidget {
+  const _AccountStatusBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<VerificationCubit, VerificationState>(
+      builder: (context, state) {
+        if (state is! VerificationLoaded) return const SizedBox.shrink();
+
+        final verification = state.verification;
+        final rawStatus = verification?.status.toUpperCase();
+
+        // VERIFIED → no banner needed inside the full dashboard.
+        if (rawStatus == 'VERIFIED') return const SizedBox.shrink();
+
+        final Color color;
+        final Color bg;
+        final IconData icon;
+        final String title;
+        final String message;
+        final String ctaLabel;
+        final String ctaRoute;
+
+        if (rawStatus == 'PENDING') {
+          color = const Color(0xFFD4A017);
+          bg = const Color(0xFFFFF8E6);
+          icon = Icons.hourglass_top_rounded;
+          title = 'Account Under Review';
+          message =
+              'Your verification is being reviewed. You can browse the app but cannot create promo codes, referrals, or request payouts until approved.';
+          ctaLabel = 'Contact Support';
+          ctaRoute = AppRoutes.support;
+        } else {
+          // null (not submitted) — unlikely here since the dashboard only shows
+          // for VERIFIED, but guard gracefully.
+          return const SizedBox.shrink();
+        }
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 20),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: bg,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: color.withValues(alpha: 0.35), width: 1.5),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(icon, color: color, size: 18),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          color: color,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  message,
+                  style: AppTextStyles.caption.copyWith(
+                    color: color.withValues(alpha: 0.85),
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                GestureDetector(
+                  onTap: () => context.push(ctaRoute),
+                  child: Text(
+                    ctaLabel,
+                    style: AppTextStyles.caption.copyWith(
+                      color: color,
+                      fontWeight: FontWeight.w700,
+                      decoration: TextDecoration.underline,
+                      decorationColor: color,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

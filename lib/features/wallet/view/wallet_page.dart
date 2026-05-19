@@ -9,6 +9,7 @@ import 'package:tourguide_app/core/router/app_routes.dart';
 import 'package:tourguide_app/core/theme/app_colors.dart';
 import 'package:tourguide_app/core/theme/app_text_styles.dart';
 import 'package:tourguide_app/core/utils/extensions.dart';
+import 'package:tourguide_app/features/verification/viewmodel/verification_cubit.dart';
 import 'package:tourguide_app/features/wallet/model/payout_model.dart';
 import 'package:tourguide_app/features/wallet/model/wallet_model.dart';
 import 'package:tourguide_app/features/wallet/viewmodel/wallet_cubit.dart';
@@ -125,41 +126,56 @@ class _BodyView extends StatelessWidget {
                       style: AppTextStyles.heading1.copyWith(color: Colors.white),
                     ),
                     const SizedBox(height: 16),
-                    BlocBuilder<WalletCubit, WalletState>(
-                      builder: (context, state) {
-                        final isLoading = state is WalletLoading;
-                        return GestureDetector(
-                          onTap: isLoading
-                              ? null
-                              : () => context.read<WalletCubit>().openPayoutSheet(),
-                          child: Container(
-                            height: 36,
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: isLoading ? 0.4 : 0.8),
-                                width: 1.5,
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            alignment: Alignment.center,
-                            child: isLoading
-                                ? const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.white,
+                    BlocBuilder<VerificationCubit, VerificationState>(
+                      builder: (context, verState) {
+                        final canPayout = verState is VerificationLoaded &&
+                            verState.verification != null &&
+                            verState.verification!.status.toUpperCase() == 'VERIFIED';
+                        return BlocBuilder<WalletCubit, WalletState>(
+                          builder: (context, state) {
+                            final isLoading = state is WalletLoading;
+                            return GestureDetector(
+                              onTap: isLoading
+                                  ? null
+                                  : canPayout
+                                      ? () => context.read<WalletCubit>().openPayoutSheet()
+                                      : () => context.showSnackBar(
+                                            'Payouts are available once your account is verified.',
+                                            isError: true,
+                                          ),
+                              child: Opacity(
+                                opacity: canPayout ? 1.0 : 0.5,
+                                child: Container(
+                                  height: 36,
+                                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: Colors.white.withValues(alpha: isLoading ? 0.4 : 0.8),
+                                      width: 1.5,
                                     ),
-                                  )
-                                : Text(
-                                    'Request Payout',
-                                    style: AppTextStyles.label.copyWith(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
-                          ),
+                                  alignment: Alignment.center,
+                                  child: isLoading
+                                      ? const SizedBox(
+                                          width: 16,
+                                          height: 16,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.white,
+                                          ),
+                                        )
+                                      : Text(
+                                          'Request Payout',
+                                          style: AppTextStyles.label.copyWith(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                ),
+                              ),
+                            );
+                          },
                         );
                       },
                     ),
