@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:tourguide_app/core/di/locator.dart';
 import 'package:tourguide_app/core/shared/widgets/app_button.dart';
+import 'package:tourguide_app/features/verification/viewmodel/verification_cubit.dart';
 import 'package:tourguide_app/core/shared/widgets/empty_state.dart';
 import 'package:tourguide_app/core/shared/widgets/error_view.dart';
 import 'package:tourguide_app/core/theme/app_colors.dart';
@@ -115,12 +116,24 @@ class _BodyView extends StatelessWidget {
           const SizedBox(height: 20),
 
           // ── Generate button ──────────────────────────────────────────
-          AppButton(
-            label: 'Generate New Referral Code',
-            isLoading: isGenerating,
-            onPressed: isGenerating
-                ? null
-                : () => context.read<ReferralsCubit>().generateReferralLink(),
+          BlocBuilder<VerificationCubit, VerificationState>(
+            builder: (context, verState) {
+              final canGenerate = verState is VerificationLoaded &&
+                  verState.verification != null &&
+                  verState.verification!.status.toUpperCase() == 'VERIFIED';
+              return AppButton(
+                label: 'Generate New Referral Code',
+                isLoading: isGenerating,
+                onPressed: isGenerating
+                    ? null
+                    : canGenerate
+                        ? () => context.read<ReferralsCubit>().generateReferralLink()
+                        : () => context.showSnackBar(
+                              'Referral links are available once your account is verified.',
+                              isError: true,
+                            ),
+              );
+            },
           ),
           const SizedBox(height: 24),
 

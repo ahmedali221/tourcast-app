@@ -34,26 +34,49 @@ class MarketplaceCubit extends Cubit<MarketplaceState> {
   MarketplaceCubit(this._repository) : super(MarketplaceInitial());
 
   Future<void> loadApps({String? search}) async {
-    emit(MarketplaceLoading());
+    if (isClosed) return;
+
+    // Cache only applies to full catalog (not search results).
+    final bool useCache = search == null || search.isEmpty;
+    List<AppModel>? cached;
+
+    if (useCache) {
+      cached = await _repository.getCachedApps();
+    }
+
+    if (!isClosed) {
+      if (cached != null) {
+        emit(MarketplaceLoaded(cached));
+      } else {
+        emit(MarketplaceLoading());
+      }
+    }
+
+    // Always refresh from network in the background.
     try {
       final apps = await _repository.getApps(search: search);
-      emit(MarketplaceLoaded(apps));
+      if (!isClosed) emit(MarketplaceLoaded(apps));
     } on DioException catch (e) {
-      emit(MarketplaceError(e.response?.data['message'] ?? 'Failed to load apps'));
+      if (cached == null && !isClosed) {
+        emit(MarketplaceError(e.response?.data['message'] ?? 'Failed to load apps'));
+      }
     } catch (_) {
-      emit(MarketplaceError('Something went wrong. Please try again.'));
+      if (cached == null && !isClosed) {
+        emit(MarketplaceError('Something went wrong. Please try again.'));
+      }
     }
   }
 
   Future<void> loadAppDetails(int appId) async {
+    if (isClosed) return;
     emit(MarketplaceLoading());
     try {
       final app = await _repository.getAppDetails(appId);
-      emit(MarketplaceDetailLoaded(app));
+      if (!isClosed) emit(MarketplaceDetailLoaded(app));
     } on DioException catch (e) {
-      emit(MarketplaceError(e.response?.data['message'] ?? 'Failed to load app details'));
+      if (!isClosed) emit(MarketplaceError(e.response?.data['message'] ?? 'Failed to load app details'));
     } catch (_) {
-      emit(MarketplaceError('Something went wrong. Please try again.'));
+      if (!isClosed) emit(MarketplaceError('Something went wrong. Please try again.'));
     }
   }
 }

@@ -24,13 +24,14 @@ import 'package:tourguide_app/features/referrals/view/referrals_page.dart';
 import 'package:tourguide_app/features/support/view/support_page.dart';
 import 'package:tourguide_app/features/support/view/new_ticket_page.dart';
 import 'package:tourguide_app/features/support/view/ticket_detail_page.dart';
-import 'package:tourguide_app/features/notifications/view/notifications_page.dart';
 import 'package:tourguide_app/features/agreements/view/agreements_page.dart';
 import 'package:tourguide_app/features/home/view/home_page.dart';
 import 'package:tourguide_app/features/announcements/view/announcement_detail_page.dart';
 import 'package:tourguide_app/features/announcements/model/announcement_model.dart';
 import 'package:tourguide_app/core/di/locator.dart';
+import 'package:tourguide_app/core/notifications/local_notification_service.dart';
 import 'package:tourguide_app/features/auth/viewmodel/auth_cubit.dart';
+import 'package:tourguide_app/features/notifications/view/notifications_full_page.dart';
 import 'package:tourguide_app/features/verification/viewmodel/verification_cubit.dart';
 
 final appRouter = GoRouter(
@@ -69,13 +70,15 @@ final appRouter = GoRouter(
               routes: [
                 GoRoute(
                   path: 'announcement/:id',
-                  builder: (_, state) => AnnouncementDetailPage(
-                    announcement: state.extra! as AnnouncementModel,
-                  ),
+                  builder: (_, state) {
+                    final announcement = state.extra as AnnouncementModel?;
+                    if (announcement == null) return const _MissingExtraPage();
+                    return AnnouncementDetailPage(announcement: announcement);
+                  },
                 ),
                 GoRoute(
                   path: 'notifications',
-                  builder: (_, _) => const NotificationsPage(),
+                  builder: (_, _) => const NotificationsFullPage(),
                 ),
               ],
             ),
@@ -175,6 +178,18 @@ final appRouter = GoRouter(
   ],
 );
 
+class _MissingExtraPage extends StatelessWidget {
+  const _MissingExtraPage();
+
+  @override
+  Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (context.canPop()) context.pop();
+    });
+    return const SizedBox.shrink();
+  }
+}
+
 Future<String?> _redirect(BuildContext context, GoRouterState state) async {
   final token = await AppStorage.getToken();
   final isLoggedIn = token != null;
@@ -184,5 +199,12 @@ Future<String?> _redirect(BuildContext context, GoRouterState state) async {
 
   if (!isLoggedIn && !isOnAuthPage) return AppRoutes.login;
   if (isLoggedIn && isOnAuthPage) return AppRoutes.home;
+
+  // One-shot deep-link from a cold-start notification tap.
+  if (isLoggedIn) {
+    final pending = locator<LocalNotificationService>().consumePendingRoute();
+    if (pending != null) return pending;
+  }
+
   return null;
 }

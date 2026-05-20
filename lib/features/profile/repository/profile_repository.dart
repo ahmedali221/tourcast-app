@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:tourguide_app/core/cache/cache_service.dart';
+import 'package:tourguide_app/core/constants/storage_keys.dart';
 import 'package:tourguide_app/features/profile/model/profile_model.dart';
 import 'package:tourguide_app/features/profile/repository/i_profile_repository.dart';
 
@@ -9,9 +11,21 @@ class ProfileRepository implements IProfileRepository {
   ProfileRepository(this._dio);
 
   @override
+  Future<ProfileModel?> getCachedProfile() async {
+    final data = await CacheService.get(
+      StorageKeys.profileCache,
+      ttl: CacheTTL.profile,
+    );
+    if (data == null) return null;
+    return ProfileModel.fromJson(data);
+  }
+
+  @override
   Future<ProfileModel> getProfile() async {
     final response = await _dio.get('/guide/profile');
-    return ProfileModel.fromJson(response.data['data']);
+    final data = response.data['data'] as Map<String, dynamic>;
+    CacheService.set(StorageKeys.profileCache, data).ignore();
+    return ProfileModel.fromJson(data);
   }
 
   @override

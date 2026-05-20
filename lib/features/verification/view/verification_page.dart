@@ -78,7 +78,8 @@ class _BodyViewState extends State<_BodyView> {
   final _nationalIdCtrl = TextEditingController();
   final _licenseCtrl = TextEditingController();
 
-  File? _nationalIdFile;
+  File? _nationalIdFrontFile;
+  File? _nationalIdBackFile;
   File? _licenseFile;
 
   @override
@@ -89,12 +90,14 @@ class _BodyViewState extends State<_BodyView> {
     super.dispose();
   }
 
-  Future<void> _pickNationalId() async {
-    final picked = await ImagePicker().pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 80,
-    );
-    if (picked != null) setState(() => _nationalIdFile = File(picked.path));
+  Future<void> _pickNationalIdFront() async {
+    final picked = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 80);
+    if (picked != null) setState(() => _nationalIdFrontFile = File(picked.path));
+  }
+
+  Future<void> _pickNationalIdBack() async {
+    final picked = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 80);
+    if (picked != null) setState(() => _nationalIdBackFile = File(picked.path));
   }
 
   Future<void> _pickLicense() async {
@@ -148,13 +151,23 @@ class _BodyViewState extends State<_BodyView> {
               ),
               const SizedBox(height: 16),
               _DocumentUploadCard(
-                title: 'National ID Photo',
+                title: 'National ID — Front',
                 subtitle: 'Front side of your national ID card',
                 acceptedFormats: 'JPEG or PNG • Max 2 MB',
                 icon: Icons.badge_outlined,
-                fileName: _nationalIdFile?.uri.pathSegments.last,
-                onTap: _pickNationalId,
-                onRemove: () => setState(() => _nationalIdFile = null),
+                fileName: _nationalIdFrontFile?.uri.pathSegments.last,
+                onTap: _pickNationalIdFront,
+                onRemove: () => setState(() => _nationalIdFrontFile = null),
+              ),
+              const SizedBox(height: 12),
+              _DocumentUploadCard(
+                title: 'National ID — Back',
+                subtitle: 'Back side of your national ID card',
+                acceptedFormats: 'JPEG or PNG • Max 2 MB',
+                icon: Icons.badge_outlined,
+                fileName: _nationalIdBackFile?.uri.pathSegments.last,
+                onTap: _pickNationalIdBack,
+                onRemove: () => setState(() => _nationalIdBackFile = null),
               ),
               const SizedBox(height: 12),
               _DocumentUploadCard(
@@ -175,7 +188,8 @@ class _BodyViewState extends State<_BodyView> {
                           passportNumber: _passportCtrl.text.trim(),
                           nationalId: _nationalIdCtrl.text.trim(),
                           guideLicenseNumber: _licenseCtrl.text.trim(),
-                          nationalIdFile: _nationalIdFile,
+                          nationalIdFrontFile: _nationalIdFrontFile,
+                          nationalIdBackFile: _nationalIdBackFile,
                           licenseFile: _licenseFile,
                         );
                   }

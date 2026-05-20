@@ -30,14 +30,29 @@ class AnnouncementsCubit extends Cubit<AnnouncementsState> {
 
   Future<void> loadAnnouncements() async {
     if (isClosed) return;
-    emit(AnnouncementsLoading());
+
+    // Show cached announcements immediately to avoid loading flicker.
+    final cached = await _repository.getCachedAnnouncements();
+    if (!isClosed) {
+      if (cached != null) {
+        emit(AnnouncementsLoaded(cached));
+      } else {
+        emit(AnnouncementsLoading());
+      }
+    }
+
+    // Always refresh from network in the background.
     try {
       final announcements = await _repository.getAnnouncements();
       if (!isClosed) emit(AnnouncementsLoaded(announcements));
     } on DioException catch (e) {
-      if (!isClosed) emit(AnnouncementsError(e.response?.data['message'] ?? 'Failed to load announcements'));
+      if (cached == null && !isClosed) {
+        emit(AnnouncementsError(e.response?.data['message'] ?? 'Failed to load announcements'));
+      }
     } catch (_) {
-      if (!isClosed) emit(AnnouncementsError('Something went wrong. Please try again.'));
+      if (cached == null && !isClosed) {
+        emit(AnnouncementsError('Something went wrong. Please try again.'));
+      }
     }
   }
 }

@@ -40,9 +40,24 @@ class _ProfileView extends StatelessWidget {
       appBar: AppBar(
         title: const Text('My Profile'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.edit_outlined, color: AppColors.primary),
-            onPressed: () => context.push(AppRoutes.editProfile),
+          BlocBuilder<VerificationCubit, VerificationState>(
+            builder: (context, verState) {
+              final canEdit = verState is VerificationLoaded &&
+                  verState.verification != null &&
+                  verState.verification!.status.toUpperCase() == 'VERIFIED';
+              return IconButton(
+                icon: Icon(
+                  Icons.edit_outlined,
+                  color: canEdit ? AppColors.primary : AppColors.textHint,
+                ),
+                onPressed: canEdit
+                    ? () => context.push(AppRoutes.editProfile)
+                    : () => context.showSnackBar(
+                          'Profile editing is available once your account is verified.',
+                          isError: true,
+                        ),
+              );
+            },
           ),
         ],
       ),
@@ -234,17 +249,17 @@ class _BodyView extends StatelessWidget {
   void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Logout'),
         content: const Text('Are you sure you want to logout?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () async {
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
               await context.read<AuthCubit>().logout();
               if (context.mounted) context.go(AppRoutes.login);
             },
@@ -258,19 +273,19 @@ class _BodyView extends StatelessWidget {
   void _showDeleteDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Delete Account'),
         content: const Text(
           'This action is permanent and cannot be undone. Are you sure?',
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () {
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
               context.read<ProfileCubit>().deleteAccount();
             },
             child: Text('Delete', style: TextStyle(color: AppColors.error)),

@@ -32,7 +32,7 @@ class PromoCodeModel {
 
   String get discountLabel => discountType == 'percent'
       ? '${discountValue.toStringAsFixed(0)}%'
-      : '${discountValue.toStringAsFixed(0)} EGP';
+      : '${discountValue.toStringAsFixed(0)} USD';
 }
 
 // GET /api/affiliate/redemptions
@@ -66,7 +66,9 @@ class AppModel {
   final int id;
   final String name;
   final String description;
+  final String? fullDescription;
   final String? iconUrl;
+  final String? videoUrl;
   final String? category;
   final String status;
   final bool havePromoCode;
@@ -78,7 +80,9 @@ class AppModel {
     required this.id,
     required this.name,
     required this.description,
+    this.fullDescription,
     this.iconUrl,
+    this.videoUrl,
     this.category,
     required this.status,
     required this.havePromoCode,
@@ -92,7 +96,9 @@ class AppModel {
       id: (json['id'] as num).toInt(),
       name: json['name'] as String,
       description: json['short_description'] as String? ?? '',
+      fullDescription: json['description'] as String?,
       iconUrl: json['icon_url'] as String?,
+      videoUrl: json['video_url'] as String?,
       category: json['category'] as String?,
       status: json['status'] as String? ?? '',
       havePromoCode: json['have_promo_code'] as bool? ?? false,

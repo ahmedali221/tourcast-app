@@ -12,8 +12,8 @@ extension StringExtensions on String {
 }
 
 extension DoubleExtensions on double {
-  // Format a number as currency: 1500.5 → "1,500.50 EGP"
-  String toCurrency({String symbol = 'EGP'}) {
+  // Format a number as currency: 1500.5 → "1,500.50 USD"
+  String toCurrency({String symbol = 'USD'}) {
     return '${NumberFormat('#,##0.00').format(this)} $symbol';
   }
 }

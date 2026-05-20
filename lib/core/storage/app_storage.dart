@@ -1,4 +1,5 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:tourguide_app/core/cache/cache_service.dart';
 import 'package:tourguide_app/core/constants/storage_keys.dart';
 
 // Wraps FlutterSecureStorage so the rest of the app never touches it directly.
@@ -48,5 +49,8 @@ class AppStorage {
       _storage.read(key: StorageKeys.verificationStatus);
 
   // ---------- Clear everything (logout) ----------
-  static Future<void> clearAll() => _storage.deleteAll();
+  static Future<void> clearAll() => Future.wait([
+        _storage.deleteAll(),
+        CacheService.clearAll(),
+      ]);
 }
