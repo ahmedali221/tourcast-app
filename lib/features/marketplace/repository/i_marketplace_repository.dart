@@ -9,8 +9,7 @@ abstract class IMarketplaceRepository {
 
   Future<PromoCodeModel> generatePromoCode({
     required int appId,
-    required String discountType,
-    required num discountValue,
+    String? code,
   });
 
   Future<List<PromoCodeModel>> getPromoCodes({required int appId});

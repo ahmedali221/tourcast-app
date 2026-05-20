@@ -42,13 +42,11 @@ class MarketplaceRepository implements IMarketplaceRepository {
   @override
   Future<PromoCodeModel> generatePromoCode({
     required int appId,
-    required String discountType,
-    required num discountValue,
+    String? code,
   }) async {
     final response = await _dio.post('/affiliate/promo-codes', data: {
       'app_id': appId,
-      'discount_type': discountType,
-      'discount_value': discountValue,
+      if (code != null && code.isNotEmpty) 'code': code,
     });
     return PromoCodeModel.fromJson(response.data['data'] as Map<String, dynamic>);
   }
