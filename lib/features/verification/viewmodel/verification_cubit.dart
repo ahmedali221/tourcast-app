@@ -69,7 +69,8 @@ class VerificationCubit extends Cubit<VerificationState> {
     required String passportNumber,
     required String nationalId,
     required String guideLicenseNumber,
-    File? nationalIdFile,
+    File? nationalIdFrontFile,
+    File? nationalIdBackFile,
     File? licenseFile,
   }) async {
     if (isClosed) return;
@@ -79,7 +80,8 @@ class VerificationCubit extends Cubit<VerificationState> {
         passportNumber: passportNumber,
         nationalId: nationalId,
         guideLicenseNumber: guideLicenseNumber,
-        nationalIdFile: nationalIdFile,
+        nationalIdFrontFile: nationalIdFrontFile,
+        nationalIdBackFile: nationalIdBackFile,
         licenseFile: licenseFile,
       );
       // Stale cache would show old status — invalidate so next loadStatus fetches fresh.

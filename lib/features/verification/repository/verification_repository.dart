@@ -34,24 +34,31 @@ class VerificationRepository implements IVerificationRepository {
     required String passportNumber,
     required String nationalId,
     required String guideLicenseNumber,
-    File? nationalIdFile,
+    File? nationalIdFrontFile,
+    File? nationalIdBackFile,
     File? licenseFile,
   }) async {
-    final formData = FormData.fromMap({
-      'passport_number': passportNumber,
-      'national_id': nationalId,
-      'guide_license_number': guideLicenseNumber,
-      if (nationalIdFile != null)
-        'national_id_photo': await MultipartFile.fromFile(
-          nationalIdFile.path,
-          filename: nationalIdFile.uri.pathSegments.last,
-        ),
-      if (licenseFile != null)
-        'guide_license': await MultipartFile.fromFile(
-          licenseFile.path,
-          filename: licenseFile.uri.pathSegments.last,
-        ),
-    });
+    final formData = FormData();
+    formData.fields.addAll([
+      MapEntry('passport_number', passportNumber),
+      MapEntry('national_id', nationalId),
+      MapEntry('guide_license_number', guideLicenseNumber),
+    ]);
+    if (nationalIdFrontFile != null) {
+      formData.files.add(MapEntry('national_id_images[]',
+          await MultipartFile.fromFile(nationalIdFrontFile.path,
+              filename: nationalIdFrontFile.uri.pathSegments.last)));
+    }
+    if (nationalIdBackFile != null) {
+      formData.files.add(MapEntry('national_id_images[]',
+          await MultipartFile.fromFile(nationalIdBackFile.path,
+              filename: nationalIdBackFile.uri.pathSegments.last)));
+    }
+    if (licenseFile != null) {
+      formData.files.add(MapEntry('guide_license_images[]',
+          await MultipartFile.fromFile(licenseFile.path,
+              filename: licenseFile.uri.pathSegments.last)));
+    }
     await _dio.post('/guide/verification', data: formData);
   }
 }

@@ -69,7 +69,7 @@ class _VerifyEmailView extends StatelessWidget {
                   const SizedBox(height: 32),
                   AppButton(
                     label: "I've Verified, Continue",
-                    onPressed: () => context.go(AppRoutes.home),
+                    onPressed: () => context.go(AppRoutes.verification),
                   ),
                   const SizedBox(height: 12),
                   TextButton(

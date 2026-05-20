@@ -116,7 +116,7 @@ class _NotificationsTrayState extends State<_NotificationsTray>
                       builder: (context, state) {
                         if (state is NotificationsLoading ||
                             state is NotificationsInitial) {
-                          return _ShimmerView();
+                          return NotificationsShimmerView();
                         }
                         if (state is NotificationsError) {
                           return _ErrorView(
@@ -126,9 +126,9 @@ class _NotificationsTrayState extends State<_NotificationsTray>
                           );
                         }
                         if (state is NotificationsLoaded) {
-                          return _BodyView(notifications: state.notifications);
+                          return NotificationsBodyView(notifications: state.notifications);
                         }
-                        return _ShimmerView();
+                        return NotificationsShimmerView();
                       },
                     ),
                   ),
@@ -193,9 +193,9 @@ class _TrayHeader extends StatelessWidget {
   }
 }
 
-class _BodyView extends StatelessWidget {
+class NotificationsBodyView extends StatelessWidget {
   final List<NotificationModel> notifications;
-  const _BodyView({required this.notifications});
+  const NotificationsBodyView({super.key, required this.notifications});
 
   @override
   Widget build(BuildContext context) {
@@ -423,7 +423,9 @@ class _ErrorView extends StatelessWidget {
   }
 }
 
-class _ShimmerView extends StatelessWidget {
+class NotificationsShimmerView extends StatelessWidget {
+  const NotificationsShimmerView({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Shimmer.fromColors(

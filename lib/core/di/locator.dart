@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:tourguide_app/core/network/api_client.dart';
+import 'package:tourguide_app/core/notifications/local_notification_service.dart';
 
 // --- Feature Repositories (interfaces) ---
 import 'package:tourguide_app/features/agreements/repository/i_agreements_repository.dart';
@@ -60,6 +61,10 @@ Future<void> setupLocator() async {
 
   // The single Dio instance shared by every repository.
   locator.registerSingleton<Dio>(ApiClient.dio);
+
+  locator.registerLazySingleton<LocalNotificationService>(
+    () => LocalNotificationService(),
+  );
 
   // ----------------------------------------------------------------
   // 2. REPOSITORIES

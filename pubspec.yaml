@@ -40,6 +40,10 @@ dependencies:
   # Cache
   shared_preferences: ^2.3.2
 
+  # Background sync & local notifications
+  workmanager: ^0.9.0+3
+  flutter_local_notifications: ^18.0.1
+
   # Utils
   intl: ^0.19.0
   connectivity_plus: ^6.1.1

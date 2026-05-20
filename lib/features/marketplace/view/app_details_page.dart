@@ -1,6 +1,8 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:tourguide_app/core/di/locator.dart';
 import 'package:tourguide_app/core/shared/widgets/app_button.dart';
 import 'package:tourguide_app/features/verification/viewmodel/verification_cubit.dart';
@@ -11,6 +13,7 @@ import 'package:tourguide_app/core/utils/extensions.dart';
 import 'package:tourguide_app/features/marketplace/model/app_model.dart';
 import 'package:tourguide_app/features/marketplace/repository/i_marketplace_repository.dart';
 import 'package:tourguide_app/features/marketplace/viewmodel/marketplace_cubit.dart';
+import 'package:video_player/video_player.dart';
 
 class AppDetailsPage extends StatelessWidget {
   final String appId;
@@ -106,21 +109,7 @@ class _AppDetailsView extends StatelessWidget {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Container(
-                          width: 72, height: 72,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(18),
-                            border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.3), width: 1.5),
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            app.name.isNotEmpty ? app.name[0].toUpperCase() : '?',
-                            style: AppTextStyles.heading1
-                                .copyWith(color: Colors.white, fontSize: 32),
-                          ),
-                        ),
+                        _AppIcon(iconUrl: app.iconUrl, bg: bg, size: 72, fallbackLabel: app.name),
                         const SizedBox(width: 16),
                         Expanded(
                           child: Column(
@@ -154,37 +143,31 @@ class _AppDetailsView extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                // Badges row
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: [
-                    _Badge(
-                      icon: isFree
-                          ? Icons.check_circle_outline
-                          : Icons.workspace_premium_outlined,
-                      label: isFree ? 'Free' : _planSummary(app.plans),
-                      color: isFree ? AppColors.success : AppColors.primary,
-                    ),
-                    _Badge(
-                      icon: app.havePromoCode
-                          ? Icons.local_offer
-                          : Icons.local_offer_outlined,
-                      label: app.havePromoCode
-                          ? 'Promo code available'
-                          : 'No promo code',
-                      color: app.havePromoCode
-                          ? AppColors.badgePending
-                          : AppColors.textSecondary,
-                    ),
-                    if (app.category != null)
+                // Category badge (only if present)
+                if (app.category != null)
+                  Wrap(
+                    children: [
                       _Badge(
                         icon: Icons.category_outlined,
                         label: app.category!,
                         color: AppColors.textSecondary,
                       ),
-                  ],
-                ),
+                    ],
+                  ),
+
+                // About section
+                if (app.fullDescription != null && app.fullDescription!.isNotEmpty) ...[
+                  const SizedBox(height: 24),
+                  Text('About', style: AppTextStyles.label),
+                  const SizedBox(height: 8),
+                  Text(app.fullDescription!, style: AppTextStyles.body),
+                ],
+
+                // Video preview
+                if (app.videoUrl != null) ...[
+                  const SizedBox(height: 24),
+                  _VideoSection(url: app.videoUrl!),
+                ],
 
                 // Promo code section
                 if (app.havePromoCode) ...[
@@ -218,10 +201,147 @@ class _AppDetailsView extends StatelessWidget {
     );
   }
 
-  String _planSummary(List<PlanModel> plans) {
-    if (plans.isEmpty) return 'Paid';
-    final lowest = plans.map((p) => p.price).reduce((a, b) => a < b ? a : b);
-    return 'From \$${lowest.toStringAsFixed(0)} / mo';
+}
+
+// ── App icon with network image + shimmer placeholder + letter fallback ───────
+
+class _AppIcon extends StatelessWidget {
+  final String? iconUrl;
+  final Color bg;
+  final double size;
+  final String fallbackLabel;
+
+  const _AppIcon({
+    required this.iconUrl,
+    required this.bg,
+    required this.size,
+    required this.fallbackLabel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = size * 0.25;
+    final letterWidget = Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(radius),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1.5),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        fallbackLabel.isNotEmpty ? fallbackLabel[0].toUpperCase() : '?',
+        style: AppTextStyles.heading1.copyWith(color: Colors.white, fontSize: size * 0.44),
+      ),
+    );
+
+    if (iconUrl == null) return letterWidget;
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(radius),
+      child: CachedNetworkImage(
+        imageUrl: iconUrl!,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        placeholder: (_, _) => Shimmer.fromColors(
+          baseColor: AppColors.shimmerBase,
+          highlightColor: AppColors.shimmerHighlight,
+          child: Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(radius),
+            ),
+          ),
+        ),
+        errorWidget: (_, _, _) => letterWidget,
+      ),
+    );
+  }
+}
+
+// ── Inline video player ───────────────────────────────────────────────────────
+
+class _VideoSection extends StatefulWidget {
+  final String url;
+  const _VideoSection({required this.url});
+
+  @override
+  State<_VideoSection> createState() => _VideoSectionState();
+}
+
+class _VideoSectionState extends State<_VideoSection> {
+  late VideoPlayerController _ctrl;
+  bool _initialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = VideoPlayerController.networkUrl(Uri.parse(widget.url))
+      ..initialize().then((_) {
+        if (mounted) setState(() => _initialized = true);
+      });
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Preview', style: AppTextStyles.label),
+        const SizedBox(height: 8),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: _initialized
+              ? AspectRatio(
+                  aspectRatio: _ctrl.value.aspectRatio,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      VideoPlayer(_ctrl),
+                      GestureDetector(
+                        onTap: () {
+                          if (_ctrl.value.isPlaying) {
+                            _ctrl.pause().then((_) { if (mounted) setState(() {}); });
+                          } else {
+                            _ctrl.play().then((_) { if (mounted) setState(() {}); });
+                          }
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.35),
+                            shape: BoxShape.circle,
+                          ),
+                          padding: const EdgeInsets.all(12),
+                          child: Icon(
+                            _ctrl.value.isPlaying ? Icons.pause : Icons.play_arrow,
+                            color: Colors.white,
+                            size: 32,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: Container(
+                    color: AppColors.surfaceVariant,
+                    child: const Center(child: CircularProgressIndicator()),
+                  ),
+                ),
+        ),
+      ],
+    );
   }
 }
 

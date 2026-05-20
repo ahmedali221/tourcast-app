@@ -10,7 +10,8 @@ abstract class IVerificationRepository {
     required String passportNumber,
     required String nationalId,
     required String guideLicenseNumber,
-    File? nationalIdFile,
+    File? nationalIdFrontFile,
+    File? nationalIdBackFile,
     File? licenseFile,
   });
 }

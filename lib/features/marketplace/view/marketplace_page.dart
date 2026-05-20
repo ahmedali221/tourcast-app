@@ -1,6 +1,8 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:tourguide_app/core/di/locator.dart';
 import 'package:tourguide_app/core/shared/widgets/empty_state.dart';
 import 'package:tourguide_app/core/shared/widgets/error_view.dart';
@@ -8,7 +10,6 @@ import 'package:tourguide_app/core/theme/app_colors.dart';
 import 'package:tourguide_app/core/theme/app_text_styles.dart';
 import 'package:tourguide_app/features/marketplace/model/app_model.dart';
 import 'package:tourguide_app/features/marketplace/viewmodel/marketplace_cubit.dart';
-import 'package:shimmer/shimmer.dart';
 
 class MarketplacePage extends StatelessWidget {
   const MarketplacePage({super.key});
@@ -174,49 +175,13 @@ class _AppCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                color: bg,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(color: bg.withValues(alpha: 0.35), blurRadius: 12, offset: const Offset(0, 4)),
-                ],
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                app.name.isNotEmpty ? app.name[0] : '?',
-                style: AppTextStyles.heading1.copyWith(color: Colors.white, fontSize: 26),
-              ),
-            ),
+            _AppIcon(iconUrl: app.iconUrl, bg: bg, size: 64, fallbackLabel: app.name),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(app.name, style: AppTextStyles.bodyMedium),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: AppColors.success.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          'Free',
-                          style: AppTextStyles.caption.copyWith(
-                            color: AppColors.success,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 11,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                  Text(app.name, style: AppTextStyles.bodyMedium),
                   const SizedBox(height: 6),
                   Text(
                     app.description,
@@ -256,6 +221,64 @@ class _AppCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _AppIcon extends StatelessWidget {
+  final String? iconUrl;
+  final Color bg;
+  final double size;
+  final String fallbackLabel;
+
+  const _AppIcon({
+    required this.iconUrl,
+    required this.bg,
+    required this.size,
+    required this.fallbackLabel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = size * 0.25;
+    final letterWidget = Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(radius),
+        boxShadow: [BoxShadow(color: bg.withValues(alpha: 0.35), blurRadius: 12, offset: const Offset(0, 4))],
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        fallbackLabel.isNotEmpty ? fallbackLabel[0] : '?',
+        style: AppTextStyles.heading1.copyWith(color: Colors.white, fontSize: size * 0.4),
+      ),
+    );
+
+    if (iconUrl == null) return letterWidget;
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(radius),
+      child: CachedNetworkImage(
+        imageUrl: iconUrl!,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        placeholder: (_, _) => Shimmer.fromColors(
+          baseColor: AppColors.shimmerBase,
+          highlightColor: AppColors.shimmerHighlight,
+          child: Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(radius),
+            ),
+          ),
+        ),
+        errorWidget: (_, _, _) => letterWidget,
       ),
     );
   }

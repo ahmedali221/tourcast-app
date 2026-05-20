@@ -29,7 +29,9 @@ import 'package:tourguide_app/features/home/view/home_page.dart';
 import 'package:tourguide_app/features/announcements/view/announcement_detail_page.dart';
 import 'package:tourguide_app/features/announcements/model/announcement_model.dart';
 import 'package:tourguide_app/core/di/locator.dart';
+import 'package:tourguide_app/core/notifications/local_notification_service.dart';
 import 'package:tourguide_app/features/auth/viewmodel/auth_cubit.dart';
+import 'package:tourguide_app/features/notifications/view/notifications_full_page.dart';
 import 'package:tourguide_app/features/verification/viewmodel/verification_cubit.dart';
 
 final appRouter = GoRouter(
@@ -73,6 +75,10 @@ final appRouter = GoRouter(
                     if (announcement == null) return const _MissingExtraPage();
                     return AnnouncementDetailPage(announcement: announcement);
                   },
+                ),
+                GoRoute(
+                  path: 'notifications',
+                  builder: (_, _) => const NotificationsFullPage(),
                 ),
               ],
             ),
@@ -193,5 +199,12 @@ Future<String?> _redirect(BuildContext context, GoRouterState state) async {
 
   if (!isLoggedIn && !isOnAuthPage) return AppRoutes.login;
   if (isLoggedIn && isOnAuthPage) return AppRoutes.home;
+
+  // One-shot deep-link from a cold-start notification tap.
+  if (isLoggedIn) {
+    final pending = locator<LocalNotificationService>().consumePendingRoute();
+    if (pending != null) return pending;
+  }
+
   return null;
 }
