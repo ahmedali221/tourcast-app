@@ -411,7 +411,7 @@ class _PromoCodeSectionState extends State<_PromoCodeSection> {
   }
 
   Future<void> _generate() async {
-    final result = await showModalBottomSheet<({String discountType, double discountValue})>(
+    final result = await showModalBottomSheet<({String? name})>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -422,10 +422,10 @@ class _PromoCodeSectionState extends State<_PromoCodeSection> {
     setState(() { _generating = true; _error = null; });
     try {
       final repo = locator<IMarketplaceRepository>();
+      final name = result.name;
       final newCode = await repo.generatePromoCode(
         appId: widget.app.id,
-        discountType: result.discountType,
-        discountValue: result.discountValue,
+        code: (name != null && name.isNotEmpty) ? name : null,
       );
       if (mounted) setState(() => _codes = [newCode, ..._codes]);
     } catch (e) {
@@ -777,13 +777,11 @@ class _PromoCodeFormSheet extends StatefulWidget {
 }
 
 class _PromoCodeFormSheetState extends State<_PromoCodeFormSheet> {
-  final _formKey = GlobalKey<FormState>();
-  final _valueCtrl = TextEditingController();
-  String _discountType = 'percent';
+  final _nameCtrl = TextEditingController();
 
   @override
   void dispose() {
-    _valueCtrl.dispose();
+    _nameCtrl.dispose();
     super.dispose();
   }
 
@@ -796,111 +794,44 @@ class _PromoCodeFormSheetState extends State<_PromoCodeFormSheet> {
       ),
       padding: EdgeInsets.fromLTRB(
           24, 20, 24, MediaQuery.of(context).viewInsets.bottom + 32),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.border,
-                  borderRadius: BorderRadius.circular(2),
-                ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.border,
+                borderRadius: BorderRadius.circular(2),
               ),
             ),
-            const SizedBox(height: 20),
-            Text('Set Discount', style: AppTextStyles.heading3),
-            const SizedBox(height: 4),
-            Text(
-              'Choose the discount type and value for this promo code.',
-              style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
-            ),
-            const SizedBox(height: 20),
-            Text('Discount Type', style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w500)),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                _TypeChip(
-                  label: 'Percentage',
-                  selected: _discountType == 'percent',
-                  onTap: () => setState(() => _discountType = 'percent'),
-                ),
-                const SizedBox(width: 10),
-                _TypeChip(
-                  label: 'Fixed',
-                  selected: _discountType == 'fixed',
-                  onTap: () => setState(() => _discountType = 'fixed'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text('Discount Value', style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w500)),
-            const SizedBox(height: 6),
-            TextFormField(
-              controller: _valueCtrl,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: InputDecoration(
-                hintText: _discountType == 'percent' ? 'e.g. 10' : 'e.g. 50',
-                suffixText: _discountType == 'percent' ? '%' : 'USD',
-              ),
-              validator: (v) {
-                if (v == null || v.trim().isEmpty) return 'Required';
-                final n = double.tryParse(v.trim());
-                if (n == null || n <= 0) return 'Enter a valid number';
-                if (_discountType == 'percent' && n > 100) return 'Cannot exceed 100%';
-                return null;
-              },
-            ),
-            const SizedBox(height: 24),
-            AppButton(
-              label: 'Generate',
-              onPressed: () {
-                if (_formKey.currentState!.validate()) {
-                  Navigator.pop(context, (
-                    discountType: _discountType,
-                    discountValue: double.parse(_valueCtrl.text.trim()),
-                  ));
-                }
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _TypeChip extends StatelessWidget {
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _TypeChip({required this.label, required this.selected, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: selected ? AppColors.primary : AppColors.background,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: selected ? AppColors.primary : AppColors.divider,
           ),
-        ),
-        child: Text(
-          label,
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: selected ? Colors.white : AppColors.textSecondary,
-            fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+          const SizedBox(height: 20),
+          Text('Create Promo Code', style: AppTextStyles.heading3),
+          const SizedBox(height: 4),
+          Text(
+            'Enter a custom name for your promo code, or leave it empty to auto-generate one.',
+            style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
           ),
-        ),
+          const SizedBox(height: 20),
+          Text('Promo Code Name (optional)',
+              style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w500)),
+          const SizedBox(height: 6),
+          TextFormField(
+            controller: _nameCtrl,
+            textCapitalization: TextCapitalization.characters,
+            decoration: const InputDecoration(
+              hintText: 'e.g. AHMED20 — leave empty to auto-generate',
+            ),
+          ),
+          const SizedBox(height: 24),
+          AppButton(
+            label: 'Generate',
+            onPressed: () => Navigator.pop(context, (name: _nameCtrl.text.trim())),
+          ),
+        ],
       ),
     );
   }
