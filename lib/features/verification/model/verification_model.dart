@@ -19,7 +19,7 @@ class VerificationModel {
   factory VerificationModel.fromJson(Map<String, dynamic> json) {
     return VerificationModel(
       status: json['status'] as String,
-      rejectionReason: json['rejection_reason'] as String?,
+      rejectionReason: (json['review_notes'] ?? json['rejection_reason']) as String?,
       passportNumber: json['passport_number'] as String?,
       nationalId: json['national_id'] as String?,
       guideLicenseNumber: json['guide_license_number'] as String?,
