@@ -1,6 +1,7 @@
 // GET /api/affiliate/promo-codes
 class PromoCodeModel {
   final int id;
+  final int? appId;
   final String code;
   final String discountType;
   final num discountValue;
@@ -10,6 +11,7 @@ class PromoCodeModel {
 
   PromoCodeModel({
     required this.id,
+    this.appId,
     required this.code,
     required this.discountType,
     required this.discountValue,
@@ -21,6 +23,7 @@ class PromoCodeModel {
   factory PromoCodeModel.fromJson(Map<String, dynamic> json) {
     return PromoCodeModel(
       id: (json['id'] as num).toInt(),
+      appId: (json['app_id'] as num?)?.toInt(),
       code: json['code'] as String,
       discountType: json['discount_type'] as String,
       discountValue: json['discount_value'] as num,
@@ -75,6 +78,8 @@ class AppModel {
   final String? discountType;
   final num? discountValue;
   final List<PlanModel> plans;
+  final String? androidUrl;
+  final String? iosUrl;
 
   AppModel({
     required this.id,
@@ -89,6 +94,8 @@ class AppModel {
     this.discountType,
     this.discountValue,
     required this.plans,
+    this.androidUrl,
+    this.iosUrl,
   });
 
   factory AppModel.fromJson(Map<String, dynamic> json) {
@@ -107,6 +114,8 @@ class AppModel {
       plans: (json['plans'] as List? ?? [])
           .map((p) => PlanModel.fromJson(p as Map<String, dynamic>))
           .toList(),
+      androidUrl: json['google_play_store_url'] as String?,
+      iosUrl: json['apple_store_url'] as String?,
     );
   }
 }

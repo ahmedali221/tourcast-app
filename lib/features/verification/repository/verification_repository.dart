@@ -31,7 +31,6 @@ class VerificationRepository implements IVerificationRepository {
 
   @override
   Future<void> submit({
-    required String passportNumber,
     required String nationalId,
     required String guideLicenseNumber,
     File? nationalIdFrontFile,
@@ -40,7 +39,6 @@ class VerificationRepository implements IVerificationRepository {
   }) async {
     final formData = FormData();
     formData.fields.addAll([
-      MapEntry('passport_number', passportNumber),
       MapEntry('national_id', nationalId),
       MapEntry('guide_license_number', guideLicenseNumber),
     ]);

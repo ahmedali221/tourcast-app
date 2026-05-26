@@ -74,7 +74,6 @@ class _BodyView extends StatefulWidget {
 
 class _BodyViewState extends State<_BodyView> {
   final _formKey = GlobalKey<FormState>();
-  final _passportCtrl = TextEditingController();
   final _nationalIdCtrl = TextEditingController();
   final _licenseCtrl = TextEditingController();
 
@@ -84,7 +83,6 @@ class _BodyViewState extends State<_BodyView> {
 
   @override
   void dispose() {
-    _passportCtrl.dispose();
     _nationalIdCtrl.dispose();
     _licenseCtrl.dispose();
     super.dispose();
@@ -125,12 +123,6 @@ class _BodyViewState extends State<_BodyView> {
               const SizedBox(height: 20),
               Text('Document Details', style: AppTextStyles.label),
               const SizedBox(height: 12),
-              AppTextField(
-                label: 'Passport Number',
-                controller: _passportCtrl,
-                validator: (v) => Validators.required(v, fieldName: 'Passport number'),
-              ),
-              const SizedBox(height: 16),
               AppTextField(
                 label: 'National ID Number',
                 controller: _nationalIdCtrl,
@@ -185,7 +177,6 @@ class _BodyViewState extends State<_BodyView> {
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
                     context.read<VerificationCubit>().submitVerification(
-                          passportNumber: _passportCtrl.text.trim(),
                           nationalId: _nationalIdCtrl.text.trim(),
                           guideLicenseNumber: _licenseCtrl.text.trim(),
                           nationalIdFrontFile: _nationalIdFrontFile,

@@ -32,6 +32,8 @@ import 'package:tourguide_app/core/di/locator.dart';
 import 'package:tourguide_app/core/notifications/local_notification_service.dart';
 import 'package:tourguide_app/features/auth/viewmodel/auth_cubit.dart';
 import 'package:tourguide_app/features/notifications/view/notifications_full_page.dart';
+import 'package:tourguide_app/features/notifications/view/notification_detail_page.dart';
+import 'package:tourguide_app/features/notifications/model/notification_model.dart';
 import 'package:tourguide_app/features/verification/viewmodel/verification_cubit.dart';
 
 final appRouter = GoRouter(
@@ -79,6 +81,16 @@ final appRouter = GoRouter(
                 GoRoute(
                   path: 'notifications',
                   builder: (_, _) => const NotificationsFullPage(),
+                  routes: [
+                    GoRoute(
+                      path: ':id',
+                      builder: (_, state) {
+                        final notification = state.extra as NotificationModel?;
+                        if (notification == null) return const _MissingExtraPage();
+                        return NotificationDetailPage(notification: notification);
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),

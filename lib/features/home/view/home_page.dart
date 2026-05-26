@@ -148,9 +148,8 @@ class _StatusBanner extends StatelessWidget {
         'You need to submit your verification documents before you can access the app.',
       _BannerType.pending =>
         'Your guide application is being reviewed by our team. You\'ll be notified once approved.',
-      _BannerType.rejected => rejectionReason?.isNotEmpty == true
-          ? rejectionReason!
-          : 'Your application was not approved. Please contact support for more details.',
+      _BannerType.rejected =>
+        'Your application was not approved. Please review the notes below and contact support.',
     };
     final ctaLabel = switch (type) {
       _BannerType.notSubmitted => 'Submit Verification',
@@ -209,6 +208,27 @@ class _StatusBanner extends StatelessWidget {
                       height: 1.5,
                     ),
                   ),
+                  if (type == _BannerType.rejected && rejectionReason?.isNotEmpty == true) ...[
+                    const SizedBox(height: 12),
+                    Text('Review Notes', style: AppTextStyles.label.copyWith(color: color)),
+                    const SizedBox(height: 6),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: color.withValues(alpha: 0.25)),
+                      ),
+                      child: Text(
+                        rejectionReason!,
+                        style: AppTextStyles.caption.copyWith(
+                          color: color.withValues(alpha: 0.9),
+                          height: 1.5,
+                        ),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 16),
                   GestureDetector(
                     onTap: () => context.push(ctaRoute),

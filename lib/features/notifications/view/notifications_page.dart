@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:tourguide_app/core/shared/widgets/empty_state.dart';
 import 'package:tourguide_app/core/theme/app_colors.dart';
@@ -126,7 +127,10 @@ class _NotificationsTrayState extends State<_NotificationsTray>
                           );
                         }
                         if (state is NotificationsLoaded) {
-                          return NotificationsBodyView(notifications: state.notifications);
+                          return NotificationsBodyView(
+                            notifications: state.notifications,
+                            onBeforeNavigate: _dismiss,
+                          );
                         }
                         return NotificationsShimmerView();
                       },
@@ -195,7 +199,12 @@ class _TrayHeader extends StatelessWidget {
 
 class NotificationsBodyView extends StatelessWidget {
   final List<NotificationModel> notifications;
-  const NotificationsBodyView({super.key, required this.notifications});
+  final VoidCallback? onBeforeNavigate;
+  const NotificationsBodyView({
+    super.key,
+    required this.notifications,
+    this.onBeforeNavigate,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -222,14 +231,20 @@ class NotificationsBodyView extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 6),
             child: Text('New', style: AppTextStyles.label),
           ),
-          ...unread.map((n) => _NotificationCard(notification: n)),
+          ...unread.map((n) => _NotificationCard(
+                notification: n,
+                onBeforeNavigate: onBeforeNavigate,
+              )),
         ],
         if (read.isNotEmpty) ...[
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 6),
             child: Text('Earlier', style: AppTextStyles.label),
           ),
-          ...read.map((n) => _NotificationCard(notification: n)),
+          ...read.map((n) => _NotificationCard(
+                notification: n,
+                onBeforeNavigate: onBeforeNavigate,
+              )),
         ],
       ],
     );
@@ -238,7 +253,8 @@ class NotificationsBodyView extends StatelessWidget {
 
 class _NotificationCard extends StatelessWidget {
   final NotificationModel notification;
-  const _NotificationCard({required this.notification});
+  final VoidCallback? onBeforeNavigate;
+  const _NotificationCard({required this.notification, this.onBeforeNavigate});
 
   @override
   Widget build(BuildContext context) {
@@ -248,7 +264,11 @@ class _NotificationCard extends StatelessWidget {
         if (isUnread) {
           context.read<NotificationsCubit>().markAsRead(notification.id);
         }
-        _showDetailModal(context, notification);
+        onBeforeNavigate?.call();
+        context.push(
+          '/home/notifications/${notification.id}',
+          extra: notification,
+        );
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
@@ -333,62 +353,6 @@ class _NotificationCard extends StatelessWidget {
     );
   }
 
-  void _showDetailModal(BuildContext context, NotificationModel n) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (_) => Padding(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.divider,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.notifications_rounded,
-                      size: 20, color: AppColors.primary),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(n.title, style: AppTextStyles.heading3),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(n.body,
-                style: AppTextStyles.bodyMedium
-                    .copyWith(color: AppColors.textSecondary, height: 1.5)),
-            const SizedBox(height: 12),
-            Text(
-              n.createdAt.toReadableWithTime(),
-              style: AppTextStyles.caption
-                  .copyWith(fontSize: 11, color: AppColors.textHint),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 class _ErrorView extends StatelessWidget {

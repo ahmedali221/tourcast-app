@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:tourguide_app/core/di/locator.dart';
 import 'package:tourguide_app/core/shared/widgets/app_button.dart';
 import 'package:tourguide_app/features/verification/viewmodel/verification_cubit.dart';
@@ -67,7 +68,6 @@ class _AppDetailsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bg = _cardColors[app.id % _cardColors.length];
-    final isFree = app.plans.isEmpty || app.plans.every((p) => p.price == 0);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -176,7 +176,7 @@ class _AppDetailsView extends StatelessWidget {
                 ],
 
                 // Plans
-                if (app.plans.isNotEmpty && !isFree) ...[
+                if (app.plans.isNotEmpty && app.plans.any((p) => p.price > 0)) ...[
                   const SizedBox(height: 28),
                   Text('Available Plans', style: AppTextStyles.label),
                   const SizedBox(height: 12),
@@ -187,20 +187,106 @@ class _AppDetailsView extends StatelessWidget {
           ),
         ],
       ),
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          color: AppColors.surface,
-          border: Border(top: BorderSide(color: AppColors.divider)),
+      bottomNavigationBar: _DownloadBar(app: app),
+    );
+  }
+
+}
+
+// ── Download bar ─────────────────────────────────────────────────────────────
+
+class _DownloadBar extends StatelessWidget {
+  final AppModel app;
+  const _DownloadBar({required this.app});
+
+  Future<void> _launch(BuildContext context, String url) async {
+    try {
+      final uri = Uri.parse(url);
+      final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!launched && context.mounted) {
+        context.showSnackBar('Could not open store link');
+      }
+    } catch (_) {
+      if (context.mounted) context.showSnackBar('Could not open store link');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hasAndroid = app.androidUrl != null;
+    final hasIos = app.iosUrl != null;
+    if (!hasAndroid && !hasIos) return const SizedBox.shrink();
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        border: Border(top: BorderSide(color: AppColors.divider)),
+      ),
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+      child: Row(
+        children: [
+          if (hasAndroid) ...[
+            Expanded(
+              child: _StoreButton(
+                icon: Icons.android,
+                label: 'Google Play',
+                onTap: () => _launch(context, app.androidUrl!),
+              ),
+            ),
+            if (hasIos) const SizedBox(width: 12),
+          ],
+          if (hasIos)
+            Expanded(
+              child: _StoreButton(
+                icon: Icons.apple,
+                label: 'App Store',
+                onTap: () => _launch(context, app.iosUrl!),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StoreButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _StoreButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color: AppColors.primary,
+          borderRadius: BorderRadius.circular(12),
         ),
-        padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
-        child: AppButton(
-          label: isFree ? 'Get App — Free' : 'Subscribe',
-          onPressed: () => context.showSnackBar('Coming soon'),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
-
 }
 
 // ── App icon with network image + shimmer placeholder + letter fallback ───────

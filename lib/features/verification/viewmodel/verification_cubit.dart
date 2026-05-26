@@ -66,7 +66,6 @@ class VerificationCubit extends Cubit<VerificationState> {
   }
 
   Future<void> submitVerification({
-    required String passportNumber,
     required String nationalId,
     required String guideLicenseNumber,
     File? nationalIdFrontFile,
@@ -77,7 +76,6 @@ class VerificationCubit extends Cubit<VerificationState> {
     emit(VerificationLoading());
     try {
       await _repository.submit(
-        passportNumber: passportNumber,
         nationalId: nationalId,
         guideLicenseNumber: guideLicenseNumber,
         nationalIdFrontFile: nationalIdFrontFile,

@@ -28,14 +28,34 @@ class HomePromoCodesCubit extends Cubit<HomePromoCodesState> {
   Future<void> load() async {
     emit(HomePromoCodesLoading());
     try {
-      final apps = await _repository.getApps();
-      final appsWithCodes = apps.where((a) => a.havePromoCode).toList();
+      final results = await Future.wait([
+        _repository.getAllPromoCodes(),
+        _repository.getApps(),
+      ]);
+
+      final allCodes = results[0] as List<PromoCodeModel>;
+      final allApps = results[1] as List<AppModel>;
+
+      if (allCodes.isEmpty) {
+        emit(HomePromoCodesLoaded([]));
+        return;
+      }
+
+      final appsById = {for (final a in allApps) a.id: a};
+
+      // Group codes by appId, falling back to havePromoCode apps when appId is null.
+      final Map<int, List<PromoCodeModel>> codesByApp = {};
+      for (final code in allCodes) {
+        final appId = code.appId;
+        if (appId == null) continue;
+        codesByApp.putIfAbsent(appId, () => []).add(code);
+      }
 
       final entries = <({AppModel app, List<PromoCodeModel> codes})>[];
-      for (final app in appsWithCodes) {
-        final codes = await _repository.getPromoCodes(appId: app.id);
-        if (codes.isNotEmpty) {
-          entries.add((app: app, codes: codes));
+      for (final entry in codesByApp.entries) {
+        final app = appsById[entry.key];
+        if (app != null) {
+          entries.add((app: app, codes: entry.value));
         }
       }
 
