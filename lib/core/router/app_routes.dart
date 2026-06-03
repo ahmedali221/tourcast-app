@@ -29,6 +29,7 @@ class AppRoutes {
   static const String commissions = '/wallet/commissions';
   static const String referrals = '/wallet/referrals';
   static const String payout = '/wallet/payout';
+  static const String paymentMethods = '/wallet/payment-methods';
 
   // Support
   static const String support = '/support';

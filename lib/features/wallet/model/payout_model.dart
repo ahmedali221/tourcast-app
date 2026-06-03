@@ -17,7 +17,7 @@ class PayoutModel {
   factory PayoutModel.fromJson(Map<String, dynamic> json) {
     return PayoutModel(
       id: (json['id'] as num).toInt(),
-      amount: (json['amount'] as num).toDouble(),
+      amount: num.parse(json['amount'].toString()).toDouble(),
       paymentMethod: json['payment_method'] as String? ?? '',
       status: json['status'] as String? ?? 'pending',
       createdAt: DateTime.parse(json['created_at'] as String),

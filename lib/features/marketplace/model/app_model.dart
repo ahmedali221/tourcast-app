@@ -1,67 +1,84 @@
+// GET /api/affiliate/redemptions
+class RedemptionModel {
+  final String userName;
+  final String project;
+  final num commissionBase;
+  final DateTime redeemedAt;
+
+  RedemptionModel({
+    required this.userName,
+    required this.project,
+    required this.commissionBase,
+    required this.redeemedAt,
+  });
+
+  factory RedemptionModel.fromJson(Map<String, dynamic> json) {
+    return RedemptionModel(
+      userName: json['user_name'] as String? ?? '',
+      project: json['project'] as String? ?? '',
+      commissionBase: json['commission_base'] as num? ?? 0,
+      redeemedAt: DateTime.parse(json['redeemed_at'] as String),
+    );
+  }
+}
+
+class AccountUsageModel {
+  final String name;
+  final int usageCount;
+
+  AccountUsageModel({required this.name, required this.usageCount});
+
+  factory AccountUsageModel.fromJson(Map<String, dynamic> json) {
+    return AccountUsageModel(
+      name: json['name'] as String? ?? 'Unknown',
+      usageCount: (json['usage_count'] as num? ?? 0).toInt(),
+    );
+  }
+}
+
 // GET /api/affiliate/promo-codes
 class PromoCodeModel {
   final int id;
-  final int? appId;
   final String code;
   final String discountType;
   final num discountValue;
   final int? maxUses;
   final int usedCount;
   final bool singleUsePerUser;
+  final String appName;
+  final List<AccountUsageModel> accountUsages;
 
   PromoCodeModel({
     required this.id,
-    this.appId,
     required this.code,
     required this.discountType,
     required this.discountValue,
     this.maxUses,
     required this.usedCount,
     required this.singleUsePerUser,
+    this.appName = 'App',
+    this.accountUsages = const [],
   });
 
   factory PromoCodeModel.fromJson(Map<String, dynamic> json) {
     return PromoCodeModel(
       id: (json['id'] as num).toInt(),
-      appId: (json['app_id'] as num?)?.toInt(),
       code: json['code'] as String,
       discountType: json['discount_type'] as String,
       discountValue: json['discount_value'] as num,
       maxUses: (json['max_uses'] as num?)?.toInt(),
       usedCount: (json['used_count'] as num? ?? 0).toInt(),
       singleUsePerUser: json['single_use_per_user'] as bool? ?? false,
+      appName: json['app_name'] as String? ?? 'App',
+      accountUsages: (json['account_usages'] as List? ?? [])
+          .map((e) => AccountUsageModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
   }
 
   String get discountLabel => discountType == 'percent'
       ? '${discountValue.toStringAsFixed(0)}%'
       : '${discountValue.toStringAsFixed(0)} USD';
-}
-
-// GET /api/affiliate/redemptions
-class RedemptionModel {
-  final String userName;
-  final String? project;
-  final num commissionBase;
-  final DateTime redeemedAt;
-
-  RedemptionModel({
-    required this.userName,
-    this.project,
-    required this.commissionBase,
-    required this.redeemedAt,
-  });
-
-  factory RedemptionModel.fromJson(Map<String, dynamic> json) {
-    final user = json['redeemed_by_user'];
-    final proj = json['project'];
-    return RedemptionModel(
-      userName: (user is Map ? user['name'] : null) as String? ?? 'Unknown',
-      project: (proj is Map ? proj['name'] : null) as String?,
-      commissionBase: json['commission_base'] as num? ?? 0,
-      redeemedAt: DateTime.parse(json['redeemed_at'] as String),
-    );
-  }
 }
 
 // GET /api/guide/applications

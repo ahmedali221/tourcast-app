@@ -594,14 +594,33 @@ class _Announcements extends StatelessWidget {
   }
 }
 
-class _PromoCodesSection extends StatelessWidget {
+class _PromoCodesSection extends StatefulWidget {
   const _PromoCodesSection();
 
   @override
+  State<_PromoCodesSection> createState() => _PromoCodesSectionState();
+}
+
+class _PromoCodesSectionState extends State<_PromoCodesSection> {
+  List<PromoCodeModel> _codes = [];
+  List<RedemptionModel> _redemptions = [];
+
+  @override
   Widget build(BuildContext context) {
-    return BlocBuilder<HomePromoCodesCubit, HomePromoCodesState>(
+    return BlocConsumer<HomePromoCodesCubit, HomePromoCodesState>(
+      listener: (_, state) {
+        if (state is HomePromoCodesLoaded) {
+          setState(() {
+            _codes = state.codes;
+            _redemptions = state.redemptions;
+          });
+        }
+      },
       builder: (context, state) {
-        if (state is HomePromoCodesLoading || state is HomePromoCodesInitial) {
+        final isFirstLoad = _codes.isEmpty &&
+            (state is HomePromoCodesInitial || state is HomePromoCodesLoading);
+
+        if (isFirstLoad) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -620,32 +639,30 @@ class _PromoCodesSection extends StatelessWidget {
           );
         }
 
-        if (state is! HomePromoCodesLoaded || state.entries.isEmpty) {
-          return const SizedBox.shrink();
-        }
-
-        final entries = state.entries;
+        if (_codes.isEmpty && _redemptions.isEmpty) return const SizedBox.shrink();
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('My Promo Codes', style: AppTextStyles.label.copyWith(fontWeight: FontWeight.w500)),
-            const SizedBox(height: 12),
-            Builder(builder: (ctx) {
-              final flat = [
-                for (final e in entries)
-                  for (final code in e.codes) (app: e.app, code: code),
-              ];
-              return SizedBox(
+            if (_codes.isNotEmpty) ...[
+              Text('My Promo Codes', style: AppTextStyles.label.copyWith(fontWeight: FontWeight.w500)),
+              const SizedBox(height: 12),
+              SizedBox(
                 height: 96,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
-                  itemCount: flat.length,
+                  itemCount: _codes.length,
                   separatorBuilder: (_, _) => const SizedBox(width: 12),
-                  itemBuilder: (ctx, i) => _PromoCodeCard(app: flat[i].app, code: flat[i].code),
+                  itemBuilder: (_, i) => _PromoCodeCard(code: _codes[i]),
                 ),
-              );
-            }),
+              ),
+              const SizedBox(height: 20),
+            ],
+            if (_redemptions.isNotEmpty) ...[
+              Text('My Redemptions', style: AppTextStyles.label.copyWith(fontWeight: FontWeight.w500)),
+              const SizedBox(height: 12),
+              ...(_redemptions.map((r) => _RedemptionCard(redemption: r))),
+            ],
           ],
         );
       },
@@ -654,62 +671,138 @@ class _PromoCodesSection extends StatelessWidget {
 }
 
 class _PromoCodeCard extends StatelessWidget {
-  final AppModel app;
   final PromoCodeModel code;
 
-  const _PromoCodeCard({required this.app, required this.code});
+  const _PromoCodeCard({required this.code});
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => context.push('/marketplace/app/${app.id}'),
-      child: Container(
-        width: 200,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.divider),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              app.name,
-              style: AppTextStyles.caption.copyWith(
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.w500,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    code.code,
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1.2,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+    return Container(
+      width: 200,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.divider),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                code.appName,
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w500,
                 ),
-                const SizedBox(width: 8),
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () {
-                    Clipboard.setData(ClipboardData(text: code.code));
-                    context.showSnackBar('Copied!');
-                  },
-                  child: const Icon(Icons.copy_rounded, size: 18, color: AppColors.primary),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              Text(
+                code.discountLabel,
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  code.code,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.2,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  Clipboard.setData(ClipboardData(text: code.code));
+                  context.showSnackBar('Copied!');
+                },
+                child: const Icon(Icons.copy_rounded, size: 18, color: AppColors.primary),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RedemptionCard extends StatelessWidget {
+  final RedemptionModel redemption;
+  const _RedemptionCard({required this.redemption});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.divider),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.person_rounded, size: 18, color: AppColors.primary),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  redemption.userName,
+                  style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  redemption.project,
+                  style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '${redemption.commissionBase} USD',
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              Text(
+                redemption.redeemedAt.toReadableWithTime(),
+                style: AppTextStyles.caption.copyWith(fontSize: 10, color: AppColors.textHint),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

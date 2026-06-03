@@ -8,21 +8,22 @@ class NotificationsRepository implements INotificationsRepository {
   NotificationsRepository(this._dio);
 
   @override
-  Future<List<NotificationModel>> getNotifications({int page = 1}) async {
-    final response = await _dio.get('/guide/notifications', queryParameters: {'page': page});
+  Future<List<NotificationModel>> getNotifications({
+    int page = 1,
+    List<int> markReadIds = const [],
+  }) async {
+    final params = <String, dynamic>{'page': page};
+    if (markReadIds.isNotEmpty) {
+      params['mark_read[]'] = markReadIds;
+    }
+    final response = await _dio.get('/guide/notifications', queryParameters: params);
     final raw = response.data['data'];
-    // API may return a paginated map { data: [...], meta: {...} } or a bare list
     final list = (raw is Map ? raw['data'] : raw) as List? ?? [];
     return list.map((e) => NotificationModel.fromJson(e as Map<String, dynamic>)).toList();
   }
 
   @override
-  Future<void> markAsRead(int notificationId) async {
-    await _dio.patch('/guide/notifications/$notificationId/read');
-  }
-
-  @override
   Future<void> markAllAsRead() async {
-    await _dio.patch('/guide/notifications/read-all');
+    await _dio.post('/guide/notifications/mark-all-read');
   }
 }

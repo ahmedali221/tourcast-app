@@ -16,5 +16,5 @@ abstract class IMarketplaceRepository {
 
   Future<List<PromoCodeModel>> getAllPromoCodes();
 
-  Future<List<RedemptionModel>> getRedemptions({required int codeId});
+  Future<List<RedemptionModel>> getRedemptions();
 }

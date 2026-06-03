@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -515,18 +516,23 @@ class _PromoCodeSectionState extends State<_PromoCodeSection> {
       );
       if (mounted) setState(() => _codes = [newCode, ..._codes]);
     } catch (e) {
-      if (mounted) setState(() => _error = 'Failed to generate promo code. Please try again.');
+      if (mounted) {
+        final msg = e is DioException
+            ? (e.response?.data?['message'] as String?)
+            : null;
+        setState(() => _error = msg ?? 'Failed to generate promo code. Please try again.');
+      }
     } finally {
       if (mounted) setState(() => _generating = false);
     }
   }
 
-  void _openRedemptions(PromoCodeModel code) {
+  void _openAccountUsage(PromoCodeModel code) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _RedemptionsSheet(code: code),
+      builder: (_) => _AccountUsageSheet(code: code),
     );
   }
 
@@ -634,7 +640,7 @@ class _PromoCodeSectionState extends State<_PromoCodeSection> {
               children: List.generate(_codes.length, (i) {
                 final c = _codes[i];
                 return GestureDetector(
-                  onTap: () => _openRedemptions(c),
+                  onTap: () => _openAccountUsage(c),
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                     decoration: BoxDecoration(
@@ -685,38 +691,11 @@ class _PromoCodeSectionState extends State<_PromoCodeSection> {
   }
 }
 
-// ── Redemptions sheet ─────────────────────────────────────────────────────────
+// ── Account usage sheet ───────────────────────────────────────────────────────
 
-class _RedemptionsSheet extends StatefulWidget {
+class _AccountUsageSheet extends StatelessWidget {
   final PromoCodeModel code;
-  const _RedemptionsSheet({required this.code});
-
-  @override
-  State<_RedemptionsSheet> createState() => _RedemptionsSheetState();
-}
-
-class _RedemptionsSheetState extends State<_RedemptionsSheet> {
-  List<RedemptionModel> _redemptions = [];
-  bool _loading = true;
-  String? _error;
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    try {
-      final repo = locator<IMarketplaceRepository>();
-      final data = await repo.getRedemptions(codeId: widget.code.id);
-      if (mounted) setState(() => _redemptions = data);
-    } catch (_) {
-      if (mounted) setState(() => _error = 'Failed to load redemptions.');
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
-  }
+  const _AccountUsageSheet({required this.code});
 
   @override
   Widget build(BuildContext context) {
@@ -741,40 +720,22 @@ class _RedemptionsSheetState extends State<_RedemptionsSheet> {
           const SizedBox(height: 16),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(widget.code.code,
-                          style: AppTextStyles.heading3.copyWith(
-                              color: AppColors.badgePending, letterSpacing: 2)),
-                      Text(
-                        '${widget.code.discountLabel}  ·  ${widget.code.usedCount} redemption${widget.code.usedCount == 1 ? '' : 's'}',
-                        style: AppTextStyles.caption
-                            .copyWith(color: AppColors.textSecondary),
-                      ),
-                    ],
-                  ),
+                Text(code.code,
+                    style: AppTextStyles.heading3.copyWith(
+                        color: AppColors.badgePending, letterSpacing: 2)),
+                Text(
+                  '${code.discountLabel}  ·  ${code.usedCount} use${code.usedCount == 1 ? '' : 's'}',
+                  style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 16),
           const Divider(height: 1, color: AppColors.divider),
-          if (_loading)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 40),
-              child: CircularProgressIndicator(),
-            )
-          else if (_error != null)
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: Text(_error!,
-                  style: AppTextStyles.caption.copyWith(color: AppColors.error)),
-            )
-          else if (_redemptions.isEmpty)
+          if (code.accountUsages.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 40),
               child: Column(
@@ -783,7 +744,7 @@ class _RedemptionsSheetState extends State<_RedemptionsSheet> {
                       size: 36,
                       color: AppColors.textSecondary.withValues(alpha: 0.4)),
                   const SizedBox(height: 8),
-                  Text('No redemptions yet',
+                  Text('No usage yet',
                       style: AppTextStyles.bodyMedium
                           .copyWith(color: AppColors.textSecondary)),
                 ],
@@ -794,11 +755,11 @@ class _RedemptionsSheetState extends State<_RedemptionsSheet> {
               child: ListView.separated(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 shrinkWrap: true,
-                itemCount: _redemptions.length,
+                itemCount: code.accountUsages.length,
                 separatorBuilder: (_, _) =>
                     const Divider(height: 1, color: AppColors.divider),
                 itemBuilder: (_, i) {
-                  final r = _redemptions[i];
+                  final u = code.accountUsages[i];
                   return Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 24, vertical: 12),
@@ -815,30 +776,21 @@ class _RedemptionsSheetState extends State<_RedemptionsSheet> {
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(r.userName, style: AppTextStyles.bodyMedium),
-                              if (r.project != null)
-                                Text(r.project!,
-                                    style: AppTextStyles.caption.copyWith(
-                                        color: AppColors.textSecondary)),
-                            ],
-                          ),
+                          child: Text(u.name, style: AppTextStyles.bodyMedium),
                         ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              r.commissionBase.toStringAsFixed(2),
-                              style: AppTextStyles.bodyMedium.copyWith(
-                                  color: AppColors.success,
-                                  fontWeight: FontWeight.w700),
-                            ),
-                            Text(r.redeemedAt.toReadable(),
-                                style: AppTextStyles.caption.copyWith(
-                                    color: AppColors.textSecondary)),
-                          ],
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            '${u.usageCount} use${u.usageCount == 1 ? '' : 's'}',
+                            style: AppTextStyles.caption.copyWith(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w600),
+                          ),
                         ),
                       ],
                     ),

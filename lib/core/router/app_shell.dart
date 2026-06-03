@@ -39,8 +39,9 @@ class _ShellScaffold extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
   const _ShellScaffold({required this.navigationShell});
 
-  // Tabs unlocked only when verification is not blocking (support + profile).
-  static const _allowedWhenRestricted = {3, 4};
+  // Home (0), Support (3), Profile (4) are accessible when restricted.
+  // Home shows the status/pending banner; Marketplace (1) and Wallet (2) redirect to verification.
+  static const _allowedWhenRestricted = {0, 3, 4};
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +60,10 @@ class _ShellScaffold extends StatelessWidget {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: index,
         onTap: (i) {
-          if (isRestricted && !_allowedWhenRestricted.contains(i)) return;
+          if (isRestricted && !_allowedWhenRestricted.contains(i)) {
+            context.go(AppRoutes.verification);
+            return;
+          }
           navigationShell.goBranch(i, initialLocation: i == index);
         },
         type: BottomNavigationBarType.fixed,

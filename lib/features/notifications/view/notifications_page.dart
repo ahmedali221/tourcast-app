@@ -262,7 +262,7 @@ class _NotificationCard extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         if (isUnread) {
-          context.read<NotificationsCubit>().markAsRead(notification.id);
+          context.read<NotificationsCubit>().markAsRead([notification.id]);
         }
         onBeforeNavigate?.call();
         context.push(

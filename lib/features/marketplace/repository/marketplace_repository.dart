@@ -68,10 +68,11 @@ class MarketplaceRepository implements IMarketplaceRepository {
   }
 
   @override
-  Future<List<RedemptionModel>> getRedemptions({required int codeId}) async {
-    final response = await _dio.get('/affiliate/redemptions', queryParameters: {'promo_code_id': codeId});
+  Future<List<RedemptionModel>> getRedemptions() async {
+    final response = await _dio.get('/affiliate/redemptions');
     return (response.data['data'] as List? ?? [])
         .map((e) => RedemptionModel.fromJson(e as Map<String, dynamic>))
         .toList();
   }
+
 }
