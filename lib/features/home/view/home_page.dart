@@ -603,7 +603,6 @@ class _PromoCodesSection extends StatefulWidget {
 
 class _PromoCodesSectionState extends State<_PromoCodesSection> {
   List<PromoCodeModel> _codes = [];
-  List<RedemptionModel> _redemptions = [];
 
   @override
   Widget build(BuildContext context) {
@@ -612,7 +611,6 @@ class _PromoCodesSectionState extends State<_PromoCodesSection> {
         if (state is HomePromoCodesLoaded) {
           setState(() {
             _codes = state.codes;
-            _redemptions = state.redemptions;
           });
         }
       },
@@ -639,7 +637,7 @@ class _PromoCodesSectionState extends State<_PromoCodesSection> {
           );
         }
 
-        if (_codes.isEmpty && _redemptions.isEmpty) {
+        if (_codes.isEmpty) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -667,25 +665,17 @@ class _PromoCodesSectionState extends State<_PromoCodesSection> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (_codes.isNotEmpty) ...[
-              Text('My Promo Codes', style: AppTextStyles.label.copyWith(fontWeight: FontWeight.w500)),
-              const SizedBox(height: 12),
-              SizedBox(
-                height: 96,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: _codes.length,
-                  separatorBuilder: (_, _) => const SizedBox(width: 12),
-                  itemBuilder: (_, i) => _PromoCodeCard(code: _codes[i]),
-                ),
+            Text('My Promo Codes', style: AppTextStyles.label.copyWith(fontWeight: FontWeight.w500)),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 96,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: _codes.length,
+                separatorBuilder: (_, _) => const SizedBox(width: 12),
+                itemBuilder: (_, i) => _PromoCodeCard(code: _codes[i]),
               ),
-              const SizedBox(height: 20),
-            ],
-            if (_redemptions.isNotEmpty) ...[
-              Text('My Redemptions', style: AppTextStyles.label.copyWith(fontWeight: FontWeight.w500)),
-              const SizedBox(height: 12),
-              ...(_redemptions.map((r) => _RedemptionCard(redemption: r))),
-            ],
+            ),
           ],
         );
       },
@@ -763,73 +753,6 @@ class _PromoCodeCard extends StatelessWidget {
   }
 }
 
-class _RedemptionCard extends StatelessWidget {
-  final RedemptionModel redemption;
-  const _RedemptionCard({required this.redemption});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.divider),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.person_rounded, size: 18, color: AppColors.primary),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  redemption.userName,
-                  style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  redemption.project,
-                  style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '${redemption.commissionBase} USD',
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              Text(
-                redemption.redeemedAt.toReadableWithTime(),
-                style: AppTextStyles.caption.copyWith(fontSize: 10, color: AppColors.textHint),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _AccountStatusBanner extends StatelessWidget {
   const _AccountStatusBanner();
