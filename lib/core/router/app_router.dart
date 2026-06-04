@@ -16,9 +16,8 @@ import 'package:tourguide_app/features/verification/view/verification_success_pa
 import 'package:tourguide_app/features/marketplace/view/app_details_page.dart';
 import 'package:tourguide_app/features/marketplace/view/marketplace_page.dart';
 import 'package:tourguide_app/features/wallet/view/wallet_page.dart';
-import 'package:tourguide_app/features/wallet/model/payout_profile_model.dart';
 import 'package:tourguide_app/features/wallet/view/payout_page.dart';
-import 'package:tourguide_app/features/wallet/viewmodel/wallet_cubit.dart';
+import 'package:tourguide_app/features/wallet/view/payment_methods_page.dart';
 import 'package:tourguide_app/features/commissions/view/commissions_page.dart';
 import 'package:tourguide_app/features/referrals/view/referrals_page.dart';
 import 'package:tourguide_app/features/support/view/support_page.dart';
@@ -123,18 +122,11 @@ final appRouter = GoRouter(
               routes: [
                 GoRoute(
                   path: 'payout',
-                  builder: (_, state) {
-                    final extra = state.extra! as Map<String, dynamic>;
-                    final cubit = extra['cubit'] as WalletCubit;
-                    return BlocProvider.value(
-                      value: cubit,
-                      child: PayoutPage(
-                        balance: extra['balance'] as double,
-                        methods: extra['methods'] as List<PayoutMethodModel>,
-                        savedProfile: extra['savedProfile'] as PayoutProfileModel?,
-                      ),
-                    );
-                  },
+                  builder: (_, _) => const PayoutPage(),
+                ),
+                GoRoute(
+                  path: 'payment-methods',
+                  builder: (_, _) => const PaymentMethodsPage(),
                 ),
                 GoRoute(
                   path: 'commissions',

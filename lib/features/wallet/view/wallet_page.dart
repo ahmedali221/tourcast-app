@@ -10,7 +10,6 @@ import 'package:tourguide_app/core/theme/app_colors.dart';
 import 'package:tourguide_app/core/theme/app_text_styles.dart';
 import 'package:tourguide_app/core/utils/extensions.dart';
 import 'package:tourguide_app/features/verification/viewmodel/verification_cubit.dart';
-import 'package:tourguide_app/features/wallet/model/payout_model.dart';
 import 'package:tourguide_app/features/wallet/model/wallet_model.dart';
 import 'package:tourguide_app/features/wallet/viewmodel/wallet_cubit.dart';
 
@@ -36,23 +35,8 @@ class _WalletView extends StatelessWidget {
       appBar: AppBar(title: const Text('Wallet')),
       body: BlocConsumer<WalletCubit, WalletState>(
         listener: (context, state) {
-          if (state is PayoutSuccess) {
-            context.showSnackBar('Payout request submitted');
-          }
           if (state is WalletError) {
             context.showSnackBar(state.message, isError: true);
-          }
-          if (state is PayoutSheetReady) {
-            final cubit = context.read<WalletCubit>();
-            context.push(
-              AppRoutes.payout,
-              extra: {
-                'cubit': cubit,
-                'balance': state.wallet.balance,
-                'methods': state.methods,
-                'savedProfile': state.savedProfile,
-              },
-            );
           }
         },
         builder: (context, state) {
@@ -63,13 +47,11 @@ class _WalletView extends StatelessWidget {
               onRetry: () => context.read<WalletCubit>().loadWallet(),
             );
           }
-          final (wallet, payouts) = switch (state) {
-            WalletLoaded s => (s.wallet, s.payouts),
-            PayoutSheetReady s => (s.wallet, s.payouts),
-            PayoutProfileSaved s => (s.wallet, s.payouts),
-            _ => (null, null),
+          final wallet = switch (state) {
+            WalletLoaded s => s.wallet,
+            _ => null,
           };
-          if (wallet != null) return _BodyView(wallet: wallet, payouts: payouts ?? []);
+          if (wallet != null) return _BodyView(wallet: wallet);
           return _ShimmerView();
         },
       ),
@@ -82,8 +64,7 @@ class _WalletView extends StatelessWidget {
 
 class _BodyView extends StatelessWidget {
   final WalletModel wallet;
-  final List<PayoutModel> payouts;
-  const _BodyView({required this.wallet, required this.payouts});
+  const _BodyView({required this.wallet});
 
   @override
   Widget build(BuildContext context) {
@@ -131,51 +112,35 @@ class _BodyView extends StatelessWidget {
                         final canPayout = verState is VerificationLoaded &&
                             verState.verification != null &&
                             verState.verification!.status.toUpperCase() == 'VERIFIED';
-                        return BlocBuilder<WalletCubit, WalletState>(
-                          builder: (context, state) {
-                            final isLoading = state is WalletLoading;
-                            return GestureDetector(
-                              onTap: isLoading
-                                  ? null
-                                  : canPayout
-                                      ? () => context.read<WalletCubit>().openPayoutSheet()
-                                      : () => context.showSnackBar(
-                                            'Payouts are available once your account is verified.',
-                                            isError: true,
-                                          ),
-                              child: Opacity(
-                                opacity: canPayout ? 1.0 : 0.5,
-                                child: Container(
-                                  height: 36,
-                                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                      color: Colors.white.withValues(alpha: isLoading ? 0.4 : 0.8),
-                                      width: 1.5,
-                                    ),
-                                    borderRadius: BorderRadius.circular(8),
+                        return GestureDetector(
+                          onTap: canPayout
+                              ? () => context.push(AppRoutes.payout)
+                              : () => context.showSnackBar(
+                                    'Payouts are available once your account is verified.',
+                                    isError: true,
                                   ),
-                                  alignment: Alignment.center,
-                                  child: isLoading
-                                      ? const SizedBox(
-                                          width: 16,
-                                          height: 16,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            color: Colors.white,
-                                          ),
-                                        )
-                                      : Text(
-                                          'Request Payout',
-                                          style: AppTextStyles.label.copyWith(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
+                          child: Opacity(
+                            opacity: canPayout ? 1.0 : 0.5,
+                            child: Container(
+                              height: 36,
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.8),
+                                  width: 1.5,
+                                ),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                'Request Payout',
+                                style: AppTextStyles.label.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
-                            );
-                          },
+                            ),
+                          ),
                         );
                       },
                     ),
@@ -254,90 +219,42 @@ class _BodyView extends StatelessWidget {
               ),
             ),
           const SizedBox(height: 24),
-          // Payout requests
-          Text('Payout Requests', style: AppTextStyles.label),
-          const SizedBox(height: 12),
-          if (payouts.isEmpty)
-            const EmptyState(
-              icon: Icons.payments_outlined,
-              title: 'No payout requests yet',
-              message: 'Your payout requests will appear here.',
-            )
-          else
-            Container(
+          // Payout requests navigation card
+          GestureDetector(
+            onTap: () => context.push(AppRoutes.payout),
+            child: Container(
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: AppColors.surface,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: AppColors.divider),
               ),
-              child: Column(
-                children: List.generate(payouts.length, (i) {
-                  final p = payouts[i];
-                  final (statusColor, statusBg) = switch (p.status.toLowerCase()) {
-                    'completed' || 'paid' => (AppColors.success, AppColors.successBg),
-                    'rejected' || 'failed' => (AppColors.error, AppColors.errorBg),
-                    _ => (AppColors.primary, AppColors.primary.withValues(alpha: 0.08)),
-                  };
-                  return Container(
-                    padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
                     decoration: BoxDecoration(
-                      border: i < payouts.length - 1
-                          ? const Border(bottom: BorderSide(color: AppColors.divider))
-                          : null,
+                      color: AppColors.primary.withValues(alpha: 0.08),
+                      shape: BoxShape.circle,
                     ),
-                    child: Row(
+                    child: const Icon(Icons.payments_outlined, size: 18, color: AppColors.primary),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.08),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.upload_rounded, size: 18, color: AppColors.primary),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(p.paymentMethod, style: AppTextStyles.bodyMedium),
-                              const SizedBox(height: 2),
-                              Text(p.createdAt.toReadable(), style: AppTextStyles.caption),
-                            ],
-                          ),
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              p.amount.toCurrency(),
-                              style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w700),
-                            ),
-                            const SizedBox(height: 4),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: statusBg,
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                p.status.toUpperCase(),
-                                style: AppTextStyles.caption.copyWith(
-                                  color: statusColor,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 10,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                        Text('Payout Requests', style: AppTextStyles.bodyMedium),
+                        Text('View and manage your payouts', style: AppTextStyles.caption),
                       ],
                     ),
-                  );
-                }),
+                  ),
+                  const Icon(Icons.chevron_right, size: 20, color: AppColors.textSecondary),
+                ],
               ),
             ),
+          ),
         ],
       ),
     );

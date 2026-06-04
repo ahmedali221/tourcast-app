@@ -28,11 +28,11 @@ class NotificationsCubit extends Cubit<NotificationsState> {
 
   NotificationsCubit(this._repository) : super(NotificationsInitial());
 
-  Future<void> loadNotifications({int page = 1}) async {
+  Future<void> loadNotifications({int page = 1, List<int> markReadIds = const []}) async {
     if (isClosed) return;
     emit(NotificationsLoading());
     try {
-      final notifications = await _repository.getNotifications(page: page);
+      final notifications = await _repository.getNotifications(page: page, markReadIds: markReadIds);
       if (!isClosed) emit(NotificationsLoaded(notifications));
     } on DioException catch (e) {
       if (!isClosed) emit(NotificationsError(e.response?.data['message'] ?? 'Failed to load notifications'));
@@ -41,16 +41,9 @@ class NotificationsCubit extends Cubit<NotificationsState> {
     }
   }
 
-  Future<void> markAsRead(int notificationId) async {
-    if (isClosed) return;
-    try {
-      await _repository.markAsRead(notificationId);
-      await loadNotifications();
-    } on DioException catch (e) {
-      if (!isClosed) emit(NotificationsError(e.response?.data['message'] ?? 'Failed to mark as read'));
-    } catch (_) {
-      if (!isClosed) emit(NotificationsError('Something went wrong. Please try again.'));
-    }
+  Future<void> markAsRead(List<int> ids) async {
+    if (isClosed || ids.isEmpty) return;
+    await loadNotifications(markReadIds: ids);
   }
 
   Future<void> markAllAsRead() async {

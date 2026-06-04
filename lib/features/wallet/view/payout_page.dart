@@ -1,61 +1,78 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shimmer/shimmer.dart';
+import 'package:tourguide_app/core/di/locator.dart';
 import 'package:tourguide_app/core/shared/widgets/app_button.dart';
 import 'package:tourguide_app/core/shared/widgets/empty_state.dart';
 import 'package:tourguide_app/core/theme/app_colors.dart';
 import 'package:tourguide_app/core/theme/app_text_styles.dart';
 import 'package:tourguide_app/core/utils/extensions.dart';
 import 'package:tourguide_app/core/utils/validators.dart';
+import 'package:tourguide_app/core/router/app_routes.dart';
+import 'package:tourguide_app/features/verification/viewmodel/verification_cubit.dart';
+import 'package:tourguide_app/features/wallet/model/payout_model.dart';
 import 'package:tourguide_app/features/wallet/model/payout_profile_model.dart';
 import 'package:tourguide_app/features/wallet/viewmodel/wallet_cubit.dart';
 
-enum _PayoutStep { methodPicker, profileForm, amountForm }
+enum _PayoutStep { history, methodPicker, profileForm, amountForm }
 
-class PayoutPage extends StatefulWidget {
-  final double balance;
-  final List<PayoutMethodModel> methods;
-  final PayoutProfileModel? savedProfile;
-  final bool skipToAmount;
-
-  const PayoutPage({
-    super.key,
-    required this.balance,
-    required this.methods,
-    this.savedProfile,
-    this.skipToAmount = false,
-  });
+class PayoutPage extends StatelessWidget {
+  const PayoutPage({super.key});
 
   @override
-  State<PayoutPage> createState() => _PayoutPageState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => locator<WalletCubit>()..loadWallet(),
+      child: const _PayoutView(),
+    );
+  }
 }
 
-class _PayoutPageState extends State<PayoutPage> {
-  late _PayoutStep _step;
-  PayoutMethodModel? _selectedMethod;
+class _PayoutView extends StatefulWidget {
+  const _PayoutView();
 
   @override
-  void initState() {
-    super.initState();
-    if (widget.skipToAmount || widget.savedProfile != null) {
-      _step = _PayoutStep.amountForm;
-    } else {
-      _step = _PayoutStep.methodPicker;
-    }
-  }
+  State<_PayoutView> createState() => _PayoutViewState();
+}
+
+class _PayoutViewState extends State<_PayoutView> {
+  _PayoutStep _step = _PayoutStep.history;
+  PayoutMethodModel? _selectedMethod;
+  double _balance = 0;
+  List<PayoutMethodModel> _methods = [];
+  PayoutProfileModel? _savedProfile;
 
   @override
   Widget build(BuildContext context) {
     return BlocListener<WalletCubit, WalletState>(
       listener: (context, state) {
-        if (state is PayoutSuccess) {
-          context.pop();
+        if (state is WalletLoaded) {
+          setState(() => _balance = state.wallet.balance);
+        }
+        if (state is PayoutSheetReady) {
+          setState(() {
+            _balance = state.wallet.balance;
+            _methods = state.methods;
+            _savedProfile = state.savedProfile;
+            _step = state.savedProfile != null
+                ? _PayoutStep.amountForm
+                : _PayoutStep.methodPicker;
+          });
         }
         if (state is PayoutProfileSaved) {
           context.showSnackBar('Payout profile saved!');
           setState(() {
+            _methods = state.methods;
             _step = _PayoutStep.amountForm;
-            // keep _selectedMethod set so back nav knows we came via profile form
+          });
+        }
+        if (state is PayoutSuccess) {
+          context.showSnackBar('Payout request submitted');
+          context.read<WalletCubit>().loadWallet();
+          setState(() {
+            _step = _PayoutStep.history;
+            _selectedMethod = null;
           });
         }
         if (state is WalletError) {
@@ -75,9 +92,14 @@ class _PayoutPageState extends State<PayoutPage> {
         body: AnimatedSwitcher(
           duration: const Duration(milliseconds: 220),
           child: switch (_step) {
+            _PayoutStep.history => _HistoryBody(
+                key: const ValueKey('history'),
+                onRequestPayout: () =>
+                    context.read<WalletCubit>().openPayoutSheet(),
+              ),
             _PayoutStep.methodPicker => _MethodPickerBody(
                 key: const ValueKey('picker'),
-                methods: widget.methods,
+                methods: _methods,
                 onPick: (m) => setState(() {
                   _selectedMethod = m;
                   _step = _PayoutStep.profileForm;
@@ -89,9 +111,10 @@ class _PayoutPageState extends State<PayoutPage> {
               ),
             _PayoutStep.amountForm => _AmountFormBody(
                 key: const ValueKey('amount'),
-                balance: widget.balance,
-                savedProfile: widget.savedProfile,
-                onChangeProfile: () => setState(() => _step = _PayoutStep.methodPicker),
+                balance: _balance,
+                savedProfile: _savedProfile,
+                onChangeProfile: () =>
+                    setState(() => _step = _PayoutStep.methodPicker),
               ),
           },
         ),
@@ -100,6 +123,7 @@ class _PayoutPageState extends State<PayoutPage> {
   }
 
   String get _appBarTitle => switch (_step) {
+        _PayoutStep.history => 'Payout Requests',
         _PayoutStep.methodPicker => 'Payout Method',
         _PayoutStep.profileForm => _selectedMethod?.name ?? 'Payment Details',
         _PayoutStep.amountForm => 'Request Payout',
@@ -107,22 +131,190 @@ class _PayoutPageState extends State<PayoutPage> {
 
   void _onBack() {
     switch (_step) {
-      case _PayoutStep.methodPicker:
+      case _PayoutStep.history:
         context.pop();
+      case _PayoutStep.methodPicker:
+        setState(() => _step = _PayoutStep.history);
       case _PayoutStep.profileForm:
         setState(() => _step = _PayoutStep.methodPicker);
       case _PayoutStep.amountForm:
-        // If we arrived here directly (profile already saved), just go back.
-        // If we arrived via profile form, go back to method picker.
-        if (_cameFromProfileForm) {
+        if (_selectedMethod != null) {
           setState(() => _step = _PayoutStep.methodPicker);
         } else {
-          context.pop();
+          setState(() => _step = _PayoutStep.history);
         }
     }
   }
+}
 
-  bool get _cameFromProfileForm => _selectedMethod != null;
+// ─── Step 0: History ──────────────────────────────────────────────────────────
+
+class _HistoryBody extends StatelessWidget {
+  final VoidCallback onRequestPayout;
+  const _HistoryBody({super.key, required this.onRequestPayout});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<WalletCubit, WalletState>(
+      builder: (context, state) {
+        if (state is WalletLoading || state is WalletInitial) {
+          return _ShimmerView();
+        }
+        final payouts = switch (state) {
+          WalletLoaded s => s.payouts,
+          PayoutProfileSaved s => s.payouts,
+          _ => <PayoutModel>[],
+        };
+        return SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              BlocBuilder<VerificationCubit, VerificationState>(
+                builder: (context, verState) {
+                  final canPayout = verState is VerificationLoaded &&
+                      verState.verification != null &&
+                      verState.verification!.status.toUpperCase() == 'VERIFIED';
+                  return AppButton(
+                    label: 'Request Payout',
+                    onPressed: canPayout
+                        ? onRequestPayout
+                        : () => context.showSnackBar(
+                              'Payouts are available once your account is verified.',
+                              isError: true,
+                            ),
+                  );
+                },
+              ),
+              const SizedBox(height: 12),
+              GestureDetector(
+                onTap: () => context.push(AppRoutes.paymentMethods),
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.divider),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.account_balance_wallet_outlined,
+                          size: 18, color: AppColors.primary),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text('Manage Payment Account',
+                            style: AppTextStyles.bodyMedium),
+                      ),
+                      const Icon(Icons.chevron_right,
+                          size: 18, color: AppColors.textSecondary),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 28),
+              Text('History', style: AppTextStyles.label),
+              const SizedBox(height: 12),
+              if (payouts.isEmpty)
+                const EmptyState(
+                  icon: Icons.payments_outlined,
+                  title: 'No payout requests yet',
+                  message: 'Your payout requests will appear here.',
+                )
+              else
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.divider),
+                  ),
+                  child: Column(
+                    children: List.generate(payouts.length, (i) {
+                      final p = payouts[i];
+                      final (statusColor, statusBg) =
+                          switch (p.status.toLowerCase()) {
+                        'completed' || 'paid' =>
+                          (AppColors.success, AppColors.successBg),
+                        'rejected' || 'failed' =>
+                          (AppColors.error, AppColors.errorBg),
+                        _ => (
+                            AppColors.primary,
+                            AppColors.primary.withValues(alpha: 0.08)
+                          ),
+                      };
+                      return Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          border: i < payouts.length - 1
+                              ? const Border(
+                                  bottom:
+                                      BorderSide(color: AppColors.divider))
+                              : null,
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color:
+                                    AppColors.primary.withValues(alpha: 0.08),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.upload_rounded,
+                                  size: 18, color: AppColors.primary),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(p.paymentMethod,
+                                      style: AppTextStyles.bodyMedium),
+                                  const SizedBox(height: 2),
+                                  Text(p.createdAt.toReadable(),
+                                      style: AppTextStyles.caption),
+                                ],
+                              ),
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  p.amount.toCurrency(),
+                                  style: AppTextStyles.bodyMedium
+                                      .copyWith(fontWeight: FontWeight.w700),
+                                ),
+                                const SizedBox(height: 4),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: statusBg,
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    p.status.toUpperCase(),
+                                    style: AppTextStyles.caption.copyWith(
+                                      color: statusColor,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }
 
 // ─── Step 1: Method picker ────────────────────────────────────────────────────
@@ -288,12 +480,12 @@ class _ProfileFormBodyState extends State<_ProfileFormBody> {
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
                     final details = {
-                      for (final e in _controllers.entries) e.key: e.value.text.trim(),
+                      for (final e in _controllers.entries)
+                        e.key: e.value.text.trim(),
                     };
-                    context.read<WalletCubit>().savePayoutProfile(
-                          widget.method.id,
-                          details,
-                        );
+                    context
+                        .read<WalletCubit>()
+                        .savePayoutProfile(widget.method.id, details);
                   }
                 },
               ),
@@ -359,24 +551,28 @@ class _AmountFormBodyState extends State<_AmountFormBody> {
                 decoration: BoxDecoration(
                   color: AppColors.successBg,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
+                  border:
+                      Border.all(color: AppColors.success.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.check_circle_outline, size: 18, color: AppColors.success),
+                    const Icon(Icons.check_circle_outline,
+                        size: 18, color: AppColors.success),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(widget.savedProfile!.methodName,
-                              style: AppTextStyles.bodyMedium.copyWith(color: AppColors.success)),
-                          for (final e in widget.savedProfile!.details.entries) ...[
-                            Text(
+                              style: AppTextStyles.bodyMedium
+                                  .copyWith(color: AppColors.success)),
+                          ...widget.savedProfile!.details.entries.map(
+                            (e) => Text(
                               '${e.key.replaceAll('_', ' ')}: ${e.value}',
-                              style: AppTextStyles.caption.copyWith(color: AppColors.success),
+                              style: AppTextStyles.caption
+                                  .copyWith(color: AppColors.success),
                             ),
-                          ],
+                          ),
                         ],
                       ),
                     ),
@@ -399,7 +595,8 @@ class _AmountFormBodyState extends State<_AmountFormBody> {
             const SizedBox(height: 6),
             TextFormField(
               controller: _amountCtrl,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
               decoration: const InputDecoration(hintText: '0.00'),
               validator: Validators.amount,
             ),
@@ -432,6 +629,40 @@ class _FieldLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(text, style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w500));
+    return Text(text,
+        style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w500));
+  }
+}
+
+class _ShimmerView extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Shimmer.fromColors(
+      baseColor: AppColors.shimmerBase,
+      highlightColor: AppColors.shimmerHighlight,
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            Container(
+              height: 52,
+              decoration: BoxDecoration(
+                  color: Colors.white, borderRadius: BorderRadius.circular(12)),
+            ),
+            const SizedBox(height: 24),
+            ...List.generate(
+              4,
+              (_) => Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                height: 72,
+                decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

@@ -12,8 +12,9 @@ class HomePromoCodesInitial extends HomePromoCodesState {}
 class HomePromoCodesLoading extends HomePromoCodesState {}
 
 class HomePromoCodesLoaded extends HomePromoCodesState {
-  final List<({AppModel app, List<PromoCodeModel> codes})> entries;
-  HomePromoCodesLoaded(this.entries);
+  final List<PromoCodeModel> codes;
+  final List<RedemptionModel> redemptions;
+  HomePromoCodesLoaded(this.codes, this.redemptions);
 }
 
 class HomePromoCodesError extends HomePromoCodesState {}
@@ -28,38 +29,11 @@ class HomePromoCodesCubit extends Cubit<HomePromoCodesState> {
   Future<void> load() async {
     emit(HomePromoCodesLoading());
     try {
-      final results = await Future.wait([
-        _repository.getAllPromoCodes(),
-        _repository.getApps(),
-      ]);
-
-      final allCodes = results[0] as List<PromoCodeModel>;
-      final allApps = results[1] as List<AppModel>;
-
-      if (allCodes.isEmpty) {
-        emit(HomePromoCodesLoaded([]));
-        return;
-      }
-
-      final appsById = {for (final a in allApps) a.id: a};
-
-      // Group codes by appId, falling back to havePromoCode apps when appId is null.
-      final Map<int, List<PromoCodeModel>> codesByApp = {};
-      for (final code in allCodes) {
-        final appId = code.appId;
-        if (appId == null) continue;
-        codesByApp.putIfAbsent(appId, () => []).add(code);
-      }
-
-      final entries = <({AppModel app, List<PromoCodeModel> codes})>[];
-      for (final entry in codesByApp.entries) {
-        final app = appsById[entry.key];
-        if (app != null) {
-          entries.add((app: app, codes: entry.value));
-        }
-      }
-
-      emit(HomePromoCodesLoaded(entries));
+      final codesFuture = _repository.getAllPromoCodes();
+      final redemptionsFuture = _repository.getRedemptions();
+      final codes = await codesFuture;
+      final redemptions = await redemptionsFuture;
+      emit(HomePromoCodesLoaded(codes, redemptions));
     } on DioException catch (_) {
       emit(HomePromoCodesError());
     } catch (_) {

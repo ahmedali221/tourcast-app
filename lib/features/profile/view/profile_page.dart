@@ -12,6 +12,7 @@ import 'package:tourguide_app/features/auth/viewmodel/auth_cubit.dart';
 import 'package:tourguide_app/features/profile/model/profile_model.dart';
 import 'package:tourguide_app/features/profile/viewmodel/profile_cubit.dart';
 import 'package:tourguide_app/features/verification/viewmodel/verification_cubit.dart';
+import 'package:tourguide_app/features/wallet/viewmodel/wallet_cubit.dart';
 import 'package:shimmer/shimmer.dart';
 
 class ProfilePage extends StatelessWidget {
@@ -24,6 +25,7 @@ class ProfilePage extends StatelessWidget {
         BlocProvider(create: (_) => locator<ProfileCubit>()..loadProfile()),
         BlocProvider(create: (_) => locator<AuthCubit>()),
         BlocProvider(create: (_) => locator<VerificationCubit>()..loadStatus()),
+        BlocProvider(create: (_) => locator<WalletCubit>()..loadFinanceSnapshot()),
       ],
       child: const _ProfileView(),
     );
@@ -220,6 +222,9 @@ class _BodyView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
+          // Finance card
+          _FinanceCard(),
+          const SizedBox(height: 16),
           TextButton.icon(
             onPressed: () => _showLogoutDialog(context),
             icon: const Icon(
@@ -384,6 +389,103 @@ class _Card extends StatelessWidget {
         border: Border.all(color: AppColors.divider),
       ),
       child: child,
+    );
+  }
+}
+
+class _FinanceCard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<WalletCubit, WalletState>(
+      builder: (context, state) {
+        if (state is WalletLoading || state is WalletInitial) {
+          return Container(
+            height: 100,
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.divider),
+            ),
+          );
+        }
+        if (state is! FinanceSnapshotLoaded) return const SizedBox.shrink();
+
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.divider),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Wallet', style: AppTextStyles.label),
+                  GestureDetector(
+                    onTap: () => context.push(AppRoutes.wallet),
+                    child: Text(
+                      'View all →',
+                      style: AppTextStyles.caption
+                          .copyWith(color: AppColors.primary),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(
+                state.balance.toCurrency(),
+                style: AppTextStyles.heading2,
+              ),
+              Text('Available Balance', style: AppTextStyles.caption),
+              if (state.payoutProfile != null) ...[
+                const Divider(height: 24, color: AppColors.divider),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Payout Account', style: AppTextStyles.caption),
+                    GestureDetector(
+                      onTap: () => context.push(AppRoutes.paymentMethods),
+                      child: Text(
+                        'Manage →',
+                        style: AppTextStyles.caption
+                            .copyWith(color: AppColors.primary),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(state.payoutProfile!.methodName,
+                    style: AppTextStyles.bodyMedium),
+                ...state.payoutProfile!.details.entries.map(
+                  (e) => Text(
+                    '${e.key.replaceAll('_', ' ')}: ${e.value}',
+                    style: AppTextStyles.caption,
+                  ),
+                ),
+              ] else ...[
+                const Divider(height: 24, color: AppColors.divider),
+                GestureDetector(
+                  onTap: () => context.push(AppRoutes.paymentMethods),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.account_balance_wallet_outlined,
+                          size: 16, color: AppColors.textSecondary),
+                      const SizedBox(width: 8),
+                      Text('Set up payout account',
+                          style: AppTextStyles.caption
+                              .copyWith(color: AppColors.primary)),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
     );
   }
 }
