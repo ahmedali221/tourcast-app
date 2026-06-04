@@ -67,12 +67,4 @@ class MarketplaceRepository implements IMarketplaceRepository {
         .toList();
   }
 
-  @override
-  Future<List<RedemptionModel>> getRedemptions() async {
-    final response = await _dio.get('/affiliate/redemptions');
-    return (response.data['data'] as List? ?? [])
-        .map((e) => RedemptionModel.fromJson(e as Map<String, dynamic>))
-        .toList();
-  }
-
 }

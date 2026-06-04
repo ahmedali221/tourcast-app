@@ -1,26 +1,3 @@
-// GET /api/affiliate/redemptions
-class RedemptionModel {
-  final String userName;
-  final String project;
-  final num commissionBase;
-  final DateTime redeemedAt;
-
-  RedemptionModel({
-    required this.userName,
-    required this.project,
-    required this.commissionBase,
-    required this.redeemedAt,
-  });
-
-  factory RedemptionModel.fromJson(Map<String, dynamic> json) {
-    return RedemptionModel(
-      userName: json['user_name'] as String? ?? '',
-      project: json['project'] as String? ?? '',
-      commissionBase: json['commission_base'] as num? ?? 0,
-      redeemedAt: DateTime.parse(json['redeemed_at'] as String),
-    );
-  }
-}
 
 class AccountUsageModel {
   final String name;

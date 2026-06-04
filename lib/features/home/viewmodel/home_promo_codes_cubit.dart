@@ -13,8 +13,7 @@ class HomePromoCodesLoading extends HomePromoCodesState {}
 
 class HomePromoCodesLoaded extends HomePromoCodesState {
   final List<PromoCodeModel> codes;
-  final List<RedemptionModel> redemptions;
-  HomePromoCodesLoaded(this.codes, this.redemptions);
+  HomePromoCodesLoaded(this.codes);
 }
 
 class HomePromoCodesError extends HomePromoCodesState {}
@@ -29,11 +28,8 @@ class HomePromoCodesCubit extends Cubit<HomePromoCodesState> {
   Future<void> load() async {
     emit(HomePromoCodesLoading());
     try {
-      final codesFuture = _repository.getAllPromoCodes();
-      final redemptionsFuture = _repository.getRedemptions();
-      final codes = await codesFuture;
-      final redemptions = await redemptionsFuture;
-      emit(HomePromoCodesLoaded(codes, redemptions));
+      final codes = await _repository.getAllPromoCodes();
+      emit(HomePromoCodesLoaded(codes));
     } on DioException catch (_) {
       emit(HomePromoCodesError());
     } catch (_) {
