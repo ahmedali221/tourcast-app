@@ -17,16 +17,16 @@ class WalletModel {
 
 class TransactionModel {
   final int id;
-  final String type; // credit | debit
+  final String type;
   final double amount;
-  final String description;
+  final String status;
   final DateTime createdAt;
 
   TransactionModel({
     required this.id,
     required this.type,
     required this.amount,
-    required this.description,
+    required this.status,
     required this.createdAt,
   });
 
@@ -35,7 +35,7 @@ class TransactionModel {
       id: (json['id'] as num).toInt(),
       type: json['type'] as String,
       amount: num.parse(json['amount'].toString()).toDouble(),
-      description: json['description'] as String,
+      status: json['status'] as String? ?? '',
       createdAt: DateTime.parse(json['created_at'] as String),
     );
   }

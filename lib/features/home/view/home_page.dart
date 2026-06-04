@@ -639,7 +639,30 @@ class _PromoCodesSectionState extends State<_PromoCodesSection> {
           );
         }
 
-        if (_codes.isEmpty && _redemptions.isEmpty) return const SizedBox.shrink();
+        if (_codes.isEmpty && _redemptions.isEmpty) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('My Promo Codes', style: AppTextStyles.label.copyWith(fontWeight: FontWeight.w500)),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.divider),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.confirmation_number_outlined, size: 20, color: AppColors.textSecondary),
+                    const SizedBox(width: 10),
+                    Text('No promo codes yet', style: AppTextStyles.caption),
+                  ],
+                ),
+              ),
+            ],
+          );
+        }
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
