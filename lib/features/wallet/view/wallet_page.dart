@@ -169,7 +169,7 @@ class _BodyView extends StatelessWidget {
               child: Column(
                 children: List.generate(wallet.transactions.length, (i) {
                   final tx = wallet.transactions[i];
-                  final isCredit = tx.type == 'credit';
+                  final isCredit = tx.type.toUpperCase() == 'CREDIT';
                   return Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -197,7 +197,7 @@ class _BodyView extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(tx.description,
+                              Text(tx.type,
                                   style: AppTextStyles.bodyMedium,
                                   overflow: TextOverflow.ellipsis),
                               const SizedBox(height: 2),
