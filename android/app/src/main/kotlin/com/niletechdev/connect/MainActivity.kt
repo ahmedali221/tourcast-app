@@ -1,4 +1,4 @@
-package com.example.tourguide_app
+package com.niletechdev.connect
 
 import io.flutter.embedding.android.FlutterActivity
 

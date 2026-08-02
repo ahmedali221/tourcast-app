@@ -33,8 +33,8 @@ class _LoginView extends StatefulWidget {
 
 class _LoginViewState extends State<_LoginView> {
   final _formKey = GlobalKey<FormState>();
-  final _emailCtrl = TextEditingController(text: 'ahmeedali332332@gmail.com');
-  final _passwordCtrl = TextEditingController(text: 'Ahmed@li123');
+  final _emailCtrl = TextEditingController();
+  final _passwordCtrl = TextEditingController();
   bool _obscure = true;
 
   @override
