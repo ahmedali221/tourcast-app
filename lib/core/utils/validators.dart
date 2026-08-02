@@ -26,10 +26,11 @@ class Validators {
     return null;
   }
 
-  static String? amount(String? value) {
+  static String? amount(String? value, {double min = 0}) {
     if (value == null || value.isEmpty) return 'Amount is required';
     final parsed = double.tryParse(value);
     if (parsed == null || parsed <= 0) return 'Enter a valid amount';
+    if (parsed < min) return 'Minimum amount is \$${min.toStringAsFixed(0)}';
     return null;
   }
 }

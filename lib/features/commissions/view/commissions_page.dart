@@ -129,6 +129,11 @@ class _BodyView extends StatelessWidget {
               child: Column(
                 children: List.generate(commissions.length, (i) {
                   final c = commissions[i];
+                  final (statusColor, statusBg) = switch (c.status.toLowerCase()) {
+                    'approved' || 'paid' => (AppColors.success, AppColors.successBg),
+                    'rejected' || 'failed' => (AppColors.error, AppColors.errorBg),
+                    _ => (AppColors.badgePending, AppColors.badgePending.withValues(alpha: 0.12)),
+                  };
                   return Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -137,6 +142,7 @@ class _BodyView extends StatelessWidget {
                           : null,
                     ),
                     child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
                           width: 40,
@@ -156,41 +162,52 @@ class _BodyView extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // OUT OF SCOPE — Phase 2 (Promo Code Redemption)
-                              // Container(
-                              //   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              //   decoration: BoxDecoration(
-                              //     color: AppColors.surfaceVariant,
-                              //     borderRadius: BorderRadius.circular(4),
-                              //   ),
-                              //   child: Text(
-                              //     c.promoCode,
-                              //     style: AppTextStyles.caption.copyWith(
-                              //       fontFamily: 'monospace',
-                              //       fontWeight: FontWeight.w600,
-                              //       color: AppColors.primary,
-                              //       letterSpacing: 0.5,
-                              //     ),
-                              //   ),
-                              // ),
-                              // const SizedBox(height: 4),
                               Text(
-                                c.redeemedBy,
-                                style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
+                                c.promoCode != null ? 'Promo code: ${c.promoCode}' : 'Direct sale',
+                                style: AppTextStyles.bodyMedium,
                                 overflow: TextOverflow.ellipsis,
                               ),
                               const SizedBox(height: 2),
-                              Text(c.earnedAt.toReadable(), style: AppTextStyles.caption.copyWith(fontSize: 11)),
+                              Text(
+                                '${c.commissionPercent.toStringAsFixed(0)}% of ${c.baseAmount.toCurrency()}',
+                                style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                c.createdAt.toReadable(),
+                                style: AppTextStyles.caption.copyWith(fontSize: 11, color: AppColors.textHint),
+                              ),
                             ],
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Text(
-                          '+${c.amount.toCurrency()}',
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            color: AppColors.success,
-                            fontWeight: FontWeight.w700,
-                          ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              '+${c.amount.toCurrency()}',
+                              style: AppTextStyles.bodyMedium.copyWith(
+                                color: AppColors.success,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: statusBg,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                c.status.toUpperCase(),
+                                style: AppTextStyles.caption.copyWith(
+                                  color: statusColor,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),

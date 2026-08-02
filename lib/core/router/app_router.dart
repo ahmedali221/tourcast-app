@@ -5,6 +5,7 @@ import 'package:tourguide_app/core/router/app_routes.dart';
 import 'package:tourguide_app/core/router/app_shell.dart';
 import 'package:tourguide_app/core/storage/app_storage.dart';
 
+import 'package:tourguide_app/features/splash/view/splash_page.dart';
 import 'package:tourguide_app/features/auth/view/login_page.dart';
 import 'package:tourguide_app/features/auth/view/register_page.dart';
 import 'package:tourguide_app/features/auth/view/forgot_password_page.dart';
@@ -36,9 +37,12 @@ import 'package:tourguide_app/features/notifications/model/notification_model.da
 import 'package:tourguide_app/features/verification/viewmodel/verification_cubit.dart';
 
 final appRouter = GoRouter(
-  initialLocation: AppRoutes.login,
+  initialLocation: AppRoutes.splash,
   redirect: _redirect,
   routes: [
+    // ---------- Splash ----------
+    GoRoute(path: AppRoutes.splash, builder: (_, _) => const SplashPage()),
+
     // ---------- Auth ----------
     GoRoute(path: AppRoutes.login, builder: (_, _) => const LoginPage()),
     GoRoute(path: AppRoutes.register, builder: (_, _) => const RegisterPage()),
@@ -195,6 +199,9 @@ class _MissingExtraPage extends StatelessWidget {
 }
 
 Future<String?> _redirect(BuildContext context, GoRouterState state) async {
+  // Splash decides its own destination once branding has been shown.
+  if (state.matchedLocation == AppRoutes.splash) return null;
+
   final token = await AppStorage.getToken();
   final isLoggedIn = token != null;
   final isOnAuthPage = state.matchedLocation == AppRoutes.login ||

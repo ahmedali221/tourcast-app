@@ -9,6 +9,36 @@ const _channelId = 'niletech_sync';
 const _channelName = 'NileTech Updates';
 const _baseUrl = 'https://app.niletechdev.com/api';
 
+// Notifications sync: always scheduled, fixed hourly cadence.
+const notifSyncUniqueName = 'niletech_notif_sync';
+const notifSyncTaskName = 'notifSyncTask';
+
+// Ticket sync: only scheduled while at least one ticket is open. 15 minutes
+// is WorkManager's minimum periodic frequency on Android.
+const ticketSyncUniqueName = 'niletech_ticket_sync';
+const ticketSyncTaskName = 'ticketSyncTask';
+const ticketSyncFrequency = Duration(minutes: 15);
+
+/// Registers or cancels the ticket-status-aware background sync task, and
+/// persists the last known state so the next app launch can restore it
+/// without waiting on a network call.
+Future<void> updateTicketSyncSchedule(bool hasOpenTicket) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setBool(SyncKeys.hasOpenTicket, hasOpenTicket);
+
+  if (hasOpenTicket) {
+    await Workmanager().registerPeriodicTask(
+      ticketSyncUniqueName,
+      ticketSyncTaskName,
+      frequency: ticketSyncFrequency,
+      constraints: Constraints(networkType: NetworkType.connected),
+      existingWorkPolicy: ExistingPeriodicWorkPolicy.keep,
+    );
+  } else {
+    await Workmanager().cancelByUniqueName(ticketSyncUniqueName);
+  }
+}
+
 @pragma('vm:entry-point')
 void backgroundSyncDispatcher() {
   Workmanager().executeTask((taskName, inputData) async {
@@ -42,8 +72,11 @@ void backgroundSyncDispatcher() {
 
       final prefs = await SharedPreferences.getInstance();
 
-      await _syncTickets(dio, plugin, prefs);
-      await _syncNotifications(dio, plugin, prefs);
+      if (taskName == ticketSyncTaskName) {
+        await _syncTickets(dio, plugin, prefs);
+      } else {
+        await _syncNotifications(dio, plugin, prefs);
+      }
     } catch (_) {
       // Swallow all errors — returning false causes WorkManager to retry
       // aggressively which would flood the API.
@@ -61,9 +94,11 @@ Future<void> _syncTickets(
   final data = response.data['data'];
   if (data is! List) return;
 
+  var hasOpen = false;
   for (final item in data) {
     final id = (item['id'] as num).toInt();
     final newStatus = (item['status'] as String?) ?? '';
+    if (newStatus.toUpperCase() == 'OPEN') hasOpen = true;
     final messages = item['messages'] as List?;
     final newCount = messages?.length ?? 0;
 
@@ -94,6 +129,12 @@ Future<void> _syncTickets(
 
     await prefs.setString(SyncKeys.statusKey(id), newStatus);
     await prefs.setInt(SyncKeys.replyCountKey(id), newCount);
+  }
+
+  // No tickets left open — stop the 15-minute polling until one reopens.
+  if (!hasOpen) {
+    await prefs.setBool(SyncKeys.hasOpenTicket, false);
+    await Workmanager().cancelByUniqueName(ticketSyncUniqueName);
   }
 }
 
