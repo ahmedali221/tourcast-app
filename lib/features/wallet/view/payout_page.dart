@@ -597,8 +597,11 @@ class _AmountFormBodyState extends State<_AmountFormBody> {
               controller: _amountCtrl,
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(hintText: '0.00'),
-              validator: Validators.amount,
+              decoration: const InputDecoration(
+                hintText: '0.00',
+                helperText: 'Minimum payout amount is \$10',
+              ),
+              validator: (v) => Validators.amount(v, min: 10),
             ),
             const SizedBox(height: 24),
             BlocBuilder<WalletCubit, WalletState>(

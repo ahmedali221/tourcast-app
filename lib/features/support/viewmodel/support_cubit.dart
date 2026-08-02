@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:tourguide_app/core/sync/background_sync.dart';
 import 'package:tourguide_app/features/support/model/ticket_model.dart';
 import 'package:tourguide_app/features/support/repository/i_support_repository.dart';
 
@@ -50,6 +51,7 @@ class SupportCubit extends Cubit<SupportState> {
     try {
       final tickets = await _repository.getTickets();
       if (!isClosed) emit(TicketsLoaded(tickets));
+      await updateTicketSyncSchedule(tickets.any((t) => t.status.toUpperCase() == 'OPEN'));
     } on DioException catch (e) {
       if (!isClosed) emit(SupportError(e.response?.data['message'] ?? 'Failed to load tickets'));
     } catch (_) {

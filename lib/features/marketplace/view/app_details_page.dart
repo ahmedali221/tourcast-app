@@ -693,12 +693,42 @@ class _PromoCodeSectionState extends State<_PromoCodeSection> {
 
 // ── Account usage sheet ───────────────────────────────────────────────────────
 
-class _AccountUsageSheet extends StatelessWidget {
+class _AccountUsageSheet extends StatefulWidget {
   final PromoCodeModel code;
   const _AccountUsageSheet({required this.code});
 
   @override
+  State<_AccountUsageSheet> createState() => _AccountUsageSheetState();
+}
+
+class _AccountUsageSheetState extends State<_AccountUsageSheet> {
+  List<RedemptionModel> _redemptions = [];
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final repo = locator<IMarketplaceRepository>();
+      final all = await repo.getRedemptions();
+      final filtered =
+          all.where((r) => r.promoCode == widget.code.code).toList();
+      if (mounted) setState(() => _redemptions = filtered);
+    } catch (_) {
+      if (mounted) setState(() => _error = 'Failed to load usage.');
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final code = widget.code;
     return Container(
       constraints: BoxConstraints(
           maxHeight: MediaQuery.of(context).size.height * 0.75),
@@ -735,7 +765,18 @@ class _AccountUsageSheet extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           const Divider(height: 1, color: AppColors.divider),
-          if (code.accountUsages.isEmpty)
+          if (_loading)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 40),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (_error != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 40),
+              child: Text(_error!,
+                  style: AppTextStyles.bodyMedium.copyWith(color: AppColors.error)),
+            )
+          else if (_redemptions.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 40),
               child: Column(
@@ -755,11 +796,11 @@ class _AccountUsageSheet extends StatelessWidget {
               child: ListView.separated(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 shrinkWrap: true,
-                itemCount: code.accountUsages.length,
+                itemCount: _redemptions.length,
                 separatorBuilder: (_, _) =>
                     const Divider(height: 1, color: AppColors.divider),
                 itemBuilder: (_, i) {
-                  final u = code.accountUsages[i];
+                  final r = _redemptions[i];
                   return Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 24, vertical: 12),
@@ -776,21 +817,28 @@ class _AccountUsageSheet extends StatelessWidget {
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: Text(u.name, style: AppTextStyles.bodyMedium),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(r.userName,
+                                  style: AppTextStyles.bodyMedium
+                                      .copyWith(fontWeight: FontWeight.w600),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis),
+                              if (r.userEmail.isNotEmpty)
+                                Text(r.userEmail,
+                                    style: AppTextStyles.caption
+                                        .copyWith(color: AppColors.textSecondary),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis),
+                            ],
+                          ),
                         ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            '${u.usageCount} use${u.usageCount == 1 ? '' : 's'}',
-                            style: AppTextStyles.caption.copyWith(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.w600),
-                          ),
+                        const SizedBox(width: 8),
+                        Text(
+                          r.redeemedAt.toReadableWithTime(),
+                          style: AppTextStyles.caption
+                              .copyWith(fontSize: 10, color: AppColors.textHint),
                         ),
                       ],
                     ),

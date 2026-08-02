@@ -683,6 +683,11 @@ class _PromoCodesSectionState extends State<_PromoCodesSection> {
   }
 }
 
+// TODO: the promo-codes endpoint doesn't return a per-app icon yet, so every
+// card uses this fixed app logo until the API is updated.
+const _kPromoAppLogoUrl =
+    'https://app.niletechdev.com/storage/applications/icons/1/SNNj5domAXFCYhni4FdImevI1IEop6qrpZR4xlcR.png';
+
 class _PromoCodeCard extends StatelessWidget {
   final PromoCodeModel code;
 
@@ -702,23 +707,51 @@ class _PromoCodeCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
+          Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                code.appName,
-                style: AppTextStyles.caption.copyWith(
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w500,
+              ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: Image.network(
+                  _kPromoAppLogoUrl,
+                  width: 24,
+                  height: 24,
+                  fit: BoxFit.cover,
+                  errorBuilder: (ctx, e, stack) => Container(
+                    width: 24,
+                    height: 24,
+                    color: AppColors.surfaceVariant,
+                    alignment: Alignment.center,
+                    child: const Icon(
+                      Icons.apps_rounded,
+                      size: 14,
+                      color: AppColors.textHint,
+                    ),
+                  ),
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
               ),
-              Text(
-                code.discountLabel,
-                style: AppTextStyles.caption.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w600,
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      code.appName,
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      code.discountLabel,
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],

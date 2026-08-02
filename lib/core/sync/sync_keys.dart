@@ -3,6 +3,7 @@ class SyncKeys {
 
   static const String lastNotificationId = 'sync_last_notification_id';
   static const String pendingRoute = 'sync_pending_route';
+  static const String hasOpenTicket = 'sync_has_open_ticket';
 
   static String replyCountKey(int ticketId) =>
       'sync_ticket_${ticketId}_reply_count';

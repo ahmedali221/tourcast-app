@@ -1,14 +1,38 @@
 
-class AccountUsageModel {
-  final String name;
-  final int usageCount;
+// GET /api/affiliate/redemptions
+class RedemptionModel {
+  final String promoCode;
+  final String userName;
+  final String userEmail;
+  final String project;
+  final num originalPrice;
+  final num discountedPrice;
+  final num commissionBase;
+  final DateTime redeemedAt;
 
-  AccountUsageModel({required this.name, required this.usageCount});
+  RedemptionModel({
+    required this.promoCode,
+    required this.userName,
+    required this.userEmail,
+    required this.project,
+    required this.originalPrice,
+    required this.discountedPrice,
+    required this.commissionBase,
+    required this.redeemedAt,
+  });
 
-  factory AccountUsageModel.fromJson(Map<String, dynamic> json) {
-    return AccountUsageModel(
-      name: json['name'] as String? ?? 'Unknown',
-      usageCount: (json['usage_count'] as num? ?? 0).toInt(),
+  factory RedemptionModel.fromJson(Map<String, dynamic> json) {
+    final user = json['redeemed_by_user'] as Map<String, dynamic>?;
+    final project = json['project'] as Map<String, dynamic>?;
+    return RedemptionModel(
+      promoCode: json['promo_code'] as String? ?? '',
+      userName: user?['name'] as String? ?? 'Unknown',
+      userEmail: user?['email'] as String? ?? '',
+      project: project?['name'] as String? ?? '',
+      originalPrice: json['original_price'] as num? ?? 0,
+      discountedPrice: json['discounted_price'] as num? ?? 0,
+      commissionBase: json['commission_base'] as num? ?? 0,
+      redeemedAt: DateTime.parse(json['redeemed_at'] as String),
     );
   }
 }
@@ -23,7 +47,6 @@ class PromoCodeModel {
   final int usedCount;
   final bool singleUsePerUser;
   final String appName;
-  final List<AccountUsageModel> accountUsages;
 
   PromoCodeModel({
     required this.id,
@@ -34,7 +57,6 @@ class PromoCodeModel {
     required this.usedCount,
     required this.singleUsePerUser,
     this.appName = 'App',
-    this.accountUsages = const [],
   });
 
   factory PromoCodeModel.fromJson(Map<String, dynamic> json) {
@@ -47,9 +69,6 @@ class PromoCodeModel {
       usedCount: (json['used_count'] as num? ?? 0).toInt(),
       singleUsePerUser: json['single_use_per_user'] as bool? ?? false,
       appName: json['app_name'] as String? ?? 'App',
-      accountUsages: (json['account_usages'] as List? ?? [])
-          .map((e) => AccountUsageModel.fromJson(e as Map<String, dynamic>))
-          .toList(),
     );
   }
 
