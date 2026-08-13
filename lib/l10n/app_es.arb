@@ -1,0 +1,428 @@
+{
+    "@@locale":  "es",
+    "appTitle":  "Guía turística NileTech",
+    "@appTitle":  {
+                      "description":  "The application title shown in the task switcher and window title"
+                  },
+    "commonOk":  "Aceptar",
+    "commonCancel":  "Cancelar",
+    "commonSave":  "Guardar",
+    "commonRetry":  "Reintentar",
+    "commonTryAgain":  "Inténtalo de nuevo",
+    "commonLoading":  "Cargando...",
+    "commonSubmit":  "Enviar",
+    "commonNext":  "Siguiente",
+    "commonBack":  "Atrás",
+    "commonDone":  "Hecho",
+    "commonDelete":  "Eliminar",
+    "commonEdit":  "Editar",
+    "commonActive":  "Activo",
+    "commonCopied":  "¡Copiado!",
+    "commonContactSupport":  "Contactar con soporte",
+    "commonPayoutsUnavailable":  "Los pagos están disponibles una vez que se verifica su cuenta.",
+    "commonPleaseContactSupport":  "Por favor contacte al soporte.",
+    "commonLogout":  "Cerrar sesión",
+    "commonLogoutConfirm":  "¿Está seguro de que desea cerrar sesión?",
+    "commonSomethingWentWrong":  "Algo salió mal",
+    "settingsLanguage":  "Idioma",
+    "settingsLanguageSubtitle":  "Elige tu idioma preferido",
+    "languageEnglish":  "Inglés",
+    "languageArabic":  "Árabe",
+    "languageChinese":  "Chino",
+    "languageRussian":  "Ruso",
+    "languageGerman":  "Alemán",
+    "languageFrench":  "Francés",
+    "languageTurkish":  "Turco",
+    "languageItalian":  "Italiano",
+    "languageSpanish":  "Español",
+    "languageJapanese":  "Japonés",
+    "languageKorean":  "Coreano",
+    "navHome":  "Inicio",
+    "navMarketplace":  "Mercado",
+    "navWallet":  "Cartera",
+    "navSupport":  "Soporte",
+    "navProfile":  "Perfil",
+    "validatorEmailRequired":  "Se requiere correo electrónico",
+    "validatorEmailInvalid":  "Introduzca una dirección de correo electrónico válida",
+    "validatorPasswordRequired":  "Se requiere contraseña",
+    "validatorPasswordTooShort":  "La contraseña debe tener al menos 8 caracteres.",
+    "validatorConfirmPasswordRequired":  "Por favor confirma tu contraseña",
+    "validatorPasswordMismatch":  "Las contraseñas no coinciden",
+    "validatorFieldRequired":  "{field} es obligatorio",
+    "@validatorFieldRequired":  {
+                                    "placeholders":  {
+                                                         "field":  {
+                                                                       "type":  "String"
+                                                                   }
+                                                     }
+                                },
+    "validatorDefaultFieldName":  "este campo",
+    "validatorAmountRequired":  "Se requiere cantidad",
+    "validatorAmountInvalid":  "Introduce un importe válido",
+    "validatorMinimumAmount":  "El monto mínimo es ${min}",
+    "@validatorMinimumAmount":  {
+                                    "placeholders":  {
+                                                         "min":  {
+                                                                     "type":  "String"
+                                                                 }
+                                                     }
+                                },
+    "authTagline":  "Tu guía. Tu negocio.",
+    "loginWelcomeBack":  "Bienvenido de nuevo",
+    "loginSubtitle":  "Inicie sesión en su cuenta de guía",
+    "loginEmailLabel":  "Dirección de correo electrónico",
+    "loginPasswordLabel":  "Contraseña",
+    "loginForgotPassword":  "¿Olvidaste tu contraseña?",
+    "loginButton":  "Iniciar sesión",
+    "loginNoAccount":  "¿No tienes una cuenta?",
+    "loginRegisterLink":  "Registrarse",
+    "registerHeading":  "Crear cuenta",
+    "registerSubtitle":  "Únase a NileTech como guía turístico",
+    "registerFullNameLabel":  "Nombre completo",
+    "registerEmailLabel":  "Correo electrónico",
+    "registerPasswordLabel":  "Contraseña",
+    "registerConfirmPasswordLabel":  "Confirmar contraseña",
+    "registerReferralCodeLabel":  "Código de referencia (opcional)",
+    "registerButton":  "Crear cuenta",
+    "registerAlreadyHaveAccount":  "¿Ya tienes una cuenta?",
+    "registerLoginLink":  "Iniciar sesión",
+    "forgotPasswordTitle":  "Olvidé mi contraseña",
+    "forgotPasswordHeading":  "Restablece tu contraseña",
+    "forgotPasswordSubtitle":  "Ingresa tu correo electrónico y te enviaremos un enlace de reinicio.",
+    "forgotPasswordEmailLabel":  "Dirección de correo electrónico",
+    "forgotPasswordSendButton":  "Enviar enlace de reinicio",
+    "forgotPasswordSuccessHeading":  "Revisa tu bandeja de entrada",
+    "forgotPasswordSuccessBody":  "Se ha enviado un enlace para restablecer la contraseña a su dirección de correo electrónico.",
+    "verifyEmailResentSnackbar":  "Correo electrónico de verificación reenviado",
+    "verifyEmailHeading":  "Verifique su correo electrónico",
+    "verifyEmailBody":  "Le enviamos un enlace de verificación a su correo electrónico. Por favor revise su bandeja de entrada y haga clic en el enlace para activar su cuenta.",
+    "verifyEmailContinueButton":  "He verificado, continuar",
+    "verifyEmailResendButton":  "Reenviar correo electrónico",
+    "homeVerificationRequiredTitle":  "Verificación requerida",
+    "homeAccountUnderReviewTitle":  "Cuenta en revisión",
+    "homeApplicationRejectedTitle":  "Solicitud rechazada",
+    "homeVerificationRequiredMessage":  "Debe enviar sus documentos de verificación antes de poder acceder a la aplicación.",
+    "homePendingReviewMessage":  "Nuestro equipo está revisando su solicitud de guía. Se le notificará una vez aprobado.",
+    "homeRejectedMessage":  "Su solicitud no fue aprobada. Revise las notas a continuación y comuníquese con el soporte.",
+    "homeSubmitVerificationCta":  "Enviar verificación",
+    "homeReviewNotesLabel":  "Notas de revisión",
+    "greetingMorning":  "Buenos dias",
+    "greetingAfternoon":  "Buenas tardes",
+    "greetingEvening":  "Buenas noches",
+    "homeGreeting":  "{greeting}, {firstName} 👋",
+    "@homeGreeting":  {
+                          "placeholders":  {
+                                               "greeting":  {
+                                                                "type":  "String"
+                                                            },
+                                               "firstName":  {
+                                                                 "type":  "String"
+                                                             }
+                                           }
+                      },
+    "homeYourBalance":  "Tu saldo",
+    "homeRequestPayout":  "Solicitar pago",
+    "homeCommissions":  "Comisiones",
+    "homeReferrals":  "Referencias",
+    "homeAnnouncements":  "Anuncios",
+    "homeMyPromoCodes":  "Mis códigos promocionales",
+    "homeNoPromoCodes":  "Aún no hay códigos promocionales",
+    "homePendingBannerMessage":  "Su verificación está siendo revisada. Puede navegar por la aplicación, pero no puede crear códigos promocionales, referencias ni solicitar pagos hasta que se apruebe.",
+    "notificationsTrayTitle":  "Notificaciones",
+    "notificationsMarkAllRead":  "Marcar todo como leído",
+    "notificationsEmptyTitle":  "Aún no hay notificaciones",
+    "notificationsEmptyMessage":  "¡Estáis todos atrapados!",
+    "notificationsNewSection":  "Nuevo",
+    "notificationsEarlierSection":  "Antes",
+    "profileTitle":  "Mi perfil",
+    "profileEditUnavailable":  "La edición de perfil está disponible una vez que se verifica su cuenta.",
+    "profileCompleteness":  "Completitud del perfil",
+    "profileCountry":  "País",
+    "profileCity":  "ciudad",
+    "profileYearsExperienceLabel":  "Años de experiencia",
+    "profileYearsExperienceValue":  "{count, plural, one{{count} año} other{{count} años}}",
+    "@profileYearsExperienceValue":  {
+                                         "placeholders":  {
+                                                              "count":  {
+                                                                            "type":  "num"
+                                                                        }
+                                                          }
+                                     },
+    "profileMissingValue":  "—",
+    "profileLanguages":  "Idiomas",
+    "profileSpecializations":  "Especializaciones",
+    "profileBio":  "Biografía",
+    "profileNoBio":  "Aún no se ha agregado ninguna biografía.",
+    "profileDeleteAccount":  "Eliminar cuenta",
+    "profileDeleteConfirm":  "Esta acción es permanente y no se puede deshacer. ¿Está seguro?",
+    "profileWallet":  "Cartera",
+    "profileViewAll":  "Ver todo →",
+    "profileAvailableBalance":  "Saldo disponible",
+    "profilePayoutAccount":  "Cuenta de pago",
+    "profileManage":  "Administrar →",
+    "profileSetupPayoutAccount":  "Configurar cuenta de pago",
+    "profileUpdatedSuccess":  "¡Perfil actualizado exitosamente!",
+    "editProfileTitle":  "Editar perfil",
+    "editProfileChangePhoto":  "Cambiar foto",
+    "editProfileSelectCountry":  "Seleccionar país",
+    "editProfileSaveChanges":  "Guardar cambios",
+    "editProfileSelectCountryTitle":  "Seleccionar país",
+    "editProfileSearchCountryHint":  "Buscar país...",
+    "editProfileSelectItemTitle":  "Seleccione {title}",
+    "@editProfileSelectItemTitle":  {
+                                        "placeholders":  {
+                                                             "title":  {
+                                                                           "type":  "String"
+                                                                       }
+                                                         }
+                                    },
+    "editProfileDoneCount":  "Hecho ({count})",
+    "@editProfileDoneCount":  {
+                                  "placeholders":  {
+                                                       "count":  {
+                                                                     "type":  "int"
+                                                                 }
+                                                   }
+                              },
+    "editProfileSearchGenericHint":  "Buscar...",
+    "editProfileApplyCount":  "Aplicar ({count} seleccionado)",
+    "@editProfileApplyCount":  {
+                                   "placeholders":  {
+                                                        "count":  {
+                                                                      "type":  "int"
+                                                                  }
+                                                    }
+                               },
+    "editProfileAddChip":  "+ Agregar",
+    "verificationTitle":  "Verificación de identidad",
+    "verificationDocumentDetails":  "Detalles del documento",
+    "verificationNationalIdLabel":  "Número de DNI",
+    "verificationLicenseLabel":  "Número de licencia de guía",
+    "verificationUploadDocuments":  "Cargar documentos",
+    "verificationUploadCaption":  "Cargue copias claras y legibles de sus documentos.",
+    "verificationIdFrontTitle":  "DNI — Frente",
+    "verificationIdFrontSubtitle":  "Anverso de su documento nacional de identidad",
+    "verificationFormatMax2mb":  "JPEG o PNG • Máximo 2 MB",
+    "verificationIdBackTitle":  "DNI — Volver",
+    "verificationIdBackSubtitle":  "Reverso de su documento nacional de identidad",
+    "verificationLicenseTitle":  "Licencia de guía",
+    "verificationLicenseSubtitle":  "Documento de licencia oficial de guía turístico.",
+    "verificationFormatMax5mb":  "JPEG o PNG • Máximo 5 MB",
+    "verificationSubmitButton":  "Enviar para verificación",
+    "verificationUploaded":  "subido",
+    "verificationTapToUpload":  "Toca para subir",
+    "verificationRejectedBanner":  "Sus documentos fueron rechazados. Por favor vuelva a enviar.",
+    "verificationPendingBanner":  "Sus documentos están bajo revisión. Te avisaremos.",
+    "verificationSubmittedDocuments":  "Documentos enviados",
+    "verificationVerifiedTitle":  "Identidad verificada",
+    "verificationVerifiedSubtitle":  "Su identidad ha sido verificada exitosamente.",
+    "verificationSuccessHeading":  "Documentos enviados",
+    "verificationSuccessBody":  "Sus documentos de verificación se han enviado correctamente. Nuestro equipo los revisará y le notificará el resultado.",
+    "verificationSuccessInfoBanner":  "La revisión suele tardar entre 1 y 3 días hábiles.",
+    "verificationGoHome":  "Ir a casa",
+    "marketplaceTitle":  "Mercado",
+    "marketplaceSearchHint":  "Buscar aplicaciones...",
+    "marketplaceEmptyTitle":  "No hay aplicaciones disponibles",
+    "marketplaceEmptyMessage":  "Vuelve más tarde para ver nuevas aplicaciones.",
+    "marketplaceViewDetails":  "Ver detalles →",
+    "appDetailsCouldNotOpenStore":  "No se pudo abrir el enlace de la tienda",
+    "appDetailsGooglePlay":  "GooglePlay",
+    "appDetailsAppStore":  "Tienda de aplicaciones",
+    "appDetailsAbout":  "Acerca de",
+    "appDetailsAvailablePlans":  "Planes disponibles",
+    "appDetailsPromoUnavailable":  "Los códigos promocionales están disponibles una vez que se verifica su cuenta.",
+    "appDetailsGenerateButton":  "+ Generar",
+    "appDetailsFailedLoadPromoCodes":  "No se pudieron cargar los códigos promocionales.",
+    "appDetailsGenerateHint":  "Toca \"+ Generar\" para crear tu primer código.",
+    "appDetailsFailedGeneratePromo":  "No se pudo generar el código de promoción. Por favor inténtalo de nuevo.",
+    "appDetailsCopyTooltip":  "Copiar",
+    "appDetailsFailedLoadUsage":  "No se pudo cargar el uso.",
+    "appDetailsNoUsage":  "Aún no se usa",
+    "appDetailsCreatePromoTitle":  "Crear código promocional",
+    "appDetailsCreatePromoSubtitle":  "Ingrese un nombre personalizado para su código de promoción o déjelo vacío para generar uno automáticamente.",
+    "appDetailsPromoNameLabel":  "Nombre del código promocional (opcional)",
+    "appDetailsPromoNameHint":  "por ej. AHMED20 — dejar vacío para generar automáticamente",
+    "appDetailsGenerate":  "generar",
+    "appDetailsPreview":  "Vista previa",
+    "appDetailsFree":  "Gratis",
+    "walletTitle":  "Cartera",
+    "walletTransactionHistory":  "Historial de transacciones",
+    "walletNoTransactions":  "Aún no hay transacciones",
+    "walletNoTransactionsMessage":  "Su historial de transacciones aparecerá aquí.",
+    "walletPayoutRequestsTitle":  "Solicitudes de pago",
+    "walletPayoutRequestsSubtitle":  "Ver y administrar sus pagos",
+    "payoutProfileSaved":  "¡Perfil de pagos guardado!",
+    "payoutRequestSubmitted":  "Solicitud de pago enviada",
+    "payoutMethodTitle":  "Método de pago",
+    "payoutPaymentDetailsTitle":  "Detalles de pago",
+    "payoutManageAccount":  "Administrar cuenta de pago",
+    "payoutHistorySection":  "Historia",
+    "payoutNoRequests":  "Aún no hay solicitudes de pago",
+    "payoutNoRequestsMessage":  "Tus solicitudes de pago aparecerán aquí.",
+    "payoutChooseMethod":  "Elige cómo quieres recibir tu dinero.",
+    "payoutNoMethodsAvailable":  "No hay métodos de pago disponibles",
+    "payoutInfoBanner":  "Esta información se guarda en su perfil de pago y se utiliza para todos los retiros futuros.",
+    "payoutSaveContinue":  "Guardar y continuar",
+    "payoutAvailableAmount":  "Disponible: {amount}",
+    "@payoutAvailableAmount":  {
+                                   "placeholders":  {
+                                                        "amount":  {
+                                                                       "type":  "String"
+                                                                   }
+                                                    }
+                               },
+    "payoutChange":  "Cambiar",
+    "payoutAmountHint":  "0.00",
+    "payoutMinimumHelper":  "El monto mínimo de pago es $10",
+    "payoutSubmitRequest":  "Enviar solicitud",
+    "payoutAmountLabel":  "Monto (USD)",
+    "paymentMethodsSaved":  "¡Cuenta de pago guardada!",
+    "paymentMethodsTitle":  "Métodos de pago",
+    "paymentMethodsNoneAvailable":  "No hay métodos de pago disponibles",
+    "paymentMethodsChoose":  "Elige un método de pago",
+    "paymentMethodsAll":  "Todos los métodos",
+    "paymentMethodsActiveBadge":  "ACTIVO",
+    "paymentMethodsSetUp":  "configurar",
+    "paymentMethodsUpdateInfo":  "Actualice sus detalles de pago guardados para {methodName}.",
+    "@paymentMethodsUpdateInfo":  {
+                                      "placeholders":  {
+                                                           "methodName":  {
+                                                                              "type":  "String"
+                                                                          }
+                                                       }
+                                  },
+    "paymentMethodsBecomeActiveInfo":  "Esta se convertirá en su cuenta de pago activa.",
+    "paymentMethodsSetActiveButton":  "Establecer como cuenta activa",
+    "commissionsTitle":  "Comisiones",
+    "commissionsTotalEarned":  "Comisiones totales ganadas",
+    "commissionsTransactionsCount":  "{count, plural, one{{count} transacción} other{{count} transacciones}}",
+    "@commissionsTransactionsCount":  {
+                                          "placeholders":  {
+                                                               "count":  {
+                                                                             "type":  "num"
+                                                                         }
+                                                           }
+                                      },
+    "commissionsHistorySection":  "Historia de la comisión",
+    "commissionsEmptyTitle":  "Aún no hay comisiones",
+    "commissionsEmptyMessage":  "Tus comisiones ganadas aparecerán aquí.",
+    "commissionsPromoCodeLabel":  "Código de promoción: {code}",
+    "@commissionsPromoCodeLabel":  {
+                                       "placeholders":  {
+                                                            "code":  {
+                                                                         "type":  "String"
+                                                                     }
+                                                        }
+                                   },
+    "commissionsDirectSale":  "Venta directa",
+    "referralsTitle":  "Referencias",
+    "referralsTotal":  "Referencias totales",
+    "referralsTotalEarned":  "Total ganado",
+    "referralsGenerateNew":  "Generar nuevo código de referencia",
+    "referralsUnavailable":  "Los enlaces de referencia están disponibles una vez que se verifica su cuenta.",
+    "referralsCodesSection":  "Códigos de referencia",
+    "referralsEmptyTitle":  "Aún no hay referencias",
+    "referralsEmptyMessage":  "¡Genera un código y compártelo para comenzar a ganar!",
+    "referralsCodeCopied":  "¡Código copiado!",
+    "referralsUsedBy":  "Utilizado por {user}",
+    "@referralsUsedBy":  {
+                             "placeholders":  {
+                                                  "user":  {
+                                                               "type":  "String"
+                                                           }
+                                              }
+                         },
+    "referralsNotUsedYet":  "Aún no usado",
+    "referralsRegisteredOn":  "Registrado {date}",
+    "@referralsRegisteredOn":  {
+                                   "placeholders":  {
+                                                        "date":  {
+                                                                     "type":  "String"
+                                                                 }
+                                                    }
+                               },
+    "referralsLinkGeneratedTitle":  "Enlace de referencia generado",
+    "referralsShareSubtitle":  "Comparte tu código o enlace para comenzar a ganar.",
+    "referralsCodeLabel":  "Código de referencia",
+    "referralsLinkLabel":  "Enlace de referencia",
+    "referralsLinkCopied":  "Enlace copiado!",
+    "referralsActivityTitle":  "Actividad del usuario referido",
+    "referralsNoActivityData":  "Sin datos de actividad",
+    "referralsActivityWillAppear":  "La actividad aparecerá una vez que el usuario esté activo.",
+    "referralsWindowSection":  "Ventana de referencia",
+    "referralsSubscriptionsCount":  "Suscripciones ({count})",
+    "@referralsSubscriptionsCount":  {
+                                         "placeholders":  {
+                                                              "count":  {
+                                                                            "type":  "int"
+                                                                        }
+                                                          }
+                                     },
+    "referralsAppUsageEventsCount":  "Eventos de uso de aplicaciones ({count})",
+    "@referralsAppUsageEventsCount":  {
+                                          "placeholders":  {
+                                                               "count":  {
+                                                                             "type":  "int"
+                                                                         }
+                                                           }
+                                      },
+    "referralsPromoRedemptionsCount":  "Canjes de promociones ({count})",
+    "@referralsPromoRedemptionsCount":  {
+                                            "placeholders":  {
+                                                                 "count":  {
+                                                                               "type":  "int"
+                                                                           }
+                                                             }
+                                        },
+    "referralsNoActivityYet":  "Aún no hay actividad",
+    "referralsItemFallback":  "Artículo {index}",
+    "@referralsItemFallback":  {
+                                   "placeholders":  {
+                                                        "index":  {
+                                                                      "type":  "int"
+                                                                  }
+                                                    }
+                               },
+    "supportTicketsTitle":  "Boletos de soporte",
+    "supportFilterAll":  "Todos",
+    "supportFilterOpen":  "Abierto",
+    "supportFilterPending":  "Pendiente",
+    "supportFilterClosed":  "Cerrado",
+    "supportEmptyTitle":  "Aún no hay entradas",
+    "supportEmptyMessage":  "Toque + para abrir un nuevo ticket de soporte.",
+    "newTicketTitle":  "Nuevo billete",
+    "newTicketSubmitted":  "Boleto enviado exitosamente!",
+    "newTicketCategoryLabel":  "categoría",
+    "newTicketPriorityLabel":  "Prioridad",
+    "newTicketSubjectLabel":  "Asunto",
+    "newTicketSubjectRequired":  "Se requiere sujeto",
+    "newTicketMessageLabel":  "Mensaje",
+    "newTicketMessageRequired":  "Se requiere mensaje",
+    "newTicketSubmitButton":  "Enviar ticket",
+    "newTicketCategoryTechnical":  "Técnico",
+    "newTicketCategoryPayment":  "Pago",
+    "newTicketPriorityNormal":  "normales",
+    "newTicketPriorityHigh":  "Alto",
+    "newTicketPriorityUrgent":  "Urgente",
+    "ticketDetailRefreshTooltip":  "Actualizar",
+    "ticketDetailNoReplies":  "Aún no hay respuestas.",
+    "ticketDetailTeamWillRespond":  "Nuestro equipo responderá en breve.",
+    "ticketDetailReplyHint":  "Escribe una respuesta...",
+    "ticketDetailClosed":  "Este billete está cerrado.",
+    "agreementsTitle":  "Acuerdos Legales",
+    "agreementsAccepted":  "Acuerdo aceptado",
+    "agreementsAllAcceptedTitle":  "¡Todos los acuerdos aceptados!",
+    "agreementsNoPending":  "No tienes acuerdos pendientes.",
+    "agreementsAcceptedStatus":  "Aceptado",
+    "agreementsPendingStatus":  "Pendiente de su aceptación",
+    "agreementsCheckboxLabel":  "He leído y acepto los términos anteriores.",
+    "agreementsAcceptButton":  "Aceptar Acuerdo",
+    "knowledgeCenterTitle":  "Centro de conocimiento",
+    "knowledgeCenterCategoryGettingStarted":  "Empezando",
+    "knowledgeCenterCategoryPayments":  "Pagos",
+    "knowledgeCenterCategoryAppsTools":  "Aplicaciones y herramientas",
+    "knowledgeCenterCategoryAccount":  "cuenta",
+    "knowledgeCenterEmptyTitle":  "Aún no hay artículos",
+    "knowledgeCenterEmptyMessage":  "Vuelve más tarde para ver contenido nuevo.",
+    "subscriptionPageStub":  "Página de suscripciones"
+}

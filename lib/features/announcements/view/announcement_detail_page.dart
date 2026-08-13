@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tourguide_app/core/localization/language_switcher.dart';
 import 'package:go_router/go_router.dart';
 import 'package:video_player/video_player.dart';
 import 'package:tourguide_app/core/theme/app_colors.dart';
@@ -54,11 +55,16 @@ class AnnouncementDetailPage extends StatelessWidget {
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: _priorityBg,
                           borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: _priorityColor.withValues(alpha: 0.3)),
+                          border: Border.all(
+                            color: _priorityColor.withValues(alpha: 0.3),
+                          ),
                         ),
                         child: Text(
                           announcement.priority,
@@ -70,14 +76,18 @@ class AnnouncementDetailPage extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 10),
-                      const Icon(Icons.calendar_today_outlined,
-                          size: 13, color: AppColors.textSecondary),
+                      const Icon(
+                        Icons.calendar_today_outlined,
+                        size: 13,
+                        color: AppColors.textSecondary,
+                      ),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
                           '${announcement.startDate.toReadable()} – ${announcement.endDate.toReadable()}',
-                          style: AppTextStyles.caption
-                              .copyWith(color: AppColors.textSecondary),
+                          style: AppTextStyles.caption.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -130,10 +140,8 @@ class _HeroSliver extends StatelessWidget {
       expandedHeight: announcement.imageUrl != null ? 260 : 160,
       pinned: true,
       backgroundColor: AppColors.surface,
-      leading: Padding(
-        padding: const EdgeInsets.all(8),
-        child: _BackButton(),
-      ),
+      leading: Padding(padding: const EdgeInsets.all(8), child: _BackButton()),
+      actions: const [LanguageSwitcher()],
       flexibleSpace: FlexibleSpaceBar(
         collapseMode: CollapseMode.parallax,
         background: announcement.imageUrl != null
@@ -160,8 +168,11 @@ class _BackButton extends StatelessWidget {
           color: Colors.black.withValues(alpha: 0.35),
           shape: BoxShape.circle,
         ),
-        child: const Icon(Icons.arrow_back_ios_new_rounded,
-            size: 18, color: Colors.white),
+        child: const Icon(
+          Icons.arrow_back_ios_new_rounded,
+          size: 18,
+          color: Colors.white,
+        ),
       ),
     );
   }
@@ -189,8 +200,11 @@ class _FallbackHero extends StatelessWidget {
     return Container(
       color: AppColors.surfaceVariant,
       alignment: Alignment.center,
-      child: const Icon(Icons.campaign_outlined,
-          size: 52, color: AppColors.primary),
+      child: const Icon(
+        Icons.campaign_outlined,
+        size: 52,
+        color: AppColors.primary,
+      ),
     );
   }
 }
@@ -215,11 +229,13 @@ class _VideoSectionState extends State<_VideoSection> {
   void initState() {
     super.initState();
     _controller = VideoPlayerController.networkUrl(Uri.parse(widget.url))
-      ..initialize().then((_) {
-        if (mounted) setState(() => _initialized = true);
-      }).catchError((_) {
-        if (mounted) setState(() => _error = true);
-      });
+      ..initialize()
+          .then((_) {
+            if (mounted) setState(() => _initialized = true);
+          })
+          .catchError((_) {
+            if (mounted) setState(() => _error = true);
+          });
   }
 
   @override
@@ -244,7 +260,9 @@ class _VideoSectionState extends State<_VideoSection> {
                 : Container(color: AppColors.surfaceVariant),
             if (!_initialized && !_error)
               const CircularProgressIndicator(
-                  color: AppColors.primary, strokeWidth: 2.5),
+                color: AppColors.primary,
+                strokeWidth: 2.5,
+              ),
             if (_initialized)
               GestureDetector(
                 onTap: () => setState(() {
@@ -261,8 +279,11 @@ class _VideoSectionState extends State<_VideoSection> {
                       shape: BoxShape.circle,
                     ),
                     padding: const EdgeInsets.all(14),
-                    child: const Icon(Icons.play_arrow_rounded,
-                        color: Colors.white, size: 32),
+                    child: const Icon(
+                      Icons.play_arrow_rounded,
+                      color: Colors.white,
+                      size: 32,
+                    ),
                   ),
                 ),
               ),

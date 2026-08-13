@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tourguide_app/core/di/locator.dart';
+import 'package:tourguide_app/core/localization/language_switcher.dart';
 import 'package:tourguide_app/core/shared/widgets/error_view.dart';
 import 'package:tourguide_app/core/theme/app_colors.dart';
 import 'package:tourguide_app/core/theme/app_text_styles.dart';
 import 'package:tourguide_app/core/utils/extensions.dart';
 import 'package:tourguide_app/features/support/model/ticket_model.dart';
 import 'package:tourguide_app/features/support/viewmodel/support_cubit.dart';
+import 'package:tourguide_app/l10n/generated/app_localizations.dart';
 
 class TicketDetailPage extends StatelessWidget {
   final String ticketId;
@@ -54,11 +56,16 @@ class _TicketDetailViewState extends State<_TicketDetailView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return BlocConsumer<SupportCubit, SupportState>(
       listener: (context, state) {
         if (state is TicketDetailLoaded) _scrollToBottom();
         if (state is SupportError) {
-          context.showSnackBar(state.message, isError: true);
+          context.showSnackBar(
+            state.message ?? l10n.commonSomethingWentWrong,
+            isError: true,
+          );
         }
       },
       builder: (context, state) {
@@ -69,10 +76,11 @@ class _TicketDetailViewState extends State<_TicketDetailView> {
         }
         if (state is SupportError) {
           return Scaffold(
-            appBar: AppBar(),
+            appBar: LanguageAppBar(),
             body: ErrorView(
-              message: state.message,
-              onRetry: () => context.read<SupportCubit>().loadTicket(widget.ticketId),
+              message: state.message ?? l10n.commonSomethingWentWrong,
+              onRetry: () =>
+                  context.read<SupportCubit>().loadTicket(widget.ticketId),
             ),
           );
         }
@@ -87,12 +95,16 @@ class _TicketDetailViewState extends State<_TicketDetailView> {
             isRefreshing: state is TicketRefreshing,
             replyCtrl: _replyCtrl,
             scrollCtrl: _scrollCtrl,
-            onRefresh: () => context.read<SupportCubit>().refreshTicket(widget.ticketId),
+            onRefresh: () =>
+                context.read<SupportCubit>().refreshTicket(widget.ticketId),
             onSend: () {
               final msg = _replyCtrl.text.trim();
               if (msg.isNotEmpty) {
                 _replyCtrl.clear();
-                context.read<SupportCubit>().replyToTicket(widget.ticketId, msg);
+                context.read<SupportCubit>().replyToTicket(
+                  widget.ticketId,
+                  msg,
+                );
               }
             },
           );
@@ -136,11 +148,15 @@ class _TicketChat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isClosed = ticket.status.toLowerCase() == 'closed';
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text('#${ticket.id} — ${ticket.subject}', overflow: TextOverflow.ellipsis),
+      appBar: LanguageAppBar(
+        title: Text(
+          '#${ticket.id} — ${ticket.subject}',
+          overflow: TextOverflow.ellipsis,
+        ),
         actions: [
           if (isRefreshing)
             const Padding(
@@ -154,7 +170,7 @@ class _TicketChat extends StatelessWidget {
           else
             IconButton(
               icon: const Icon(Icons.refresh_rounded),
-              tooltip: 'Refresh',
+              tooltip: l10n.ticketDetailRefreshTooltip,
               onPressed: onRefresh,
             ),
           Container(
@@ -182,11 +198,21 @@ class _TicketChat extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.chat_bubble_outline_rounded, size: 48, color: AppColors.textHint),
+                        Icon(
+                          Icons.chat_bubble_outline_rounded,
+                          size: 48,
+                          color: AppColors.textHint,
+                        ),
                         const SizedBox(height: 12),
-                        Text('No replies yet.', style: AppTextStyles.body),
+                        Text(
+                          l10n.ticketDetailNoReplies,
+                          style: AppTextStyles.body,
+                        ),
                         const SizedBox(height: 4),
-                        Text('Our team will respond shortly.', style: AppTextStyles.caption),
+                        Text(
+                          l10n.ticketDetailTeamWillRespond,
+                          style: AppTextStyles.caption,
+                        ),
                       ],
                     ),
                   )
@@ -194,7 +220,8 @@ class _TicketChat extends StatelessWidget {
                     controller: scrollCtrl,
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                     itemCount: ticket.replies.length,
-                    itemBuilder: (_, i) => _MessageBubble(reply: ticket.replies[i]),
+                    itemBuilder: (_, i) =>
+                        _MessageBubble(reply: ticket.replies[i]),
                   ),
           ),
           if (!isClosed)
@@ -217,14 +244,17 @@ class _TicketChat extends StatelessWidget {
                       maxLines: null,
                       keyboardType: TextInputType.multiline,
                       decoration: InputDecoration(
-                        hintText: 'Type a reply...',
+                        hintText: l10n.ticketDetailReplyHint,
                         filled: true,
                         fillColor: AppColors.surfaceVariant,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
                         ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 12,
+                        ),
                       ),
                       style: AppTextStyles.body,
                     ),
@@ -260,9 +290,13 @@ class _TicketChat extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.lock_outline, size: 16, color: AppColors.textSecondary),
+                  Icon(
+                    Icons.lock_outline,
+                    size: 16,
+                    color: AppColors.textSecondary,
+                  ),
                   const SizedBox(width: 6),
-                  Text('This ticket is closed.', style: AppTextStyles.caption),
+                  Text(l10n.ticketDetailClosed, style: AppTextStyles.caption),
                 ],
               ),
             ),
@@ -283,7 +317,9 @@ class _MessageBubble extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: isSupport ? MainAxisAlignment.start : MainAxisAlignment.end,
+        mainAxisAlignment: isSupport
+            ? MainAxisAlignment.start
+            : MainAxisAlignment.end,
         children: [
           if (isSupport) ...[
             Container(
@@ -293,7 +329,11 @@ class _MessageBubble extends StatelessWidget {
                 color: AppColors.primary,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.support_agent, size: 16, color: Colors.white),
+              child: const Icon(
+                Icons.support_agent,
+                size: 16,
+                color: Colors.white,
+              ),
             ),
             const SizedBox(width: 8),
           ],

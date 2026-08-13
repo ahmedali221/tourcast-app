@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tourguide_app/core/localization/language_switcher.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tourguide_app/core/theme/app_colors.dart';
 import 'package:tourguide_app/core/theme/app_text_styles.dart';
@@ -14,7 +15,7 @@ class NotificationDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
+      appBar: LanguageAppBar(
         backgroundColor: AppColors.surface,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -54,7 +55,10 @@ class NotificationDetailPage extends StatelessWidget {
                 const SizedBox(width: 12),
                 if (notification.type.isNotEmpty)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.surfaceVariant,
                       borderRadius: BorderRadius.circular(6),
@@ -82,13 +86,18 @@ class NotificationDetailPage extends StatelessWidget {
             // Date
             Row(
               children: [
-                const Icon(Icons.access_time_rounded,
-                    size: 13, color: AppColors.textHint),
+                const Icon(
+                  Icons.access_time_rounded,
+                  size: 13,
+                  color: AppColors.textHint,
+                ),
                 const SizedBox(width: 4),
                 Text(
                   notification.createdAt.toReadableWithTime(),
-                  style: AppTextStyles.caption
-                      .copyWith(fontSize: 11, color: AppColors.textHint),
+                  style: AppTextStyles.caption.copyWith(
+                    fontSize: 11,
+                    color: AppColors.textHint,
+                  ),
                 ),
               ],
             ),

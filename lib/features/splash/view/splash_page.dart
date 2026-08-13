@@ -5,6 +5,7 @@ import 'package:tourguide_app/core/shared/widgets/nt_logo.dart';
 import 'package:tourguide_app/core/storage/app_storage.dart';
 import 'package:tourguide_app/core/theme/app_colors.dart';
 import 'package:tourguide_app/core/theme/app_text_styles.dart';
+import 'package:tourguide_app/l10n/generated/app_localizations.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -33,6 +34,8 @@ class _SplashPageState extends State<SplashPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Center(
@@ -42,7 +45,7 @@ class _SplashPageState extends State<SplashPage> {
           children: [
             const NtLogo(size: 96),
             Text(
-              'Your Guide. Your Business.',
+              l10n.authTagline,
               style: AppTextStyles.caption.copyWith(
                 color: AppColors.textSecondary,
                 fontSize: 13,

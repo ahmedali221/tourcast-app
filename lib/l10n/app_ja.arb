@@ -1,0 +1,428 @@
+{
+    "@@locale":  "ja",
+    "appTitle":  "NileTech ツアーガイド",
+    "@appTitle":  {
+                      "description":  "The application title shown in the task switcher and window title"
+                  },
+    "commonOk":  "OK",
+    "commonCancel":  "キャンセル",
+    "commonSave":  "保存",
+    "commonRetry":  "再試行",
+    "commonTryAgain":  "もう一度試してください",
+    "commonLoading":  "読み込み中...",
+    "commonSubmit":  "送信",
+    "commonNext":  "次へ",
+    "commonBack":  "戻る",
+    "commonDone":  "完了",
+    "commonDelete":  "削除",
+    "commonEdit":  "編集",
+    "commonActive":  "アクティブ",
+    "commonCopied":  "コピーしました！",
+    "commonContactSupport":  "サポートに連絡する",
+    "commonPayoutsUnavailable":  "アカウントが認証されると、支払いが可能になります。",
+    "commonPleaseContactSupport":  "サポートにお問い合わせください。",
+    "commonLogout":  "ログアウト",
+    "commonLogoutConfirm":  "ログアウトしてもよろしいですか?",
+    "commonSomethingWentWrong":  "問題が発生しました",
+    "settingsLanguage":  "言語",
+    "settingsLanguageSubtitle":  "希望する言語を選択してください",
+    "languageEnglish":  "英語",
+    "languageArabic":  "アラビア語",
+    "languageChinese":  "中国語",
+    "languageRussian":  "ロシア語",
+    "languageGerman":  "ドイツ語",
+    "languageFrench":  "フランス語",
+    "languageTurkish":  "トルコ語",
+    "languageItalian":  "イタリア語",
+    "languageSpanish":  "スペイン語",
+    "languageJapanese":  "日本語",
+    "languageKorean":  "韓国語",
+    "navHome":  "ホーム",
+    "navMarketplace":  "マーケットプレイス",
+    "navWallet":  "財布",
+    "navSupport":  "サポート",
+    "navProfile":  "プロフィール",
+    "validatorEmailRequired":  "メールアドレスは必須です",
+    "validatorEmailInvalid":  "有効なメールアドレスを入力してください",
+    "validatorPasswordRequired":  "パスワードが必要です",
+    "validatorPasswordTooShort":  "パスワードは8文字以上である必要があります",
+    "validatorConfirmPasswordRequired":  "パスワードを確認してください",
+    "validatorPasswordMismatch":  "パスワードが一致しません",
+    "validatorFieldRequired":  "{field}は必須です",
+    "@validatorFieldRequired":  {
+                                    "placeholders":  {
+                                                         "field":  {
+                                                                       "type":  "String"
+                                                                   }
+                                                     }
+                                },
+    "validatorDefaultFieldName":  "このフィールド",
+    "validatorAmountRequired":  "金額は必須です",
+    "validatorAmountInvalid":  "有効な金額を入力してください",
+    "validatorMinimumAmount":  "最小金額は ${min} です",
+    "@validatorMinimumAmount":  {
+                                    "placeholders":  {
+                                                         "min":  {
+                                                                     "type":  "String"
+                                                                 }
+                                                     }
+                                },
+    "authTagline":  "あなたのガイド。あなたのビジネス。",
+    "loginWelcomeBack":  "おかえりなさい",
+    "loginSubtitle":  "ガイドアカウントにログインします",
+    "loginEmailLabel":  "メールアドレス",
+    "loginPasswordLabel":  "パスワード",
+    "loginForgotPassword":  "パスワードをお忘れですか?",
+    "loginButton":  "ログイン",
+    "loginNoAccount":  "アカウントをお持ちでない場合は、",
+    "loginRegisterLink":  "登録する",
+    "registerHeading":  "アカウントの作成",
+    "registerSubtitle":  "NileTech にツアーガイドとして参加する",
+    "registerFullNameLabel":  "フルネーム",
+    "registerEmailLabel":  "電子メール",
+    "registerPasswordLabel":  "パスワード",
+    "registerConfirmPasswordLabel":  "パスワードの確認",
+    "registerReferralCodeLabel":  "紹介コード (オプション)",
+    "registerButton":  "アカウントの作成",
+    "registerAlreadyHaveAccount":  "すでにアカウントをお持ちですか?",
+    "registerLoginLink":  "ログイン",
+    "forgotPasswordTitle":  "パスワードを忘れた場合",
+    "forgotPasswordHeading":  "パスワードをリセットする",
+    "forgotPasswordSubtitle":  "メールアドレスを入力してください。リセット用のリンクが送信されます。",
+    "forgotPasswordEmailLabel":  "メールアドレス",
+    "forgotPasswordSendButton":  "リセットリンクを送信する",
+    "forgotPasswordSuccessHeading":  "受信箱を確認してください",
+    "forgotPasswordSuccessBody":  "パスワードリセットリンクがあなたの電子メールアドレスに送信されました。",
+    "verifyEmailResentSnackbar":  "確認メールを再送信しました",
+    "verifyEmailHeading":  "メールアドレスを確認してください",
+    "verifyEmailBody":  "あなたの電子メールに確認リンクを送信しました。受信箱を確認し、リンクをクリックしてアカウントを有効にしてください。",
+    "verifyEmailContinueButton":  "確認しました、続行します",
+    "verifyEmailResendButton":  "メールを再送信する",
+    "homeVerificationRequiredTitle":  "検証が必要です",
+    "homeAccountUnderReviewTitle":  "レビュー中のアカウント",
+    "homeApplicationRejectedTitle":  "申請は拒否されました",
+    "homeVerificationRequiredMessage":  "アプリにアクセスするには、事前に確認書類を提出する必要があります。",
+    "homePendingReviewMessage":  "あなたのガイド申請書は私たちのチームによって審査されています。承認されると通知が届きます。",
+    "homeRejectedMessage":  "あなたの申請は承認されませんでした。以下の注意事項をご確認の上、サポートにお問い合わせください。",
+    "homeSubmitVerificationCta":  "検証の送信",
+    "homeReviewNotesLabel":  "レビューノート",
+    "greetingMorning":  "おはようございます",
+    "greetingAfternoon":  "こんにちは",
+    "greetingEvening":  "こんばんは。",
+    "homeGreeting":  "{greeting}, {firstName} 👋",
+    "@homeGreeting":  {
+                          "placeholders":  {
+                                               "greeting":  {
+                                                                "type":  "String"
+                                                            },
+                                               "firstName":  {
+                                                                 "type":  "String"
+                                                             }
+                                           }
+                      },
+    "homeYourBalance":  "あなたの残高",
+    "homeRequestPayout":  "支払いのリクエスト",
+    "homeCommissions":  "手数料",
+    "homeReferrals":  "紹介",
+    "homeAnnouncements":  "お知らせ",
+    "homeMyPromoCodes":  "私のプロモーション コード",
+    "homeNoPromoCodes":  "プロモーション コードはまだありません",
+    "homePendingBannerMessage":  "あなたの認証は審査中です。アプリを閲覧することはできますが、承認されるまでプロモーション コードや紹介を作成したり、支払いをリクエストしたりすることはできません。",
+    "notificationsTrayTitle":  "通知",
+    "notificationsMarkAllRead":  "すべて既読としてマークする",
+    "notificationsEmptyTitle":  "まだ通知はありません",
+    "notificationsEmptyMessage":  "皆さんも追い込まれていますね！",
+    "notificationsNewSection":  "新しい",
+    "notificationsEarlierSection":  "以前",
+    "profileTitle":  "私のプロフィール",
+    "profileEditUnavailable":  "アカウントが認証されると、プロフィールの編集が可能になります。",
+    "profileCompleteness":  "プロファイルの完全性",
+    "profileCountry":  "国",
+    "profileCity":  "市",
+    "profileYearsExperienceLabel":  "長年の経験",
+    "profileYearsExperienceValue":  "{count, plural, one{{count} 年} other{{count} 年}}",
+    "@profileYearsExperienceValue":  {
+                                         "placeholders":  {
+                                                              "count":  {
+                                                                            "type":  "num"
+                                                                        }
+                                                          }
+                                     },
+    "profileMissingValue":  "—",
+    "profileLanguages":  "言語",
+    "profileSpecializations":  "専門分野",
+    "profileBio":  "略歴",
+    "profileNoBio":  "まだバイオは追加されていません。",
+    "profileDeleteAccount":  "アカウントの削除",
+    "profileDeleteConfirm":  "このアクションは永続的であり、元に戻すことはできません。本気ですか？",
+    "profileWallet":  "財布",
+    "profileViewAll":  "すべて表示",
+    "profileAvailableBalance":  "利用可能残高",
+    "profilePayoutAccount":  "支払い口座",
+    "profileManage":  "→ を管理する",
+    "profileSetupPayoutAccount":  "支払いアカウントを設定する",
+    "profileUpdatedSuccess":  "プロフィールが正常に更新されました。",
+    "editProfileTitle":  "プロフィールの編集",
+    "editProfileChangePhoto":  "写真を変更する",
+    "editProfileSelectCountry":  "国を選択してください",
+    "editProfileSaveChanges":  "変更を保存",
+    "editProfileSelectCountryTitle":  "国を選択してください",
+    "editProfileSearchCountryHint":  "国を検索...",
+    "editProfileSelectItemTitle":  "{title}を選択してください",
+    "@editProfileSelectItemTitle":  {
+                                        "placeholders":  {
+                                                             "title":  {
+                                                                           "type":  "String"
+                                                                       }
+                                                         }
+                                    },
+    "editProfileDoneCount":  "完了 ({count})",
+    "@editProfileDoneCount":  {
+                                  "placeholders":  {
+                                                       "count":  {
+                                                                     "type":  "int"
+                                                                 }
+                                                   }
+                              },
+    "editProfileSearchGenericHint":  "検索...",
+    "editProfileApplyCount":  "適用 ({count} が選択されました)",
+    "@editProfileApplyCount":  {
+                                   "placeholders":  {
+                                                        "count":  {
+                                                                      "type":  "int"
+                                                                  }
+                                                    }
+                               },
+    "editProfileAddChip":  "+追加",
+    "verificationTitle":  "本人確認",
+    "verificationDocumentDetails":  "文書の詳細",
+    "verificationNationalIdLabel":  "国民ID番号",
+    "verificationLicenseLabel":  "ガイドライセンス番号",
+    "verificationUploadDocuments":  "書類のアップロード",
+    "verificationUploadCaption":  "書類の鮮明で読みやすいコピーをアップロードしてください。",
+    "verificationIdFrontTitle":  "国民 ID — 前面",
+    "verificationIdFrontSubtitle":  "国民IDカードの表面",
+    "verificationFormatMax2mb":  "JPEG または PNG • 最大 2 MB",
+    "verificationIdBackTitle":  "国民 ID — 戻る",
+    "verificationIdBackSubtitle":  "国民IDカードの裏面",
+    "verificationLicenseTitle":  "ガイドライセンス",
+    "verificationLicenseSubtitle":  "公式ツアーガイドライセンス書類",
+    "verificationFormatMax5mb":  "JPEG または PNG • 最大 5 MB",
+    "verificationSubmitButton":  "検証のために送信する",
+    "verificationUploaded":  "アップロードされました",
+    "verificationTapToUpload":  "タップしてアップロード",
+    "verificationRejectedBanner":  "あなたの書類は拒否されました。再提出してください。",
+    "verificationPendingBanner":  "あなたの書類は審査中です。お知らせいたします。",
+    "verificationSubmittedDocuments":  "提出書類",
+    "verificationVerifiedTitle":  "本人確認済み",
+    "verificationVerifiedSubtitle":  "あなたの身元は正常に確認されました。",
+    "verificationSuccessHeading":  "提出書類",
+    "verificationSuccessBody":  "確認書類は正常に提出されました。私たちのチームがそれらを検討し、結果をお知らせします。",
+    "verificationSuccessInfoBanner":  "レビューには通常 1 ～ 3 営業日かかります。",
+    "verificationGoHome":  "ホームへ行く",
+    "marketplaceTitle":  "マーケットプレイス",
+    "marketplaceSearchHint":  "アプリを検索...",
+    "marketplaceEmptyTitle":  "利用可能なアプリはありません",
+    "marketplaceEmptyMessage":  "新しいアプリがないか、後でもう一度確認してください。",
+    "marketplaceViewDetails":  "詳細を表示",
+    "appDetailsCouldNotOpenStore":  "ストアリンクを開けませんでした",
+    "appDetailsGooglePlay":  "Googleプレイ",
+    "appDetailsAppStore":  "アプリストア",
+    "appDetailsAbout":  "について",
+    "appDetailsAvailablePlans":  "利用可能なプラン",
+    "appDetailsPromoUnavailable":  "アカウントが認証されると、プロモーション コードが利用可能になります。",
+    "appDetailsGenerateButton":  "+ 生成",
+    "appDetailsFailedLoadPromoCodes":  "プロモーション コードの読み込みに失敗しました。",
+    "appDetailsGenerateHint":  "「+ 生成」をタップして最初のコードを作成します。",
+    "appDetailsFailedGeneratePromo":  "プロモーション コードの生成に失敗しました。もう一度試してください。",
+    "appDetailsCopyTooltip":  "コピー",
+    "appDetailsFailedLoadUsage":  "使用状況の読み込みに失敗しました。",
+    "appDetailsNoUsage":  "まだ使用されていません",
+    "appDetailsCreatePromoTitle":  "プロモーションコードの作成",
+    "appDetailsCreatePromoSubtitle":  "プロモーション コードのカスタム名を入力するか、空のままにして自動生成します。",
+    "appDetailsPromoNameLabel":  "プロモーション コード名 (オプション)",
+    "appDetailsPromoNameHint":  "例: AHMED20 — 自動生成するには空のままにしておきます",
+    "appDetailsGenerate":  "生成する",
+    "appDetailsPreview":  "プレビュー",
+    "appDetailsFree":  "無料",
+    "walletTitle":  "財布",
+    "walletTransactionHistory":  "取引履歴",
+    "walletNoTransactions":  "まだ取引はありません",
+    "walletNoTransactionsMessage":  "ここに取引履歴が表示されます。",
+    "walletPayoutRequestsTitle":  "支払いリクエスト",
+    "walletPayoutRequestsSubtitle":  "支払いの表示と管理",
+    "payoutProfileSaved":  "支払いプロファイルが保存されました!",
+    "payoutRequestSubmitted":  "支払いリクエストが送信されました",
+    "payoutMethodTitle":  "支払い方法",
+    "payoutPaymentDetailsTitle":  "お支払い詳細",
+    "payoutManageAccount":  "支払いアカウントの管理",
+    "payoutHistorySection":  "歴史",
+    "payoutNoRequests":  "まだ支払いリクエストはありません",
+    "payoutNoRequestsMessage":  "支払いリクエストがここに表示されます。",
+    "payoutChooseMethod":  "お金の受け取り方法を選択してください。",
+    "payoutNoMethodsAvailable":  "利用可能な支払い方法はありません",
+    "payoutInfoBanner":  "この情報は支払いプロファイルに保存され、今後のすべての出金に使用されます。",
+    "payoutSaveContinue":  "保存して続行",
+    "payoutAvailableAmount":  "利用可能: {amount}",
+    "@payoutAvailableAmount":  {
+                                   "placeholders":  {
+                                                        "amount":  {
+                                                                       "type":  "String"
+                                                                   }
+                                                    }
+                               },
+    "payoutChange":  "変更",
+    "payoutAmountHint":  "0.00",
+    "payoutMinimumHelper":  "最低支払額は10ドルです",
+    "payoutSubmitRequest":  "リクエストの送信",
+    "payoutAmountLabel":  "金額（米ドル）",
+    "paymentMethodsSaved":  "支払いアカウントが保存されました!",
+    "paymentMethodsTitle":  "お支払い方法",
+    "paymentMethodsNoneAvailable":  "利用できる支払い方法がありません",
+    "paymentMethodsChoose":  "支払い方法を選択してください",
+    "paymentMethodsAll":  "すべてのメソッド",
+    "paymentMethodsActiveBadge":  "アクティブ",
+    "paymentMethodsSetUp":  "セットアップ",
+    "paymentMethodsUpdateInfo":  "{methodName} に保存されている支払いの詳細を更新します。",
+    "@paymentMethodsUpdateInfo":  {
+                                      "placeholders":  {
+                                                           "methodName":  {
+                                                                              "type":  "String"
+                                                                          }
+                                                       }
+                                  },
+    "paymentMethodsBecomeActiveInfo":  "これがアクティブな支払いアカウントになります。",
+    "paymentMethodsSetActiveButton":  "アクティブなアカウントとして設定",
+    "commissionsTitle":  "手数料",
+    "commissionsTotalEarned":  "獲得したコミッションの合計",
+    "commissionsTransactionsCount":  "{count, plural, one{{count} 件の取引} other{{count} 件の取引}}",
+    "@commissionsTransactionsCount":  {
+                                          "placeholders":  {
+                                                               "count":  {
+                                                                             "type":  "num"
+                                                                         }
+                                                           }
+                                      },
+    "commissionsHistorySection":  "委員会の歴史",
+    "commissionsEmptyTitle":  "まだコミッションはありません",
+    "commissionsEmptyMessage":  "獲得したコミッションはここに表示されます。",
+    "commissionsPromoCodeLabel":  "プロモーションコード: {code}",
+    "@commissionsPromoCodeLabel":  {
+                                       "placeholders":  {
+                                                            "code":  {
+                                                                         "type":  "String"
+                                                                     }
+                                                        }
+                                   },
+    "commissionsDirectSale":  "直販",
+    "referralsTitle":  "紹介",
+    "referralsTotal":  "合計紹介数",
+    "referralsTotalEarned":  "獲得総額",
+    "referralsGenerateNew":  "新しい紹介コードを生成する",
+    "referralsUnavailable":  "アカウントが認証されると、紹介リンクが利用可能になります。",
+    "referralsCodesSection":  "紹介コード",
+    "referralsEmptyTitle":  "まだ紹介はありません",
+    "referralsEmptyMessage":  "コードを生成して共有すると、収入が得られます。",
+    "referralsCodeCopied":  "コードがコピーされました!",
+    "referralsUsedBy":  "{user} によって使用されます",
+    "@referralsUsedBy":  {
+                             "placeholders":  {
+                                                  "user":  {
+                                                               "type":  "String"
+                                                           }
+                                              }
+                         },
+    "referralsNotUsedYet":  "まだ使用されていません",
+    "referralsRegisteredOn":  "登録済み {date}",
+    "@referralsRegisteredOn":  {
+                                   "placeholders":  {
+                                                        "date":  {
+                                                                     "type":  "String"
+                                                                 }
+                                                    }
+                               },
+    "referralsLinkGeneratedTitle":  "紹介リンクが生成されました",
+    "referralsShareSubtitle":  "コードまたはリンクを共有して収益を稼ぎましょう。",
+    "referralsCodeLabel":  "紹介コード",
+    "referralsLinkLabel":  "紹介リンク",
+    "referralsLinkCopied":  "リンクがコピーされました!",
+    "referralsActivityTitle":  "参照されたユーザーのアクティビティ",
+    "referralsNoActivityData":  "アクティビティデータがありません",
+    "referralsActivityWillAppear":  "ユーザーがアクティブになると、アクティビティが表示されます。",
+    "referralsWindowSection":  "紹介ウィンドウ",
+    "referralsSubscriptionsCount":  "サブスクリプション ({count})",
+    "@referralsSubscriptionsCount":  {
+                                         "placeholders":  {
+                                                              "count":  {
+                                                                            "type":  "int"
+                                                                        }
+                                                          }
+                                     },
+    "referralsAppUsageEventsCount":  "アプリ使用状況イベント ({count})",
+    "@referralsAppUsageEventsCount":  {
+                                          "placeholders":  {
+                                                               "count":  {
+                                                                             "type":  "int"
+                                                                         }
+                                                           }
+                                      },
+    "referralsPromoRedemptionsCount":  "プロモーション特典 ({count})",
+    "@referralsPromoRedemptionsCount":  {
+                                            "placeholders":  {
+                                                                 "count":  {
+                                                                               "type":  "int"
+                                                                           }
+                                                             }
+                                        },
+    "referralsNoActivityYet":  "まだ活動はありません",
+    "referralsItemFallback":  "アイテム {index}",
+    "@referralsItemFallback":  {
+                                   "placeholders":  {
+                                                        "index":  {
+                                                                      "type":  "int"
+                                                                  }
+                                                    }
+                               },
+    "supportTicketsTitle":  "サポートチケット",
+    "supportFilterAll":  "すべて",
+    "supportFilterOpen":  "開く",
+    "supportFilterPending":  "保留中",
+    "supportFilterClosed":  "閉店",
+    "supportEmptyTitle":  "まだチケットはありません",
+    "supportEmptyMessage":  "+ をタップして新しいサポート チケットを開きます。",
+    "newTicketTitle":  "新しいチケット",
+    "newTicketSubmitted":  "チケットは正常に送信されました。",
+    "newTicketCategoryLabel":  "カテゴリ",
+    "newTicketPriorityLabel":  "優先順位",
+    "newTicketSubjectLabel":  "件名",
+    "newTicketSubjectRequired":  "件名は必須です",
+    "newTicketMessageLabel":  "メッセージ",
+    "newTicketMessageRequired":  "メッセージは必須です",
+    "newTicketSubmitButton":  "チケットを送信する",
+    "newTicketCategoryTechnical":  "技術的な",
+    "newTicketCategoryPayment":  "お支払い",
+    "newTicketPriorityNormal":  "ノーマル",
+    "newTicketPriorityHigh":  "高",
+    "newTicketPriorityUrgent":  "緊急",
+    "ticketDetailRefreshTooltip":  "リフレッシュ",
+    "ticketDetailNoReplies":  "まだ返信はありません。",
+    "ticketDetailTeamWillRespond":  "私たちのチームがすぐに対応させていただきます。",
+    "ticketDetailReplyHint":  "返信を入力してください...",
+    "ticketDetailClosed":  "このチケットはクローズされています。",
+    "agreementsTitle":  "法的合意",
+    "agreementsAccepted":  "同意が受け入れられました",
+    "agreementsAllAcceptedTitle":  "すべての合意が受け入れられました!",
+    "agreementsNoPending":  "保留中の契約はありません。",
+    "agreementsAcceptedStatus":  "承認されました",
+    "agreementsPendingStatus":  "承認待ちです",
+    "agreementsCheckboxLabel":  "上記の規約を読み、同意します",
+    "agreementsAcceptButton":  "契約に同意する",
+    "knowledgeCenterTitle":  "ナレッジセンター",
+    "knowledgeCenterCategoryGettingStarted":  "はじめに",
+    "knowledgeCenterCategoryPayments":  "支払い",
+    "knowledgeCenterCategoryAppsTools":  "アプリとツール",
+    "knowledgeCenterCategoryAccount":  "アカウント",
+    "knowledgeCenterEmptyTitle":  "まだ記事がありません",
+    "knowledgeCenterEmptyMessage":  "新しいコンテンツについては、後でもう一度確認してください。",
+    "subscriptionPageStub":  "定期購入ページ"
+}

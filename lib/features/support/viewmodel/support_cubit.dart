@@ -32,7 +32,7 @@ class TicketRefreshing extends SupportState {
 }
 
 class SupportError extends SupportState {
-  final String message;
+  final String? message;
   SupportError(this.message);
 }
 
@@ -51,11 +51,13 @@ class SupportCubit extends Cubit<SupportState> {
     try {
       final tickets = await _repository.getTickets();
       if (!isClosed) emit(TicketsLoaded(tickets));
-      await updateTicketSyncSchedule(tickets.any((t) => t.status.toUpperCase() == 'OPEN'));
+      await updateTicketSyncSchedule(
+        tickets.any((t) => t.status.toUpperCase() == 'OPEN'),
+      );
     } on DioException catch (e) {
-      if (!isClosed) emit(SupportError(e.response?.data['message'] ?? 'Failed to load tickets'));
+      if (!isClosed) emit(SupportError(e.response?.data['message']));
     } catch (_) {
-      if (!isClosed) emit(SupportError('Something went wrong. Please try again.'));
+      if (!isClosed) emit(SupportError(null));
     }
   }
 
@@ -66,9 +68,9 @@ class SupportCubit extends Cubit<SupportState> {
       final ticket = await _repository.getTicket(ticketId);
       if (!isClosed) emit(TicketDetailLoaded(ticket));
     } on DioException catch (e) {
-      if (!isClosed) emit(SupportError(e.response?.data['message'] ?? 'Failed to load ticket'));
+      if (!isClosed) emit(SupportError(e.response?.data['message']));
     } catch (_) {
-      if (!isClosed) emit(SupportError('Something went wrong. Please try again.'));
+      if (!isClosed) emit(SupportError(null));
     }
   }
 
@@ -86,15 +88,13 @@ class SupportCubit extends Cubit<SupportState> {
       if (!isClosed) {
         emit(TicketDetailLoaded(current.ticket));
         await Future.microtask(
-          () => emit(SupportError(e.response?.data['message'] ?? 'Failed to refresh')),
+          () => emit(SupportError(e.response?.data['message'])),
         );
       }
     } catch (_) {
       if (!isClosed) {
         emit(TicketDetailLoaded(current.ticket));
-        await Future.microtask(
-          () => emit(SupportError('Something went wrong. Please try again.')),
-        );
+        await Future.microtask(() => emit(SupportError(null)));
       }
     } finally {
       _refreshing = false;
@@ -118,9 +118,9 @@ class SupportCubit extends Cubit<SupportState> {
       );
       if (!isClosed) emit(TicketCreated());
     } on DioException catch (e) {
-      if (!isClosed) emit(SupportError(e.response?.data['message'] ?? 'Failed to create ticket'));
+      if (!isClosed) emit(SupportError(e.response?.data['message']));
     } catch (_) {
-      if (!isClosed) emit(SupportError('Something went wrong. Please try again.'));
+      if (!isClosed) emit(SupportError(null));
     }
   }
 
@@ -137,9 +137,13 @@ class SupportCubit extends Cubit<SupportState> {
       createdAt: DateTime.now(),
     );
 
-    emit(TicketDetailLoaded(current.ticket.copyWith(
-      replies: [...current.ticket.replies, optimistic],
-    )));
+    emit(
+      TicketDetailLoaded(
+        current.ticket.copyWith(
+          replies: [...current.ticket.replies, optimistic],
+        ),
+      ),
+    );
 
     try {
       await _repository.replyToTicket(ticketId, message);
@@ -154,10 +158,14 @@ class SupportCubit extends Cubit<SupportState> {
     if (isClosed) return;
     final current = state;
     if (current is! TicketDetailLoaded) return;
-    emit(TicketDetailLoaded(current.ticket.copyWith(
-      replies: current.ticket.replies
-          .map((r) => r.id == tempId ? r.copyWith(isFailed: true) : r)
-          .toList(),
-    )));
+    emit(
+      TicketDetailLoaded(
+        current.ticket.copyWith(
+          replies: current.ticket.replies
+              .map((r) => r.id == tempId ? r.copyWith(isFailed: true) : r)
+              .toList(),
+        ),
+      ),
+    );
   }
 }

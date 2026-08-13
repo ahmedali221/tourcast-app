@@ -19,7 +19,7 @@ class AgreementsLoaded extends AgreementsState {
 class AgreementAccepted extends AgreementsState {}
 
 class AgreementsError extends AgreementsState {
-  final String message;
+  final String? message;
   AgreementsError(this.message);
 }
 
@@ -36,9 +36,9 @@ class AgreementsCubit extends Cubit<AgreementsState> {
       final agreements = await _repository.getPendingAgreements();
       emit(AgreementsLoaded(agreements));
     } on DioException catch (e) {
-      emit(AgreementsError(e.response?.data['message'] ?? 'Failed to load agreements'));
+      emit(AgreementsError(e.response?.data['message']));
     } catch (_) {
-      emit(AgreementsError('Something went wrong. Please try again.'));
+      emit(AgreementsError(null));
     }
   }
 
@@ -49,9 +49,9 @@ class AgreementsCubit extends Cubit<AgreementsState> {
       emit(AgreementAccepted());
       await loadPendingAgreements();
     } on DioException catch (e) {
-      emit(AgreementsError(e.response?.data['message'] ?? 'Failed to accept agreement'));
+      emit(AgreementsError(e.response?.data['message']));
     } catch (_) {
-      emit(AgreementsError('Something went wrong. Please try again.'));
+      emit(AgreementsError(null));
     }
   }
 }

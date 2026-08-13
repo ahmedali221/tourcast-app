@@ -8,6 +8,7 @@ import 'package:tourguide_app/core/theme/app_text_styles.dart';
 import 'package:tourguide_app/core/utils/extensions.dart';
 import 'package:tourguide_app/features/notifications/model/notification_model.dart';
 import 'package:tourguide_app/features/notifications/viewmodel/notifications_cubit.dart';
+import 'package:tourguide_app/l10n/generated/app_localizations.dart';
 
 // Shows a slide-down overlay tray anchored below the app bar.
 // Must be called from within a widget that has NotificationsCubit in scope.
@@ -71,6 +72,7 @@ class _NotificationsTrayState extends State<_NotificationsTray>
   @override
   Widget build(BuildContext context) {
     final topPadding = MediaQuery.of(context).padding.top;
+    final l10n = AppLocalizations.of(context);
 
     return Stack(
       children: [
@@ -97,7 +99,9 @@ class _NotificationsTrayState extends State<_NotificationsTray>
               ),
               decoration: const BoxDecoration(
                 color: AppColors.surface,
-                borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
+                borderRadius: BorderRadius.vertical(
+                  bottom: Radius.circular(24),
+                ),
                 boxShadow: [
                   BoxShadow(
                     color: Color(0x1A000000),
@@ -121,9 +125,11 @@ class _NotificationsTrayState extends State<_NotificationsTray>
                         }
                         if (state is NotificationsError) {
                           return _ErrorView(
-                            message: state.message,
-                            onRetry: () =>
-                                context.read<NotificationsCubit>().loadNotifications(),
+                            message:
+                                state.message ?? l10n.commonSomethingWentWrong,
+                            onRetry: () => context
+                                .read<NotificationsCubit>()
+                                .loadNotifications(),
                           );
                         }
                         if (state is NotificationsLoaded) {
@@ -153,14 +159,23 @@ class _TrayHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 14, 8, 10),
       child: Row(
         children: [
-          const Icon(Icons.notifications_rounded, size: 22, color: AppColors.primary),
+          const Icon(
+            Icons.notifications_rounded,
+            size: 22,
+            color: AppColors.primary,
+          ),
           const SizedBox(width: 10),
           Expanded(
-            child: Text('Notifications', style: AppTextStyles.heading3),
+            child: Text(
+              l10n.notificationsTrayTitle,
+              style: AppTextStyles.heading3,
+            ),
           ),
           BlocBuilder<NotificationsCubit, NotificationsState>(
             builder: (context, state) {
@@ -174,7 +189,7 @@ class _TrayHeader extends StatelessWidget {
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                   child: Text(
-                    'Mark all read',
+                    l10n.notificationsMarkAllRead,
                     style: AppTextStyles.caption.copyWith(
                       color: AppColors.primary,
                       fontWeight: FontWeight.w600,
@@ -208,13 +223,15 @@ class NotificationsBodyView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     if (notifications.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 32),
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 32),
         child: EmptyState(
           icon: Icons.notifications_none_rounded,
-          title: 'No notifications yet',
-          message: "You're all caught up!",
+          title: l10n.notificationsEmptyTitle,
+          message: l10n.notificationsEmptyMessage,
         ),
       );
     }
@@ -229,22 +246,32 @@ class NotificationsBodyView extends StatelessWidget {
         if (unread.isNotEmpty) ...[
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 6),
-            child: Text('New', style: AppTextStyles.label),
+            child: Text(
+              l10n.notificationsNewSection,
+              style: AppTextStyles.label,
+            ),
           ),
-          ...unread.map((n) => _NotificationCard(
-                notification: n,
-                onBeforeNavigate: onBeforeNavigate,
-              )),
+          ...unread.map(
+            (n) => _NotificationCard(
+              notification: n,
+              onBeforeNavigate: onBeforeNavigate,
+            ),
+          ),
         ],
         if (read.isNotEmpty) ...[
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 6),
-            child: Text('Earlier', style: AppTextStyles.label),
+            child: Text(
+              l10n.notificationsEarlierSection,
+              style: AppTextStyles.label,
+            ),
           ),
-          ...read.map((n) => _NotificationCard(
-                notification: n,
-                onBeforeNavigate: onBeforeNavigate,
-              )),
+          ...read.map(
+            (n) => _NotificationCard(
+              notification: n,
+              onBeforeNavigate: onBeforeNavigate,
+            ),
+          ),
         ],
       ],
     );
@@ -341,8 +368,10 @@ class _NotificationCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     notification.createdAt.toReadableWithTime(),
-                    style: AppTextStyles.caption
-                        .copyWith(fontSize: 10, color: AppColors.textHint),
+                    style: AppTextStyles.caption.copyWith(
+                      fontSize: 10,
+                      color: AppColors.textHint,
+                    ),
                   ),
                 ],
               ),
@@ -352,7 +381,6 @@ class _NotificationCard extends StatelessWidget {
       ),
     );
   }
-
 }
 
 class _ErrorView extends StatelessWidget {
@@ -362,24 +390,33 @@ class _ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.error_outline_rounded,
-              size: 40, color: AppColors.error),
+          const Icon(
+            Icons.error_outline_rounded,
+            size: 40,
+            color: AppColors.error,
+          ),
           const SizedBox(height: 12),
-          Text(message,
-              style: AppTextStyles.bodyMedium
-                  .copyWith(color: AppColors.textSecondary),
-              textAlign: TextAlign.center),
+          Text(
+            message,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.textSecondary,
+            ),
+            textAlign: TextAlign.center,
+          ),
           const SizedBox(height: 16),
           TextButton(
             onPressed: onRetry,
-            child: Text('Retry',
-                style: AppTextStyles.label
-                    .copyWith(color: AppColors.primary)),
+            child: Text(
+              l10n.commonRetry,
+              style: AppTextStyles.label.copyWith(color: AppColors.primary),
+            ),
           ),
         ],
       ),

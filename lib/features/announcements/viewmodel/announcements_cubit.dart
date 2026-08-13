@@ -17,7 +17,7 @@ class AnnouncementsLoaded extends AnnouncementsState {
 }
 
 class AnnouncementsError extends AnnouncementsState {
-  final String message;
+  final String? message;
   AnnouncementsError(this.message);
 }
 
@@ -47,11 +47,11 @@ class AnnouncementsCubit extends Cubit<AnnouncementsState> {
       if (!isClosed) emit(AnnouncementsLoaded(announcements));
     } on DioException catch (e) {
       if (cached == null && !isClosed) {
-        emit(AnnouncementsError(e.response?.data['message'] ?? 'Failed to load announcements'));
+        emit(AnnouncementsError(e.response?.data['message']));
       }
     } catch (_) {
       if (cached == null && !isClosed) {
-        emit(AnnouncementsError('Something went wrong. Please try again.'));
+        emit(AnnouncementsError(null));
       }
     }
   }

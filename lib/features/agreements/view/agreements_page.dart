@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:tourguide_app/core/di/locator.dart';
+import 'package:tourguide_app/core/localization/language_switcher.dart';
 import 'package:tourguide_app/core/shared/widgets/app_button.dart';
 import 'package:tourguide_app/core/shared/widgets/empty_state.dart';
 import 'package:tourguide_app/core/shared/widgets/error_view.dart';
@@ -10,6 +11,7 @@ import 'package:tourguide_app/core/theme/app_text_styles.dart';
 import 'package:tourguide_app/core/utils/extensions.dart';
 import 'package:tourguide_app/features/agreements/model/agreement_model.dart';
 import 'package:tourguide_app/features/agreements/viewmodel/agreements_cubit.dart';
+import 'package:tourguide_app/l10n/generated/app_localizations.dart';
 
 class AgreementsPage extends StatelessWidget {
   const AgreementsPage({super.key});
@@ -28,17 +30,22 @@ class _AgreementsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Legal Agreements')),
+      appBar: LanguageAppBar(title: Text(l10n.agreementsTitle)),
       body: BlocConsumer<AgreementsCubit, AgreementsState>(
         listener: (context, state) {
           if (state is AgreementAccepted) {
-            context.showSnackBar('Agreement accepted');
+            context.showSnackBar(l10n.agreementsAccepted);
             context.read<AgreementsCubit>().loadPendingAgreements();
           }
           if (state is AgreementsError) {
-            context.showSnackBar(state.message, isError: true);
+            context.showSnackBar(
+              state.message ?? l10n.commonSomethingWentWrong,
+              isError: true,
+            );
           }
         },
         builder: (context, state) {
@@ -47,8 +54,9 @@ class _AgreementsView extends StatelessWidget {
           }
           if (state is AgreementsError) {
             return ErrorView(
-              message: state.message,
-              onRetry: () => context.read<AgreementsCubit>().loadPendingAgreements(),
+              message: state.message ?? l10n.commonSomethingWentWrong,
+              onRetry: () =>
+                  context.read<AgreementsCubit>().loadPendingAgreements(),
             );
           }
           if (state is AgreementsLoaded) {
@@ -67,11 +75,12 @@ class _BodyView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     if (agreements.isEmpty) {
-      return const EmptyState(
+      return EmptyState(
         icon: Icons.check_circle_outline,
-        title: 'All agreements accepted!',
-        message: 'You have no pending agreements.',
+        title: l10n.agreementsAllAcceptedTitle,
+        message: l10n.agreementsNoPending,
       );
     }
 
@@ -98,6 +107,7 @@ class _AgreementCardState extends State<_AgreementCard> {
   @override
   Widget build(BuildContext context) {
     final isAccepted = widget.agreement.isAccepted;
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -105,7 +115,9 @@ class _AgreementCardState extends State<_AgreementCard> {
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isAccepted ? AppColors.success.withValues(alpha: 0.3) : AppColors.divider,
+          color: isAccepted
+              ? AppColors.success.withValues(alpha: 0.3)
+              : AppColors.divider,
         ),
       ),
       child: Column(
@@ -119,11 +131,15 @@ class _AgreementCardState extends State<_AgreementCard> {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: isAccepted ? AppColors.successBg : AppColors.surfaceVariant,
+                    color: isAccepted
+                        ? AppColors.successBg
+                        : AppColors.surfaceVariant,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
-                    isAccepted ? Icons.check_circle_rounded : Icons.description_outlined,
+                    isAccepted
+                        ? Icons.check_circle_rounded
+                        : Icons.description_outlined,
                     size: 20,
                     color: isAccepted ? AppColors.success : AppColors.primary,
                   ),
@@ -133,17 +149,25 @@ class _AgreementCardState extends State<_AgreementCard> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(widget.agreement.title, style: AppTextStyles.bodyMedium),
+                      Text(
+                        widget.agreement.title,
+                        style: AppTextStyles.bodyMedium,
+                      ),
                       const SizedBox(height: 2),
                       if (isAccepted)
                         Text(
-                          'Accepted',
-                          style: AppTextStyles.caption.copyWith(color: AppColors.success, fontWeight: FontWeight.w500),
+                          l10n.agreementsAcceptedStatus,
+                          style: AppTextStyles.caption.copyWith(
+                            color: AppColors.success,
+                            fontWeight: FontWeight.w500,
+                          ),
                         )
                       else
                         Text(
-                          'Pending your acceptance',
-                          style: AppTextStyles.caption.copyWith(color: const Color(0xFFD4A017)),
+                          l10n.agreementsPendingStatus,
+                          style: AppTextStyles.caption.copyWith(
+                            color: const Color(0xFFD4A017),
+                          ),
                         ),
                     ],
                   ),
@@ -151,7 +175,9 @@ class _AgreementCardState extends State<_AgreementCard> {
                 GestureDetector(
                   onTap: () => setState(() => _expanded = !_expanded),
                   child: Icon(
-                    _expanded ? Icons.expand_less_rounded : Icons.expand_more_rounded,
+                    _expanded
+                        ? Icons.expand_less_rounded
+                        : Icons.expand_more_rounded,
                     color: AppColors.textSecondary,
                   ),
                 ),
@@ -173,35 +199,49 @@ class _AgreementCardState extends State<_AgreementCard> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: SingleChildScrollView(
-                      child: Text(widget.agreement.content, style: AppTextStyles.body),
+                      child: Text(
+                        widget.agreement.content,
+                        style: AppTextStyles.body,
+                      ),
                     ),
                   ),
                   if (!isAccepted) ...[
                     const SizedBox(height: 16),
                     GestureDetector(
-                      onTap: () => setState(() => _agreedChecked = !_agreedChecked),
+                      onTap: () =>
+                          setState(() => _agreedChecked = !_agreedChecked),
                       child: Row(
                         children: [
                           Container(
                             width: 20,
                             height: 20,
                             decoration: BoxDecoration(
-                              color: _agreedChecked ? AppColors.primary : Colors.transparent,
+                              color: _agreedChecked
+                                  ? AppColors.primary
+                                  : Colors.transparent,
                               border: Border.all(
-                                color: _agreedChecked ? AppColors.primary : AppColors.border,
+                                color: _agreedChecked
+                                    ? AppColors.primary
+                                    : AppColors.border,
                                 width: 2,
                               ),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: _agreedChecked
-                                ? const Icon(Icons.check, size: 12, color: Colors.white)
+                                ? const Icon(
+                                    Icons.check,
+                                    size: 12,
+                                    color: Colors.white,
+                                  )
                                 : null,
                           ),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              'I have read and agree to the terms above',
-                              style: AppTextStyles.caption.copyWith(color: AppColors.textPrimary),
+                              l10n.agreementsCheckboxLabel,
+                              style: AppTextStyles.caption.copyWith(
+                                color: AppColors.textPrimary,
+                              ),
                             ),
                           ),
                         ],
@@ -210,10 +250,12 @@ class _AgreementCardState extends State<_AgreementCard> {
                     const SizedBox(height: 16),
                     BlocBuilder<AgreementsCubit, AgreementsState>(
                       builder: (context, state) => AppButton(
-                        label: 'Accept Agreement',
+                        label: l10n.agreementsAcceptButton,
                         isLoading: state is AgreementsLoading,
                         onPressed: _agreedChecked
-                            ? () => context.read<AgreementsCubit>().acceptAgreement(widget.agreement.id)
+                            ? () => context
+                                  .read<AgreementsCubit>()
+                                  .acceptAgreement(widget.agreement.id)
                             : null,
                       ),
                     ),
@@ -242,7 +284,10 @@ class _ShimmerView extends StatelessWidget {
             (_) => Container(
               margin: const EdgeInsets.only(bottom: 16),
               height: 80,
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
             ),
           ),
         ),

@@ -19,7 +19,7 @@ class SubscriptionLoaded extends SubscriptionState {
 class SubscriptionSuccess extends SubscriptionState {} // after subscribe
 
 class SubscriptionError extends SubscriptionState {
-  final String message;
+  final String? message;
   SubscriptionError(this.message);
 }
 
@@ -36,9 +36,9 @@ class SubscriptionCubit extends Cubit<SubscriptionState> {
       final subs = await _repository.getSubscriptions();
       emit(SubscriptionLoaded(subs));
     } on DioException catch (e) {
-      emit(SubscriptionError(e.response?.data['message'] ?? 'Failed to load subscriptions'));
+      emit(SubscriptionError(e.response?.data['message']));
     } catch (_) {
-      emit(SubscriptionError('Something went wrong. Please try again.'));
+      emit(SubscriptionError(null));
     }
   }
 
@@ -49,9 +49,9 @@ class SubscriptionCubit extends Cubit<SubscriptionState> {
       emit(SubscriptionSuccess());
       await loadSubscriptions();
     } on DioException catch (e) {
-      emit(SubscriptionError(e.response?.data['message'] ?? 'Subscription failed'));
+      emit(SubscriptionError(e.response?.data['message']));
     } catch (_) {
-      emit(SubscriptionError('Something went wrong. Please try again.'));
+      emit(SubscriptionError(null));
     }
   }
 }

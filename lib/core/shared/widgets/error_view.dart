@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tourguide_app/l10n/generated/app_localizations.dart';
 
 // A simple full-page error state with a retry button.
 class ErrorView extends StatelessWidget {
@@ -9,6 +10,7 @@ class ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -20,7 +22,7 @@ class ErrorView extends StatelessWidget {
             Text(message, textAlign: TextAlign.center),
             if (onRetry != null) ...[
               const SizedBox(height: 16),
-              TextButton(onPressed: onRetry, child: const Text('Try Again')),
+              TextButton(onPressed: onRetry, child: Text(l10n.commonTryAgain)),
             ],
           ],
         ),

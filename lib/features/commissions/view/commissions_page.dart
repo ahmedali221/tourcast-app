@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:tourguide_app/core/di/locator.dart';
+import 'package:tourguide_app/core/localization/language_switcher.dart';
 import 'package:tourguide_app/core/shared/widgets/empty_state.dart';
 import 'package:tourguide_app/core/shared/widgets/error_view.dart';
 import 'package:tourguide_app/core/theme/app_colors.dart';
@@ -9,6 +10,7 @@ import 'package:tourguide_app/core/theme/app_text_styles.dart';
 import 'package:tourguide_app/core/utils/extensions.dart';
 import 'package:tourguide_app/features/commissions/model/commission_model.dart';
 import 'package:tourguide_app/features/commissions/viewmodel/commissions_cubit.dart';
+import 'package:tourguide_app/l10n/generated/app_localizations.dart';
 
 class CommissionsPage extends StatelessWidget {
   const CommissionsPage({super.key});
@@ -27,9 +29,11 @@ class _CommissionsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Commissions')),
+      appBar: LanguageAppBar(title: Text(l10n.commissionsTitle)),
       body: BlocBuilder<CommissionsCubit, CommissionsState>(
         builder: (context, state) {
           if (state is CommissionsLoading || state is CommissionsInitial) {
@@ -37,7 +41,7 @@ class _CommissionsView extends StatelessWidget {
           }
           if (state is CommissionsError) {
             return ErrorView(
-              message: state.message,
+              message: state.message ?? l10n.commonSomethingWentWrong,
               onRetry: () => context.read<CommissionsCubit>().loadCommissions(),
             );
           }
@@ -55,11 +59,12 @@ class _BodyView extends StatelessWidget {
   final List<CommissionModel> commissions;
   const _BodyView({required this.commissions});
 
-  double get _totalEarned =>
-      commissions.fold(0.0, (sum, c) => sum + c.amount);
+  double get _totalEarned => commissions.fold(0.0, (sum, c) => sum + c.amount);
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
       child: Column(
@@ -92,18 +97,24 @@ class _BodyView extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Total Commissions Earned',
-                      style: AppTextStyles.caption.copyWith(color: Colors.white70),
+                      l10n.commissionsTotalEarned,
+                      style: AppTextStyles.caption.copyWith(
+                        color: Colors.white70,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       _totalEarned.toCurrency(),
-                      style: AppTextStyles.heading1.copyWith(color: Colors.white),
+                      style: AppTextStyles.heading1.copyWith(
+                        color: Colors.white,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '${commissions.length} transactions',
-                      style: AppTextStyles.caption.copyWith(color: Colors.white60),
+                      l10n.commissionsTransactionsCount(commissions.length),
+                      style: AppTextStyles.caption.copyWith(
+                        color: Colors.white60,
+                      ),
                     ),
                   ],
                 ),
@@ -111,13 +122,13 @@ class _BodyView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          Text('Commission History', style: AppTextStyles.label),
+          Text(l10n.commissionsHistorySection, style: AppTextStyles.label),
           const SizedBox(height: 12),
           if (commissions.isEmpty)
-            const EmptyState(
+            EmptyState(
               icon: Icons.percent_rounded,
-              title: 'No commissions yet',
-              message: 'Your earned commissions will appear here.',
+              title: l10n.commissionsEmptyTitle,
+              message: l10n.commissionsEmptyMessage,
             )
           else
             Container(
@@ -129,16 +140,24 @@ class _BodyView extends StatelessWidget {
               child: Column(
                 children: List.generate(commissions.length, (i) {
                   final c = commissions[i];
-                  final (statusColor, statusBg) = switch (c.status.toLowerCase()) {
-                    'approved' || 'paid' => (AppColors.success, AppColors.successBg),
-                    'rejected' || 'failed' => (AppColors.error, AppColors.errorBg),
-                    _ => (AppColors.badgePending, AppColors.badgePending.withValues(alpha: 0.12)),
+                  final (statusColor, statusBg) = switch (c.status
+                      .toLowerCase()) {
+                    'approved' ||
+                    'paid' => (AppColors.success, AppColors.successBg),
+                    'rejected' ||
+                    'failed' => (AppColors.error, AppColors.errorBg),
+                    _ => (
+                      AppColors.badgePending,
+                      AppColors.badgePending.withValues(alpha: 0.12),
+                    ),
                   };
                   return Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       border: i < commissions.length - 1
-                          ? const Border(bottom: BorderSide(color: AppColors.divider))
+                          ? const Border(
+                              bottom: BorderSide(color: AppColors.divider),
+                            )
                           : null,
                     ),
                     child: Row(
@@ -163,19 +182,28 @@ class _BodyView extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                c.promoCode != null ? 'Promo code: ${c.promoCode}' : 'Direct sale',
+                                c.promoCode != null
+                                    ? l10n.commissionsPromoCodeLabel(
+                                        c.promoCode!,
+                                      )
+                                    : l10n.commissionsDirectSale,
                                 style: AppTextStyles.bodyMedium,
                                 overflow: TextOverflow.ellipsis,
                               ),
                               const SizedBox(height: 2),
                               Text(
                                 '${c.commissionPercent.toStringAsFixed(0)}% of ${c.baseAmount.toCurrency()}',
-                                style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
+                                style: AppTextStyles.caption.copyWith(
+                                  color: AppColors.textSecondary,
+                                ),
                               ),
                               const SizedBox(height: 2),
                               Text(
                                 c.createdAt.toReadable(),
-                                style: AppTextStyles.caption.copyWith(fontSize: 11, color: AppColors.textHint),
+                                style: AppTextStyles.caption.copyWith(
+                                  fontSize: 11,
+                                  color: AppColors.textHint,
+                                ),
                               ),
                             ],
                           ),
@@ -193,7 +221,10 @@ class _BodyView extends StatelessWidget {
                             ),
                             const SizedBox(height: 4),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
                                 color: statusBg,
                                 borderRadius: BorderRadius.circular(6),
@@ -233,7 +264,10 @@ class _ShimmerView extends StatelessWidget {
           children: [
             Container(
               height: 120,
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
             ),
             const SizedBox(height: 24),
             ...List.generate(
@@ -241,7 +275,10 @@ class _ShimmerView extends StatelessWidget {
               (_) => Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 height: 72,
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ],

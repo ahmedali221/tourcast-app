@@ -9,6 +9,7 @@ import 'package:tourguide_app/core/theme/app_colors.dart';
 import 'package:tourguide_app/core/theme/app_text_styles.dart';
 import 'package:tourguide_app/core/utils/extensions.dart';
 import 'package:tourguide_app/features/auth/viewmodel/auth_cubit.dart';
+import 'package:tourguide_app/l10n/generated/app_localizations.dart';
 
 class VerifyEmailPage extends StatelessWidget {
   const VerifyEmailPage({super.key});
@@ -27,12 +28,19 @@ class _VerifyEmailView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return BlocConsumer<AuthCubit, AuthState>(
       listener: (context, state) {
         if (state is AuthEmailSent) {
-          context.showSnackBar('Verification email resent');
+          context.showSnackBar(l10n.verifyEmailResentSnackbar);
         }
-        if (state is AuthError) context.showSnackBar(state.message, isError: true);
+        if (state is AuthError) {
+          context.showSnackBar(
+            state.message ?? l10n.commonSomethingWentWrong,
+            isError: true,
+          );
+        }
       },
       builder: (context, state) {
         return Scaffold(
@@ -59,26 +67,34 @@ class _VerifyEmailView extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  Text('Verify Your Email', style: AppTextStyles.heading2, textAlign: TextAlign.center),
+                  Text(
+                    l10n.verifyEmailHeading,
+                    style: AppTextStyles.heading2,
+                    textAlign: TextAlign.center,
+                  ),
                   const SizedBox(height: 12),
                   Text(
-                    'We sent a verification link to your email. Please check your inbox and click the link to activate your account.',
+                    l10n.verifyEmailBody,
                     style: AppTextStyles.body,
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 32),
                   AppButton(
-                    label: "I've Verified, Continue",
+                    label: l10n.verifyEmailContinueButton,
                     onPressed: () => context.go(AppRoutes.verification),
                   ),
                   const SizedBox(height: 12),
                   TextButton(
                     onPressed: state is AuthLoading
                         ? null
-                        : () => context.read<AuthCubit>().resendVerificationEmail(),
+                        : () => context
+                              .read<AuthCubit>()
+                              .resendVerificationEmail(),
                     child: Text(
-                      'Resend Email',
-                      style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primary),
+                      l10n.verifyEmailResendButton,
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: AppColors.primary,
+                      ),
                     ),
                   ),
                 ],

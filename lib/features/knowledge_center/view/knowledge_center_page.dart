@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:tourguide_app/core/di/locator.dart';
+import 'package:tourguide_app/core/localization/language_switcher.dart';
 import 'package:tourguide_app/core/shared/widgets/empty_state.dart';
 import 'package:tourguide_app/core/shared/widgets/error_view.dart';
 import 'package:tourguide_app/core/theme/app_colors.dart';
@@ -9,6 +10,7 @@ import 'package:tourguide_app/core/theme/app_text_styles.dart';
 import 'package:tourguide_app/core/utils/extensions.dart';
 import 'package:tourguide_app/features/knowledge_center/model/article_model.dart';
 import 'package:tourguide_app/features/knowledge_center/viewmodel/knowledge_center_cubit.dart';
+import 'package:tourguide_app/l10n/generated/app_localizations.dart';
 
 class KnowledgeCenterPage extends StatelessWidget {
   const KnowledgeCenterPage({super.key});
@@ -32,13 +34,29 @@ class _KnowledgeCenterView extends StatefulWidget {
 class _KnowledgeCenterViewState extends State<_KnowledgeCenterView> {
   String? _selectedCategory;
 
-  static const _categories = ['Getting Started', 'Payments', 'Apps & Tools', 'Account'];
+  static const _categories = [
+    'Getting Started',
+    'Payments',
+    'Apps & Tools',
+    'Account',
+  ];
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final categories = [
+      (
+        value: _categories[0],
+        label: l10n.knowledgeCenterCategoryGettingStarted,
+      ),
+      (value: _categories[1], label: l10n.knowledgeCenterCategoryPayments),
+      (value: _categories[2], label: l10n.knowledgeCenterCategoryAppsTools),
+      (value: _categories[3], label: l10n.knowledgeCenterCategoryAccount),
+    ];
+
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Knowledge Center')),
+      appBar: LanguageAppBar(title: Text(l10n.knowledgeCenterTitle)),
       body: Column(
         children: [
           SizedBox(
@@ -48,20 +66,22 @@ class _KnowledgeCenterViewState extends State<_KnowledgeCenterView> {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               children: [
                 _FilterChip(
-                  label: 'All',
+                  label: l10n.supportFilterAll,
                   selected: _selectedCategory == null,
                   onTap: () {
                     setState(() => _selectedCategory = null);
                     context.read<KnowledgeCenterCubit>().loadArticles();
                   },
                 ),
-                ..._categories.map(
+                ...categories.map(
                   (c) => _FilterChip(
-                    label: c,
-                    selected: _selectedCategory == c,
+                    label: c.label,
+                    selected: _selectedCategory == c.value,
                     onTap: () {
-                      setState(() => _selectedCategory = c);
-                      context.read<KnowledgeCenterCubit>().loadArticles(category: c);
+                      setState(() => _selectedCategory = c.value);
+                      context.read<KnowledgeCenterCubit>().loadArticles(
+                        category: c.value,
+                      );
                     },
                   ),
                 ),
@@ -71,13 +91,16 @@ class _KnowledgeCenterViewState extends State<_KnowledgeCenterView> {
           Expanded(
             child: BlocBuilder<KnowledgeCenterCubit, KnowledgeCenterState>(
               builder: (context, state) {
-                if (state is KnowledgeCenterLoading || state is KnowledgeCenterInitial) {
+                if (state is KnowledgeCenterLoading ||
+                    state is KnowledgeCenterInitial) {
                   return _ShimmerView();
                 }
                 if (state is KnowledgeCenterError) {
                   return ErrorView(
-                    message: state.message,
-                    onRetry: () => context.read<KnowledgeCenterCubit>().loadArticles(category: _selectedCategory),
+                    message: state.message ?? l10n.commonSomethingWentWrong,
+                    onRetry: () => context
+                        .read<KnowledgeCenterCubit>()
+                        .loadArticles(category: _selectedCategory),
                   );
                 }
                 if (state is KnowledgeCenterLoaded) {
@@ -98,7 +121,11 @@ class _FilterChip extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
 
-  const _FilterChip({required this.label, required this.selected, required this.onTap});
+  const _FilterChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -110,7 +137,9 @@ class _FilterChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected ? AppColors.primary : AppColors.surface,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: selected ? AppColors.primary : AppColors.divider),
+          border: Border.all(
+            color: selected ? AppColors.primary : AppColors.divider,
+          ),
         ),
         child: Text(
           label,
@@ -130,11 +159,12 @@ class _ArticleList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     if (articles.isEmpty) {
-      return const EmptyState(
+      return EmptyState(
         icon: Icons.article_outlined,
-        title: 'No articles yet',
-        message: 'Check back later for new content.',
+        title: l10n.knowledgeCenterEmptyTitle,
+        message: l10n.knowledgeCenterEmptyMessage,
       );
     }
 
@@ -183,7 +213,11 @@ class _ArticleCardState extends State<_ArticleCard> {
                       color: AppColors.surfaceVariant,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(Icons.article_rounded, size: 18, color: AppColors.primary),
+                    child: const Icon(
+                      Icons.article_rounded,
+                      size: 18,
+                      color: AppColors.primary,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -201,7 +235,10 @@ class _ArticleCardState extends State<_ArticleCard> {
                           children: [
                             if (widget.article.category != null)
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
                                 decoration: BoxDecoration(
                                   color: AppColors.surfaceVariant,
                                   borderRadius: BorderRadius.circular(4),
@@ -215,10 +252,13 @@ class _ArticleCardState extends State<_ArticleCard> {
                                   ),
                                 ),
                               ),
-                            if (widget.article.category != null) const SizedBox(width: 6),
+                            if (widget.article.category != null)
+                              const SizedBox(width: 6),
                             Text(
                               widget.article.publishedAt.toReadable(),
-                              style: AppTextStyles.caption.copyWith(fontSize: 10),
+                              style: AppTextStyles.caption.copyWith(
+                                fontSize: 10,
+                              ),
                             ),
                           ],
                         ),
@@ -226,7 +266,9 @@ class _ArticleCardState extends State<_ArticleCard> {
                     ),
                   ),
                   Icon(
-                    _expanded ? Icons.expand_less_rounded : Icons.expand_more_rounded,
+                    _expanded
+                        ? Icons.expand_less_rounded
+                        : Icons.expand_more_rounded,
                     color: AppColors.textSecondary,
                     size: 20,
                   ),
@@ -265,7 +307,10 @@ class _ShimmerView extends StatelessWidget {
             (_) => Container(
               margin: const EdgeInsets.only(bottom: 12),
               height: 80,
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
             ),
           ),
         ),

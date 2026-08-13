@@ -11,6 +11,7 @@ import 'package:tourguide_app/core/theme/app_text_styles.dart';
 import 'package:tourguide_app/core/utils/extensions.dart';
 import 'package:tourguide_app/core/utils/validators.dart';
 import 'package:tourguide_app/features/auth/viewmodel/auth_cubit.dart';
+import 'package:tourguide_app/l10n/generated/app_localizations.dart';
 
 class RegisterPage extends StatelessWidget {
   const RegisterPage({super.key});
@@ -53,11 +54,15 @@ class _RegisterViewState extends State<_RegisterView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return BlocConsumer<AuthCubit, AuthState>(
       listener: (context, state) {
         if (state is AuthSuccess) context.go(AppRoutes.verifyEmail);
         if (state is AuthError) {
-          context.showSnackBar(state.message, isError: true);
+          context.showSnackBar(
+            state.message ?? l10n.commonSomethingWentWrong,
+            isError: true,
+          );
         }
       },
       builder: (context, state) {
@@ -68,7 +73,8 @@ class _RegisterViewState extends State<_RegisterView> {
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: ConstrainedBox(
                 constraints: BoxConstraints(
-                  minHeight: context.screenHeight -
+                  minHeight:
+                      context.screenHeight -
                       MediaQuery.of(context).padding.top -
                       MediaQuery.of(context).padding.bottom,
                 ),
@@ -87,7 +93,7 @@ class _RegisterViewState extends State<_RegisterView> {
                             children: [
                               const NtLogo(size: 72),
                               Text(
-                                'Your Guide. Your Business.',
+                                l10n.authTagline,
                                 style: AppTextStyles.caption.copyWith(
                                   color: AppColors.textSecondary,
                                   fontSize: 13,
@@ -101,9 +107,12 @@ class _RegisterViewState extends State<_RegisterView> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           spacing: 4,
                           children: [
-                            Text('Create Account', style: AppTextStyles.heading2),
                             Text(
-                              'Join NileTech as a Tour Guide',
+                              l10n.registerHeading,
+                              style: AppTextStyles.heading2,
+                            ),
+                            Text(
+                              l10n.registerSubtitle,
                               style: AppTextStyles.caption,
                             ),
                           ],
@@ -113,22 +122,25 @@ class _RegisterViewState extends State<_RegisterView> {
                           spacing: 16,
                           children: [
                             AppTextField(
-                              label: 'Full Name',
+                              label: l10n.registerFullNameLabel,
                               controller: _nameCtrl,
-                              validator: (v) =>
-                                  Validators.required(v, fieldName: 'Full name'),
+                              validator: (v) => Validators.required(
+                                v,
+                                l10n,
+                                fieldName: l10n.registerFullNameLabel,
+                              ),
                             ),
                             AppTextField(
-                              label: 'Email',
+                              label: l10n.registerEmailLabel,
                               controller: _emailCtrl,
                               keyboardType: TextInputType.emailAddress,
-                              validator: Validators.email,
+                              validator: (v) => Validators.email(v, l10n),
                             ),
                             AppTextField(
-                              label: 'Password',
+                              label: l10n.registerPasswordLabel,
                               controller: _passwordCtrl,
                               obscureText: _obscurePass,
-                              validator: Validators.password,
+                              validator: (v) => Validators.password(v, l10n),
                               suffixIcon: IconButton(
                                 icon: Icon(
                                   _obscurePass
@@ -137,16 +149,20 @@ class _RegisterViewState extends State<_RegisterView> {
                                   color: AppColors.textSecondary,
                                   size: 20,
                                 ),
-                                onPressed: () =>
-                                    setState(() => _obscurePass = !_obscurePass),
+                                onPressed: () => setState(
+                                  () => _obscurePass = !_obscurePass,
+                                ),
                               ),
                             ),
                             AppTextField(
-                              label: 'Confirm Password',
+                              label: l10n.registerConfirmPasswordLabel,
                               controller: _confirmCtrl,
                               obscureText: _obscureConfirm,
-                              validator: (v) =>
-                                  Validators.confirmPassword(v, _passwordCtrl.text),
+                              validator: (v) => Validators.confirmPassword(
+                                v,
+                                _passwordCtrl.text,
+                                l10n,
+                              ),
                               suffixIcon: IconButton(
                                 icon: Icon(
                                   _obscureConfirm
@@ -156,11 +172,12 @@ class _RegisterViewState extends State<_RegisterView> {
                                   size: 20,
                                 ),
                                 onPressed: () => setState(
-                                    () => _obscureConfirm = !_obscureConfirm),
+                                  () => _obscureConfirm = !_obscureConfirm,
+                                ),
                               ),
                             ),
                             AppTextField(
-                              label: 'Referral Code (Optional)',
+                              label: l10n.registerReferralCodeLabel,
                               controller: _referralCtrl,
                               textCapitalization: TextCapitalization.characters,
                             ),
@@ -168,17 +185,17 @@ class _RegisterViewState extends State<_RegisterView> {
                         ),
                         // Actions block
                         AppButton(
-                          label: 'Create Account',
+                          label: l10n.registerButton,
                           isLoading: state is AuthLoading,
                           onPressed: () {
                             if (_formKey.currentState!.validate()) {
                               context.read<AuthCubit>().register(
-                                    name: _nameCtrl.text.trim(),
-                                    email: _emailCtrl.text.trim(),
-                                    password: _passwordCtrl.text,
-                                    passwordConfirmation: _confirmCtrl.text,
-                                    referralCode: _referralCtrl.text.trim(),
-                                  );
+                                name: _nameCtrl.text.trim(),
+                                email: _emailCtrl.text.trim(),
+                                password: _passwordCtrl.text,
+                                passwordConfirmation: _confirmCtrl.text,
+                                referralCode: _referralCtrl.text.trim(),
+                              );
                             }
                           },
                         ),
@@ -187,13 +204,13 @@ class _RegisterViewState extends State<_RegisterView> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              'Already have an account?',
+                              l10n.registerAlreadyHaveAccount,
                               style: AppTextStyles.caption,
                             ),
                             TextButton(
                               onPressed: () => context.go(AppRoutes.login),
                               child: Text(
-                                'Login',
+                                l10n.registerLoginLink,
                                 style: AppTextStyles.caption.copyWith(
                                   color: AppColors.primary,
                                   fontWeight: FontWeight.w500,

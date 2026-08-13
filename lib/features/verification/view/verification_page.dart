@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:tourguide_app/core/di/locator.dart';
+import 'package:tourguide_app/core/localization/language_switcher.dart';
 import 'package:tourguide_app/core/router/app_routes.dart';
 import 'package:tourguide_app/core/shared/widgets/app_button.dart';
 import 'package:tourguide_app/core/shared/widgets/app_text_field.dart';
@@ -14,6 +15,7 @@ import 'package:tourguide_app/core/utils/extensions.dart';
 import 'package:tourguide_app/core/utils/validators.dart';
 import 'package:tourguide_app/features/verification/model/verification_model.dart';
 import 'package:tourguide_app/features/verification/viewmodel/verification_cubit.dart';
+import 'package:tourguide_app/l10n/generated/app_localizations.dart';
 
 class VerificationPage extends StatelessWidget {
   const VerificationPage({super.key});
@@ -32,16 +34,24 @@ class _VerificationView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Scaffold(
       backgroundColor: AppColors.surface,
-      appBar: AppBar(title: const Text('Identity Verification'), backgroundColor: AppColors.surface),
+      appBar: LanguageAppBar(
+        title: Text(l10n.verificationTitle),
+        backgroundColor: AppColors.surface,
+      ),
       body: BlocConsumer<VerificationCubit, VerificationState>(
         listener: (context, state) {
           if (state is VerificationSubmitted) {
             context.go(AppRoutes.verificationSuccess);
           }
           if (state is VerificationError) {
-            context.showSnackBar(state.message, isError: true);
+            context.showSnackBar(
+              state.message ?? l10n.commonSomethingWentWrong,
+              isError: true,
+            );
           }
         },
         builder: (context, state) {
@@ -50,7 +60,7 @@ class _VerificationView extends StatelessWidget {
           }
           if (state is VerificationError) {
             return ErrorView(
-              message: state.message,
+              message: state.message ?? l10n.commonSomethingWentWrong,
               onRetry: () => context.read<VerificationCubit>().loadStatus(),
             );
           }
@@ -89,12 +99,19 @@ class _BodyViewState extends State<_BodyView> {
   }
 
   Future<void> _pickNationalIdFront() async {
-    final picked = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 80);
-    if (picked != null) setState(() => _nationalIdFrontFile = File(picked.path));
+    final picked = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
+    if (picked != null)
+      setState(() => _nationalIdFrontFile = File(picked.path));
   }
 
   Future<void> _pickNationalIdBack() async {
-    final picked = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 80);
+    final picked = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
     if (picked != null) setState(() => _nationalIdBackFile = File(picked.path));
   }
 
@@ -108,6 +125,8 @@ class _BodyViewState extends State<_BodyView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Form(
@@ -121,31 +140,45 @@ class _BodyViewState extends State<_BodyView> {
               _VerifiedCard(),
             ] else ...[
               const SizedBox(height: 20),
-              Text('Document Details', style: AppTextStyles.label),
+              Text(
+                l10n.verificationDocumentDetails,
+                style: AppTextStyles.label,
+              ),
               const SizedBox(height: 12),
               AppTextField(
-                label: 'National ID Number',
+                label: l10n.verificationNationalIdLabel,
                 controller: _nationalIdCtrl,
-                validator: (v) => Validators.required(v, fieldName: 'National ID'),
+                validator: (v) => Validators.required(
+                  v,
+                  l10n,
+                  fieldName: l10n.verificationNationalIdLabel,
+                ),
               ),
               const SizedBox(height: 16),
               AppTextField(
-                label: 'Guide License Number',
+                label: l10n.verificationLicenseLabel,
                 controller: _licenseCtrl,
-                validator: (v) => Validators.required(v, fieldName: 'License number'),
+                validator: (v) => Validators.required(
+                  v,
+                  l10n,
+                  fieldName: l10n.verificationLicenseLabel,
+                ),
               ),
               const SizedBox(height: 28),
-              Text('Upload Documents', style: AppTextStyles.label),
+              Text(
+                l10n.verificationUploadDocuments,
+                style: AppTextStyles.label,
+              ),
               const SizedBox(height: 4),
               Text(
-                'Please upload clear, legible copies of your documents.',
+                l10n.verificationUploadCaption,
                 style: AppTextStyles.caption,
               ),
               const SizedBox(height: 16),
               _DocumentUploadCard(
-                title: 'National ID — Front',
-                subtitle: 'Front side of your national ID card',
-                acceptedFormats: 'JPEG or PNG • Max 2 MB',
+                title: l10n.verificationIdFrontTitle,
+                subtitle: l10n.verificationIdFrontSubtitle,
+                acceptedFormats: l10n.verificationFormatMax2mb,
                 icon: Icons.badge_outlined,
                 fileName: _nationalIdFrontFile?.uri.pathSegments.last,
                 onTap: _pickNationalIdFront,
@@ -153,9 +186,9 @@ class _BodyViewState extends State<_BodyView> {
               ),
               const SizedBox(height: 12),
               _DocumentUploadCard(
-                title: 'National ID — Back',
-                subtitle: 'Back side of your national ID card',
-                acceptedFormats: 'JPEG or PNG • Max 2 MB',
+                title: l10n.verificationIdBackTitle,
+                subtitle: l10n.verificationIdBackSubtitle,
+                acceptedFormats: l10n.verificationFormatMax2mb,
                 icon: Icons.badge_outlined,
                 fileName: _nationalIdBackFile?.uri.pathSegments.last,
                 onTap: _pickNationalIdBack,
@@ -163,9 +196,9 @@ class _BodyViewState extends State<_BodyView> {
               ),
               const SizedBox(height: 12),
               _DocumentUploadCard(
-                title: 'Guide License',
-                subtitle: 'Official tour guide license document',
-                acceptedFormats: 'JPEG or PNG • Max 5 MB',
+                title: l10n.verificationLicenseTitle,
+                subtitle: l10n.verificationLicenseSubtitle,
+                acceptedFormats: l10n.verificationFormatMax5mb,
                 icon: Icons.workspace_premium_outlined,
                 fileName: _licenseFile?.uri.pathSegments.last,
                 onTap: _pickLicense,
@@ -173,16 +206,16 @@ class _BodyViewState extends State<_BodyView> {
               ),
               const SizedBox(height: 28),
               AppButton(
-                label: 'Submit for Verification',
+                label: l10n.verificationSubmitButton,
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
                     context.read<VerificationCubit>().submitVerification(
-                          nationalId: _nationalIdCtrl.text.trim(),
-                          guideLicenseNumber: _licenseCtrl.text.trim(),
-                          nationalIdFrontFile: _nationalIdFrontFile,
-                          nationalIdBackFile: _nationalIdBackFile,
-                          licenseFile: _licenseFile,
-                        );
+                      nationalId: _nationalIdCtrl.text.trim(),
+                      guideLicenseNumber: _licenseCtrl.text.trim(),
+                      nationalIdFrontFile: _nationalIdFrontFile,
+                      nationalIdBackFile: _nationalIdBackFile,
+                      licenseFile: _licenseFile,
+                    );
                   }
                 },
               ),
@@ -217,6 +250,7 @@ class _DocumentUploadCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasFile = fileName != null;
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       decoration: BoxDecoration(
@@ -270,7 +304,11 @@ class _DocumentUploadCard extends StatelessWidget {
                         color: AppColors.errorBg,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(Icons.close, size: 16, color: AppColors.error),
+                      child: const Icon(
+                        Icons.close,
+                        size: 16,
+                        color: AppColors.error,
+                      ),
                     ),
                   ),
               ],
@@ -289,24 +327,32 @@ class _DocumentUploadCard extends StatelessWidget {
                     : AppColors.surfaceVariant,
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                  color: hasFile ? AppColors.success.withValues(alpha: 0.3) : AppColors.divider,
+                  color: hasFile
+                      ? AppColors.success.withValues(alpha: 0.3)
+                      : AppColors.divider,
                   style: hasFile ? BorderStyle.solid : BorderStyle.solid,
                 ),
               ),
               child: hasFile
                   ? Row(
                       children: [
-                        const Icon(Icons.insert_drive_file_outlined, size: 20, color: AppColors.success),
+                        const Icon(
+                          Icons.insert_drive_file_outlined,
+                          size: 20,
+                          color: AppColors.success,
+                        ),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
                             fileName!,
-                            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.success),
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              color: AppColors.success,
+                            ),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         Text(
-                          'Uploaded',
+                          l10n.verificationUploaded,
                           style: AppTextStyles.caption.copyWith(
                             color: AppColors.success,
                             fontWeight: FontWeight.w600,
@@ -317,18 +363,26 @@ class _DocumentUploadCard extends StatelessWidget {
                   : Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.cloud_upload_outlined, size: 20, color: AppColors.textSecondary),
+                        const Icon(
+                          Icons.cloud_upload_outlined,
+                          size: 20,
+                          color: AppColors.textSecondary,
+                        ),
                         const SizedBox(width: 8),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Tap to upload',
-                              style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primary),
+                              l10n.verificationTapToUpload,
+                              style: AppTextStyles.bodyMedium.copyWith(
+                                color: AppColors.primary,
+                              ),
                             ),
                             Text(
                               acceptedFormats,
-                              style: AppTextStyles.caption.copyWith(fontSize: 11),
+                              style: AppTextStyles.caption.copyWith(
+                                fontSize: 11,
+                              ),
                             ),
                           ],
                         ),
@@ -348,6 +402,7 @@ class _StatusBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final status = verification?.status;
     if (status == null || status == 'VERIFIED') return const SizedBox();
 
@@ -357,13 +412,13 @@ class _StatusBanner extends StatelessWidget {
             AppColors.errorBg,
             AppColors.error,
             Icons.cancel_outlined,
-            'Your documents were rejected. Please resubmit.',
+            l10n.verificationRejectedBanner,
           )
         : (
             AppColors.surfaceVariant,
             AppColors.primary,
             Icons.schedule_outlined,
-            'Your documents are under review. We\'ll notify you.',
+            l10n.verificationPendingBanner,
           );
 
     return Column(
@@ -380,13 +435,20 @@ class _StatusBanner extends StatelessWidget {
             children: [
               Icon(icon, size: 18, color: border),
               const SizedBox(width: 10),
-              Expanded(child: Text(text, style: AppTextStyles.caption.copyWith(color: AppColors.textPrimary))),
+              Expanded(
+                child: Text(
+                  text,
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ),
             ],
           ),
         ),
         if (isRejected && verification?.rejectionReason != null) ...[
           const SizedBox(height: 12),
-          Text('Review Notes', style: AppTextStyles.label),
+          Text(l10n.homeReviewNotesLabel, style: AppTextStyles.label),
           const SizedBox(height: 6),
           Container(
             width: double.infinity,
@@ -398,13 +460,15 @@ class _StatusBanner extends StatelessWidget {
             ),
             child: Text(
               verification!.rejectionReason!,
-              style: AppTextStyles.caption.copyWith(color: AppColors.textPrimary),
+              style: AppTextStyles.caption.copyWith(
+                color: AppColors.textPrimary,
+              ),
             ),
           ),
         ],
         if (isRejected && verification!.documentUrls.isNotEmpty) ...[
           const SizedBox(height: 12),
-          Text('Submitted Documents', style: AppTextStyles.label),
+          Text(l10n.verificationSubmittedDocuments, style: AppTextStyles.label),
           const SizedBox(height: 6),
           ...verification!.documentUrls.map(
             (url) => Container(
@@ -417,7 +481,11 @@ class _StatusBanner extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.insert_drive_file_outlined, size: 18, color: AppColors.textSecondary),
+                  const Icon(
+                    Icons.insert_drive_file_outlined,
+                    size: 18,
+                    color: AppColors.textSecondary,
+                  ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
@@ -440,6 +508,8 @@ class _StatusBanner extends StatelessWidget {
 class _VerifiedCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -449,15 +519,27 @@ class _VerifiedCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.verified_outlined, size: 40, color: AppColors.success),
+          const Icon(
+            Icons.verified_outlined,
+            size: 40,
+            color: AppColors.success,
+          ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Identity Verified', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.success)),
+                Text(
+                  l10n.verificationVerifiedTitle,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.success,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text('Your identity has been successfully verified.', style: AppTextStyles.caption),
+                Text(
+                  l10n.verificationVerifiedSubtitle,
+                  style: AppTextStyles.caption,
+                ),
               ],
             ),
           ),

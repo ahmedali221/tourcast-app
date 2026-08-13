@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tourguide_app/core/di/locator.dart';
+import 'package:tourguide_app/core/localization/language_switcher.dart';
 import 'package:tourguide_app/core/router/app_routes.dart';
 import 'package:tourguide_app/core/shared/widgets/auth_avatar.dart';
 import 'package:tourguide_app/core/shared/widgets/error_view.dart';
@@ -13,6 +14,7 @@ import 'package:tourguide_app/features/profile/model/profile_model.dart';
 import 'package:tourguide_app/features/profile/viewmodel/profile_cubit.dart';
 import 'package:tourguide_app/features/verification/viewmodel/verification_cubit.dart';
 import 'package:tourguide_app/features/wallet/viewmodel/wallet_cubit.dart';
+import 'package:tourguide_app/l10n/generated/app_localizations.dart';
 import 'package:shimmer/shimmer.dart';
 
 class ProfilePage extends StatelessWidget {
@@ -25,7 +27,9 @@ class ProfilePage extends StatelessWidget {
         BlocProvider(create: (_) => locator<ProfileCubit>()..loadProfile()),
         BlocProvider(create: (_) => locator<AuthCubit>()),
         BlocProvider(create: (_) => locator<VerificationCubit>()..loadStatus()),
-        BlocProvider(create: (_) => locator<WalletCubit>()..loadFinanceSnapshot()),
+        BlocProvider(
+          create: (_) => locator<WalletCubit>()..loadFinanceSnapshot(),
+        ),
       ],
       child: const _ProfileView(),
     );
@@ -37,14 +41,17 @@ class _ProfileView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('My Profile'),
+      appBar: LanguageAppBar(
+        title: Text(l10n.profileTitle),
         actions: [
           BlocBuilder<VerificationCubit, VerificationState>(
             builder: (context, verState) {
-              final canEdit = verState is VerificationLoaded &&
+              final canEdit =
+                  verState is VerificationLoaded &&
                   verState.verification != null &&
                   verState.verification!.status.toUpperCase() == 'VERIFIED';
               return IconButton(
@@ -55,9 +62,9 @@ class _ProfileView extends StatelessWidget {
                 onPressed: canEdit
                     ? () => context.push(AppRoutes.editProfile)
                     : () => context.showSnackBar(
-                          'Profile editing is available once your account is verified.',
-                          isError: true,
-                        ),
+                        l10n.profileEditUnavailable,
+                        isError: true,
+                      ),
               );
             },
           ),
@@ -73,8 +80,12 @@ class _ProfileView extends StatelessWidget {
         ],
         child: BlocConsumer<ProfileCubit, ProfileState>(
           listener: (context, state) {
-            if (state is ProfileError)
-              context.showSnackBar(state.message, isError: true);
+            if (state is ProfileError) {
+              context.showSnackBar(
+                state.message ?? l10n.commonSomethingWentWrong,
+                isError: true,
+              );
+            }
             if (state is ProfileUpdated) context.go(AppRoutes.login);
           },
           builder: (context, state) {
@@ -82,7 +93,7 @@ class _ProfileView extends StatelessWidget {
               return _ShimmerView();
             if (state is ProfileError) {
               return ErrorView(
-                message: state.message,
+                message: state.message ?? l10n.commonSomethingWentWrong,
                 onRetry: () => context.read<ProfileCubit>().loadProfile(),
               );
             }
@@ -102,6 +113,8 @@ class _BodyView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
       child: Column(
@@ -139,7 +152,7 @@ class _BodyView extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Profile Completeness', style: AppTextStyles.label),
+                    Text(l10n.profileCompleteness, style: AppTextStyles.label),
                     Text(
                       '${profile.completenessPercent}%',
                       style: AppTextStyles.label.copyWith(
@@ -168,18 +181,26 @@ class _BodyView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _InfoRow(label: 'Country', value: profile.country ?? '—'),
-                _InfoRow(label: 'City', value: profile.city ?? '—'),
                 _InfoRow(
-                  label: 'Years of Experience',
+                  label: l10n.profileCountry,
+                  value: profile.country ?? l10n.profileMissingValue,
+                ),
+                _InfoRow(
+                  label: l10n.profileCity,
+                  value: profile.city ?? l10n.profileMissingValue,
+                ),
+                _InfoRow(
+                  label: l10n.profileYearsExperienceLabel,
                   value: profile.yearsOfExperience != null
-                      ? '${profile.yearsOfExperience} years'
-                      : '—',
+                      ? l10n.profileYearsExperienceValue(
+                          profile.yearsOfExperience!,
+                        )
+                      : l10n.profileMissingValue,
                 ),
                 // if (profile.rating != null) _RatingRow(rating: profile.rating!),
                 if (profile.languages.isNotEmpty) ...[
                   const SizedBox(height: 12),
-                  Text('Languages', style: AppTextStyles.caption),
+                  Text(l10n.profileLanguages, style: AppTextStyles.caption),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 6,
@@ -191,7 +212,10 @@ class _BodyView extends StatelessWidget {
                 ],
                 if (profile.specializations.isNotEmpty) ...[
                   const SizedBox(height: 12),
-                  Text('Specializations', style: AppTextStyles.caption),
+                  Text(
+                    l10n.profileSpecializations,
+                    style: AppTextStyles.caption,
+                  ),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 6,
@@ -210,12 +234,12 @@ class _BodyView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Bio', style: AppTextStyles.label),
+                Text(l10n.profileBio, style: AppTextStyles.label),
                 const SizedBox(height: 8),
                 Text(
                   profile.bio?.isNotEmpty == true
                       ? profile.bio!
-                      : 'No bio added yet.',
+                      : l10n.profileNoBio,
                   style: AppTextStyles.body,
                 ),
               ],
@@ -233,7 +257,7 @@ class _BodyView extends StatelessWidget {
               size: 18,
             ),
             label: Text(
-              'Logout',
+              l10n.commonLogout,
               style: AppTextStyles.bodyMedium.copyWith(
                 color: AppColors.textSecondary,
               ),
@@ -242,7 +266,7 @@ class _BodyView extends StatelessWidget {
           TextButton(
             onPressed: () => _showDeleteDialog(context),
             child: Text(
-              'Delete Account',
+              l10n.profileDeleteAccount,
               style: AppTextStyles.bodyMedium.copyWith(color: AppColors.error),
             ),
           ),
@@ -252,15 +276,16 @@ class _BodyView extends StatelessWidget {
   }
 
   void _showLogoutDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to logout?'),
+        title: Text(l10n.commonLogout),
+        content: Text(l10n.commonLogoutConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
+            child: Text(l10n.commonCancel),
           ),
           TextButton(
             onPressed: () async {
@@ -268,7 +293,7 @@ class _BodyView extends StatelessWidget {
               await context.read<AuthCubit>().logout();
               if (context.mounted) context.go(AppRoutes.login);
             },
-            child: const Text('Logout'),
+            child: Text(l10n.commonLogout),
           ),
         ],
       ),
@@ -276,24 +301,26 @@ class _BodyView extends StatelessWidget {
   }
 
   void _showDeleteDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete Account'),
-        content: const Text(
-          'This action is permanent and cannot be undone. Are you sure?',
-        ),
+        title: Text(l10n.profileDeleteAccount),
+        content: Text(l10n.profileDeleteConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
+            child: Text(l10n.commonCancel),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(dialogContext);
               context.read<ProfileCubit>().deleteAccount();
             },
-            child: Text('Delete', style: TextStyle(color: AppColors.error)),
+            child: Text(
+              l10n.commonDelete,
+              style: const TextStyle(color: AppColors.error),
+            ),
           ),
         ],
       ),
@@ -323,7 +350,6 @@ class _InfoRow extends StatelessWidget {
     );
   }
 }
-
 
 class _VerificationBadge extends StatelessWidget {
   final String status;
@@ -396,6 +422,8 @@ class _Card extends StatelessWidget {
 class _FinanceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return BlocBuilder<WalletCubit, WalletState>(
       builder: (context, state) {
         if (state is WalletLoading || state is WalletInitial) {
@@ -424,42 +452,46 @@ class _FinanceCard extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Wallet', style: AppTextStyles.label),
+                  Text(l10n.profileWallet, style: AppTextStyles.label),
                   GestureDetector(
                     onTap: () => context.push(AppRoutes.wallet),
                     child: Text(
-                      'View all →',
-                      style: AppTextStyles.caption
-                          .copyWith(color: AppColors.primary),
+                      l10n.profileViewAll,
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.primary,
+                      ),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 10),
-              Text(
-                state.balance.toCurrency(),
-                style: AppTextStyles.heading2,
-              ),
-              Text('Available Balance', style: AppTextStyles.caption),
+              Text(state.balance.toCurrency(), style: AppTextStyles.heading2),
+              Text(l10n.profileAvailableBalance, style: AppTextStyles.caption),
               if (state.payoutProfile != null) ...[
                 const Divider(height: 24, color: AppColors.divider),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Payout Account', style: AppTextStyles.caption),
+                    Text(
+                      l10n.profilePayoutAccount,
+                      style: AppTextStyles.caption,
+                    ),
                     GestureDetector(
                       onTap: () => context.push(AppRoutes.paymentMethods),
                       child: Text(
-                        'Manage →',
-                        style: AppTextStyles.caption
-                            .copyWith(color: AppColors.primary),
+                        l10n.profileManage,
+                        style: AppTextStyles.caption.copyWith(
+                          color: AppColors.primary,
+                        ),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 6),
-                Text(state.payoutProfile!.methodName,
-                    style: AppTextStyles.bodyMedium),
+                Text(
+                  state.payoutProfile!.methodName,
+                  style: AppTextStyles.bodyMedium,
+                ),
                 ...state.payoutProfile!.details.entries.map(
                   (e) => Text(
                     '${e.key.replaceAll('_', ' ')}: ${e.value}',
@@ -472,12 +504,18 @@ class _FinanceCard extends StatelessWidget {
                   onTap: () => context.push(AppRoutes.paymentMethods),
                   child: Row(
                     children: [
-                      const Icon(Icons.account_balance_wallet_outlined,
-                          size: 16, color: AppColors.textSecondary),
+                      const Icon(
+                        Icons.account_balance_wallet_outlined,
+                        size: 16,
+                        color: AppColors.textSecondary,
+                      ),
                       const SizedBox(width: 8),
-                      Text('Set up payout account',
-                          style: AppTextStyles.caption
-                              .copyWith(color: AppColors.primary)),
+                      Text(
+                        l10n.profileSetupPayoutAccount,
+                        style: AppTextStyles.caption.copyWith(
+                          color: AppColors.primary,
+                        ),
+                      ),
                     ],
                   ),
                 ),

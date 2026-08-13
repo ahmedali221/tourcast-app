@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:tourguide_app/core/di/locator.dart';
+import 'package:tourguide_app/core/localization/language_switcher.dart';
 import 'package:tourguide_app/core/shared/widgets/app_button.dart';
 import 'package:tourguide_app/features/verification/viewmodel/verification_cubit.dart';
 import 'package:tourguide_app/core/shared/widgets/empty_state.dart';
@@ -12,6 +13,7 @@ import 'package:tourguide_app/core/theme/app_text_styles.dart';
 import 'package:tourguide_app/core/utils/extensions.dart';
 import 'package:tourguide_app/features/referrals/model/referral_model.dart';
 import 'package:tourguide_app/features/referrals/viewmodel/referrals_cubit.dart';
+import 'package:tourguide_app/l10n/generated/app_localizations.dart';
 
 class ReferralsPage extends StatelessWidget {
   const ReferralsPage({super.key});
@@ -30,13 +32,18 @@ class _ReferralsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Referrals')),
+      appBar: LanguageAppBar(title: Text(l10n.referralsTitle)),
       body: BlocConsumer<ReferralsCubit, ReferralsState>(
         listener: (context, state) {
           if (state is ReferralsError) {
-            context.showSnackBar(state.message, isError: true);
+            context.showSnackBar(
+              state.message ?? l10n.commonSomethingWentWrong,
+              isError: true,
+            );
           }
           if (state is ReferralLinkGenerated) {
             _showShareSheet(context, state.referralCode, state.referralLink);
@@ -48,7 +55,7 @@ class _ReferralsView extends StatelessWidget {
           }
           if (state is ReferralsError) {
             return ErrorView(
-              message: state.message,
+              message: state.message ?? l10n.commonSomethingWentWrong,
               onRetry: () => context.read<ReferralsCubit>().loadReferrals(),
             );
           }
@@ -88,6 +95,8 @@ class _BodyView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
       child: Column(
@@ -98,7 +107,7 @@ class _BodyView extends StatelessWidget {
             children: [
               Expanded(
                 child: _StatCard(
-                  label: 'Total Referrals',
+                  label: l10n.referralsTotal,
                   value: referrals.totalReferred.toString(),
                   icon: Icons.people_rounded,
                 ),
@@ -106,7 +115,7 @@ class _BodyView extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: _StatCard(
-                  label: 'Total Earned',
+                  label: l10n.referralsTotalEarned,
                   value: referrals.totalEarned.toCurrency(),
                   icon: Icons.account_balance_wallet_rounded,
                 ),
@@ -118,33 +127,35 @@ class _BodyView extends StatelessWidget {
           // ── Generate button ──────────────────────────────────────────
           BlocBuilder<VerificationCubit, VerificationState>(
             builder: (context, verState) {
-              final canGenerate = verState is VerificationLoaded &&
+              final canGenerate =
+                  verState is VerificationLoaded &&
                   verState.verification != null &&
                   verState.verification!.status.toUpperCase() == 'VERIFIED';
               return AppButton(
-                label: 'Generate New Referral Code',
+                label: l10n.referralsGenerateNew,
                 isLoading: isGenerating,
                 onPressed: isGenerating
                     ? null
                     : canGenerate
-                        ? () => context.read<ReferralsCubit>().generateReferralLink()
-                        : () => context.showSnackBar(
-                              'Referral links are available once your account is verified.',
-                              isError: true,
-                            ),
+                    ? () =>
+                          context.read<ReferralsCubit>().generateReferralLink()
+                    : () => context.showSnackBar(
+                        l10n.referralsUnavailable,
+                        isError: true,
+                      ),
               );
             },
           ),
           const SizedBox(height: 24),
 
           // ── Referral entries list ────────────────────────────────────
-          Text('Referral Codes', style: AppTextStyles.label),
+          Text(l10n.referralsCodesSection, style: AppTextStyles.label),
           const SizedBox(height: 12),
           if (referrals.entries.isEmpty)
-            const EmptyState(
+            EmptyState(
               icon: Icons.people_outline,
-              title: 'No referrals yet',
-              message: 'Generate a code and share it to start earning!',
+              title: l10n.referralsEmptyTitle,
+              message: l10n.referralsEmptyMessage,
             )
           else
             Container(
@@ -159,7 +170,9 @@ class _BodyView extends StatelessWidget {
                   return _ReferralEntryRow(
                     entry: entry,
                     isLast: i == referrals.entries.length - 1,
-                    onTap: entry.status == 'REGISTERED' || entry.referredUser != null
+                    onTap:
+                        entry.status == 'REGISTERED' ||
+                            entry.referredUser != null
                         ? () => _showActivitySheet(context, entry)
                         : null,
                   );
@@ -188,17 +201,22 @@ class _ReferralEntryRow extends StatelessWidget {
   final ReferralEntryModel entry;
   final bool isLast;
   final VoidCallback? onTap;
-  const _ReferralEntryRow({required this.entry, required this.isLast, this.onTap});
+  const _ReferralEntryRow({
+    required this.entry,
+    required this.isLast,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final isCompleted = entry.status == 'COMPLETED';
     final isRegistered = entry.status == 'REGISTERED';
     final (statusColor, statusBg) = isCompleted
         ? (AppColors.success, AppColors.successBg)
         : isRegistered
-            ? (AppColors.primary, AppColors.primary.withValues(alpha: 0.08))
-            : (AppColors.textSecondary, AppColors.surfaceVariant);
+        ? (AppColors.primary, AppColors.primary.withValues(alpha: 0.08))
+        : (AppColors.textSecondary, AppColors.surfaceVariant);
 
     return GestureDetector(
       onTap: onTap,
@@ -228,18 +246,24 @@ class _ReferralEntryRow extends StatelessWidget {
                       const SizedBox(width: 8),
                       GestureDetector(
                         onTap: () {
-                          Clipboard.setData(ClipboardData(text: entry.referralCode));
-                          context.showSnackBar('Code copied!');
+                          Clipboard.setData(
+                            ClipboardData(text: entry.referralCode),
+                          );
+                          context.showSnackBar(l10n.referralsCodeCopied);
                         },
-                        child: const Icon(Icons.copy_rounded, size: 15, color: AppColors.textSecondary),
+                        child: const Icon(
+                          Icons.copy_rounded,
+                          size: 15,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 4),
                   Text(
                     entry.referredUser != null
-                        ? 'Used by ${entry.referredUser}'
-                        : 'Not used yet',
+                        ? l10n.referralsUsedBy(entry.referredUser!)
+                        : l10n.referralsNotUsedYet,
                     style: AppTextStyles.caption.copyWith(
                       color: entry.referredUser != null
                           ? AppColors.textPrimary
@@ -249,14 +273,22 @@ class _ReferralEntryRow extends StatelessWidget {
                   if (entry.referredAt != null) ...[
                     const SizedBox(height: 2),
                     Text(
-                      'Registered ${entry.referredAt!.toReadable()}',
-                      style: AppTextStyles.caption.copyWith(color: AppColors.textHint, fontSize: 11),
+                      l10n.referralsRegisteredOn(
+                        entry.referredAt!.toReadable(),
+                      ),
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.textHint,
+                        fontSize: 11,
+                      ),
                     ),
                   ],
                   const SizedBox(height: 2),
                   Text(
                     entry.createdAt.toReadable(),
-                    style: AppTextStyles.caption.copyWith(color: AppColors.textHint, fontSize: 11),
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.textHint,
+                      fontSize: 11,
+                    ),
                   ),
                 ],
               ),
@@ -266,7 +298,10 @@ class _ReferralEntryRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: statusBg,
                     borderRadius: BorderRadius.circular(6),
@@ -292,7 +327,11 @@ class _ReferralEntryRow extends StatelessWidget {
                 ],
                 if (onTap != null) ...[
                   const SizedBox(height: 4),
-                  const Icon(Icons.chevron_right, size: 16, color: AppColors.textSecondary),
+                  const Icon(
+                    Icons.chevron_right,
+                    size: 16,
+                    color: AppColors.textSecondary,
+                  ),
                 ],
               ],
             ),
@@ -312,6 +351,8 @@ class _ShareSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Container(
       decoration: const BoxDecoration(
         color: AppColors.surface,
@@ -326,13 +367,16 @@ class _ShareSheet extends StatelessWidget {
             child: Container(
               width: 40,
               height: 4,
-              decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(2)),
+              decoration: BoxDecoration(
+                color: AppColors.border,
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
           ),
           const SizedBox(height: 20),
-          Text('Referral Link Generated', style: AppTextStyles.heading3),
+          Text(l10n.referralsLinkGeneratedTitle, style: AppTextStyles.heading3),
           const SizedBox(height: 4),
-          Text('Share your code or link to start earning.', style: AppTextStyles.caption),
+          Text(l10n.referralsShareSubtitle, style: AppTextStyles.caption),
           const SizedBox(height: 20),
           // Code row
           Container(
@@ -348,7 +392,10 @@ class _ShareSheet extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Referral Code', style: AppTextStyles.caption),
+                      Text(
+                        l10n.referralsCodeLabel,
+                        style: AppTextStyles.caption,
+                      ),
                       const SizedBox(height: 4),
                       Text(
                         code,
@@ -361,10 +408,14 @@ class _ShareSheet extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.copy_rounded, size: 20, color: AppColors.primary),
+                  icon: const Icon(
+                    Icons.copy_rounded,
+                    size: 20,
+                    color: AppColors.primary,
+                  ),
                   onPressed: () {
                     Clipboard.setData(ClipboardData(text: code));
-                    context.showSnackBar('Code copied!');
+                    context.showSnackBar(l10n.referralsCodeCopied);
                   },
                 ),
               ],
@@ -385,21 +436,30 @@ class _ShareSheet extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Referral Link', style: AppTextStyles.caption),
+                      Text(
+                        l10n.referralsLinkLabel,
+                        style: AppTextStyles.caption,
+                      ),
                       const SizedBox(height: 4),
                       Text(
                         link,
-                        style: AppTextStyles.caption.copyWith(color: AppColors.primary),
+                        style: AppTextStyles.caption.copyWith(
+                          color: AppColors.primary,
+                        ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.copy_rounded, size: 20, color: AppColors.primary),
+                  icon: const Icon(
+                    Icons.copy_rounded,
+                    size: 20,
+                    color: AppColors.primary,
+                  ),
                   onPressed: () {
                     Clipboard.setData(ClipboardData(text: link));
-                    context.showSnackBar('Link copied!');
+                    context.showSnackBar(l10n.referralsLinkCopied);
                   },
                 ),
               ],
@@ -407,7 +467,7 @@ class _ShareSheet extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           AppButton(
-            label: 'Done',
+            label: l10n.commonDone,
             onPressed: () => Navigator.pop(context),
           ),
         ],
@@ -424,16 +484,21 @@ class _ActivitySheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Container(
       decoration: const BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.75),
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.75,
+      ),
       child: BlocBuilder<ReferralsCubit, ReferralsState>(
         builder: (context, state) {
           final isLoading = state is ReferralActivityLoading;
-          final activity = state is ReferralActivityLoaded && state.referralId == entry.id
+          final activity =
+              state is ReferralActivityLoaded && state.referralId == entry.id
               ? state.activity
               : null;
 
@@ -456,7 +521,10 @@ class _ActivitySheet extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    Text('Referred User Activity', style: AppTextStyles.heading3),
+                    Text(
+                      l10n.referralsActivityTitle,
+                      style: AppTextStyles.heading3,
+                    ),
                     const SizedBox(height: 4),
                     Text(
                       entry.referredUser ?? entry.referralCode,
@@ -472,12 +540,12 @@ class _ActivitySheet extends StatelessWidget {
                   child: Center(child: CircularProgressIndicator()),
                 )
               else if (activity == null)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 40),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 40),
                   child: EmptyState(
                     icon: Icons.bar_chart_outlined,
-                    title: 'No activity data',
-                    message: 'Activity will appear once the user is active.',
+                    title: l10n.referralsNoActivityData,
+                    message: l10n.referralsActivityWillAppear,
                   ),
                 )
               else
@@ -488,35 +556,47 @@ class _ActivitySheet extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         if (activity.windowMetadata.isNotEmpty) ...[
-                          _SectionHeader('Referral Window'),
+                          _SectionHeader(l10n.referralsWindowSection),
                           const SizedBox(height: 8),
                           _MetadataCard(data: activity.windowMetadata),
                           const SizedBox(height: 20),
                         ],
                         if (activity.subscriptions.isNotEmpty) ...[
-                          _SectionHeader('Subscriptions (${activity.subscriptions.length})'),
+                          _SectionHeader(
+                            l10n.referralsSubscriptionsCount(
+                              activity.subscriptions.length,
+                            ),
+                          ),
                           const SizedBox(height: 8),
                           _ActivityList(items: activity.subscriptions),
                           const SizedBox(height: 20),
                         ],
                         if (activity.appUsageEvents.isNotEmpty) ...[
-                          _SectionHeader('App Usage Events (${activity.appUsageEvents.length})'),
+                          _SectionHeader(
+                            l10n.referralsAppUsageEventsCount(
+                              activity.appUsageEvents.length,
+                            ),
+                          ),
                           const SizedBox(height: 8),
                           _ActivityList(items: activity.appUsageEvents),
                           const SizedBox(height: 20),
                         ],
                         if (activity.promoRedemptions.isNotEmpty) ...[
-                          _SectionHeader('Promo Redemptions (${activity.promoRedemptions.length})'),
+                          _SectionHeader(
+                            l10n.referralsPromoRedemptionsCount(
+                              activity.promoRedemptions.length,
+                            ),
+                          ),
                           const SizedBox(height: 8),
                           _ActivityList(items: activity.promoRedemptions),
                         ],
                         if (activity.subscriptions.isEmpty &&
                             activity.appUsageEvents.isEmpty &&
                             activity.promoRedemptions.isEmpty)
-                          const EmptyState(
+                          EmptyState(
                             icon: Icons.bar_chart_outlined,
-                            title: 'No activity yet',
-                            message: 'Activity will appear once the user is active.',
+                            title: l10n.referralsNoActivityYet,
+                            message: l10n.referralsActivityWillAppear,
                           ),
                       ],
                     ),
@@ -535,8 +615,7 @@ class _SectionHeader extends StatelessWidget {
   const _SectionHeader(this.title);
 
   @override
-  Widget build(BuildContext context) =>
-      Text(title, style: AppTextStyles.label);
+  Widget build(BuildContext context) => Text(title, style: AppTextStyles.label);
 }
 
 class _MetadataCard extends StatelessWidget {
@@ -559,10 +638,7 @@ class _MetadataCard extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  e.key.replaceAll('_', ' '),
-                  style: AppTextStyles.caption,
-                ),
+                Text(e.key.replaceAll('_', ' '), style: AppTextStyles.caption),
                 Text(
                   '${e.value}',
                   style: AppTextStyles.caption.copyWith(
@@ -585,6 +661,8 @@ class _ActivityList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -594,7 +672,11 @@ class _ActivityList extends StatelessWidget {
       child: Column(
         children: List.generate(items.length, (i) {
           final item = items[i];
-          final title = item['name'] ?? item['type'] ?? item['event'] ?? 'Item ${i + 1}';
+          final title =
+              item['name'] ??
+              item['type'] ??
+              item['event'] ??
+              l10n.referralsItemFallback(i + 1);
           final subtitle = item['created_at'] ?? item['date'] ?? '';
           return Container(
             padding: const EdgeInsets.all(14),
@@ -637,7 +719,11 @@ class _StatCard extends StatelessWidget {
   final String value;
   final IconData icon;
 
-  const _StatCard({required this.label, required this.value, required this.icon});
+  const _StatCard({
+    required this.label,
+    required this.value,
+    required this.icon,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -661,7 +747,12 @@ class _StatCard extends StatelessWidget {
             child: Icon(icon, size: 18, color: AppColors.primary),
           ),
           const SizedBox(height: 10),
-          Text(value, style: AppTextStyles.heading3.copyWith(color: AppColors.textPrimary)),
+          Text(
+            value,
+            style: AppTextStyles.heading3.copyWith(
+              color: AppColors.textPrimary,
+            ),
+          ),
           const SizedBox(height: 2),
           Text(label, style: AppTextStyles.caption),
         ],
@@ -685,14 +776,20 @@ class _ShimmerView extends StatelessWidget {
                 Expanded(
                   child: Container(
                     height: 90,
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Container(
                     height: 90,
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                   ),
                 ),
               ],
@@ -700,7 +797,10 @@ class _ShimmerView extends StatelessWidget {
             const SizedBox(height: 16),
             Container(
               height: 48,
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             const SizedBox(height: 24),
             ...List.generate(
@@ -708,7 +808,10 @@ class _ShimmerView extends StatelessWidget {
               (_) => Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 height: 72,
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ],

@@ -47,7 +47,7 @@ class PayoutProfileSaved extends WalletState {
 }
 
 class WalletError extends WalletState {
-  final String message;
+  final String? message;
   WalletError(this.message);
 }
 
@@ -85,9 +85,9 @@ class WalletCubit extends Cubit<WalletState> {
       _payouts = results[1] as List<PayoutModel>;
       if (!isClosed) emit(WalletLoaded(_wallet!, payouts: _payouts));
     } on DioException catch (e) {
-      if (!isClosed) emit(WalletError(e.response?.data['message'] ?? 'Failed to load wallet'));
+      if (!isClosed) emit(WalletError(e.response?.data['message']));
     } catch (_) {
-      if (!isClosed) emit(WalletError('Something went wrong. Please try again.'));
+      if (!isClosed) emit(WalletError(null));
     }
   }
 
@@ -101,37 +101,51 @@ class WalletCubit extends Cubit<WalletState> {
         _repository.getPayoutProfile(),
       ]);
       if (!isClosed) {
-        emit(PayoutSheetReady(
-          wallet: _wallet!,
-          payouts: _payouts,
-          methods: results[0] as List<PayoutMethodModel>,
-          savedProfile: results[1] as PayoutProfileModel?,
-        ));
+        emit(
+          PayoutSheetReady(
+            wallet: _wallet!,
+            payouts: _payouts,
+            methods: results[0] as List<PayoutMethodModel>,
+            savedProfile: results[1] as PayoutProfileModel?,
+          ),
+        );
       }
     } on DioException catch (e) {
-      if (!isClosed) emit(WalletError(e.response?.data['message'] ?? 'Failed to load payout methods'));
+      if (!isClosed) emit(WalletError(e.response?.data['message']));
     } catch (_) {
-      if (!isClosed) emit(WalletError('Something went wrong. Please try again.'));
+      if (!isClosed) emit(WalletError(null));
     }
   }
 
-  Future<void> savePayoutProfile(int methodId, Map<String, dynamic> details) async {
+  Future<void> savePayoutProfile(
+    int methodId,
+    Map<String, dynamic> details,
+  ) async {
     if (isClosed) return;
     emit(WalletLoading());
     try {
       await _repository.savePayoutProfile(methodId, details);
       final methods = await _repository.getPayoutMethods();
       if (!isClosed) {
-        emit(PayoutProfileSaved(wallet: _wallet!, payouts: _payouts, methods: methods));
+        emit(
+          PayoutProfileSaved(
+            wallet: _wallet!,
+            payouts: _payouts,
+            methods: methods,
+          ),
+        );
       }
     } on DioException catch (e) {
-      if (!isClosed) emit(WalletError(e.response?.data['message'] ?? 'Failed to save payout profile'));
+      if (!isClosed) emit(WalletError(e.response?.data['message']));
     } catch (_) {
-      if (!isClosed) emit(WalletError('Something went wrong. Please try again.'));
+      if (!isClosed) emit(WalletError(null));
     }
   }
 
-  Future<void> updatePaymentMethod(int methodId, Map<String, dynamic> details) async {
+  Future<void> updatePaymentMethod(
+    int methodId,
+    Map<String, dynamic> details,
+  ) async {
     if (isClosed) return;
     emit(WalletLoading());
     try {
@@ -142,11 +156,12 @@ class WalletCubit extends Cubit<WalletState> {
       ]);
       final methods = results[0] as List<PayoutMethodModel>;
       final profile = results[1] as PayoutProfileModel?;
-      if (!isClosed) emit(PaymentMethodsLoaded(methods: methods, savedProfile: profile));
+      if (!isClosed)
+        emit(PaymentMethodsLoaded(methods: methods, savedProfile: profile));
     } on DioException catch (e) {
-      if (!isClosed) emit(WalletError(e.response?.data['message'] ?? 'Failed to update payment method'));
+      if (!isClosed) emit(WalletError(e.response?.data['message']));
     } catch (_) {
-      if (!isClosed) emit(WalletError('Something went wrong.'));
+      if (!isClosed) emit(WalletError(null));
     }
   }
 
@@ -160,11 +175,12 @@ class WalletCubit extends Cubit<WalletState> {
       ]);
       final methods = results[0] as List<PayoutMethodModel>;
       final profile = results[1] as PayoutProfileModel?;
-      if (!isClosed) emit(PaymentMethodsLoaded(methods: methods, savedProfile: profile));
+      if (!isClosed)
+        emit(PaymentMethodsLoaded(methods: methods, savedProfile: profile));
     } on DioException catch (e) {
-      if (!isClosed) emit(WalletError(e.response?.data['message'] ?? 'Failed to load payment methods'));
+      if (!isClosed) emit(WalletError(e.response?.data['message']));
     } catch (_) {
-      if (!isClosed) emit(WalletError('Something went wrong.'));
+      if (!isClosed) emit(WalletError(null));
     }
   }
 
@@ -178,11 +194,17 @@ class WalletCubit extends Cubit<WalletState> {
       ]);
       final wallet = results[0] as WalletModel;
       final profile = results[1] as PayoutProfileModel?;
-      if (!isClosed) emit(FinanceSnapshotLoaded(balance: wallet.balance, payoutProfile: profile));
+      if (!isClosed)
+        emit(
+          FinanceSnapshotLoaded(
+            balance: wallet.balance,
+            payoutProfile: profile,
+          ),
+        );
     } on DioException catch (e) {
-      if (!isClosed) emit(WalletError(e.response?.data['message'] ?? 'Failed to load finance data'));
+      if (!isClosed) emit(WalletError(e.response?.data['message']));
     } catch (_) {
-      if (!isClosed) emit(WalletError('Something went wrong.'));
+      if (!isClosed) emit(WalletError(null));
     }
   }
 
@@ -194,9 +216,9 @@ class WalletCubit extends Cubit<WalletState> {
       if (!isClosed) emit(PayoutSuccess());
       await loadWallet();
     } on DioException catch (e) {
-      if (!isClosed) emit(WalletError(e.response?.data['message'] ?? 'Payout request failed'));
+      if (!isClosed) emit(WalletError(e.response?.data['message']));
     } catch (_) {
-      if (!isClosed) emit(WalletError('Something went wrong. Please try again.'));
+      if (!isClosed) emit(WalletError(null));
     }
   }
 }

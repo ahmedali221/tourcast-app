@@ -17,7 +17,7 @@ class CommissionsLoaded extends CommissionsState {
 }
 
 class CommissionsError extends CommissionsState {
-  final String message;
+  final String? message;
   CommissionsError(this.message);
 }
 
@@ -34,9 +34,9 @@ class CommissionsCubit extends Cubit<CommissionsState> {
       final commissions = await _repository.getCommissions(page: page);
       emit(CommissionsLoaded(commissions));
     } on DioException catch (e) {
-      emit(CommissionsError(e.response?.data['message'] ?? 'Failed to load commissions'));
+      emit(CommissionsError(e.response?.data['message']));
     } catch (_) {
-      emit(CommissionsError('Something went wrong. Please try again.'));
+      emit(CommissionsError(null));
     }
   }
 }

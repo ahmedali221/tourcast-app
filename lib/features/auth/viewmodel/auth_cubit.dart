@@ -16,7 +16,7 @@ class AuthSuccess extends AuthState {}
 class AuthEmailSent extends AuthState {} // for forgot password success
 
 class AuthError extends AuthState {
-  final String message;
+  final String? message;
   AuthError(this.message);
 }
 
@@ -34,9 +34,9 @@ class AuthCubit extends Cubit<AuthState> {
       await AppStorage.saveToken(result.token);
       emit(AuthSuccess());
     } on DioException catch (e) {
-      emit(AuthError(e.response?.data['message'] ?? 'Login failed'));
+      emit(AuthError(e.response?.data['message']));
     } catch (_) {
-      emit(AuthError('Something went wrong. Please try again.'));
+      emit(AuthError(null));
     }
   }
 
@@ -59,9 +59,9 @@ class AuthCubit extends Cubit<AuthState> {
       await AppStorage.saveToken(result.token);
       emit(AuthSuccess());
     } on DioException catch (e) {
-      emit(AuthError(e.response?.data['message'] ?? 'Registration failed'));
+      emit(AuthError(e.response?.data['message']));
     } catch (_) {
-      emit(AuthError('Something went wrong. Please try again.'));
+      emit(AuthError(null));
     }
   }
 
@@ -81,11 +81,9 @@ class AuthCubit extends Cubit<AuthState> {
       await _repository.sendPasswordResetEmail(email);
       emit(AuthEmailSent());
     } on DioException catch (e) {
-      emit(
-        AuthError(e.response?.data['message'] ?? 'Failed to send reset email'),
-      );
+      emit(AuthError(e.response?.data['message']));
     } catch (_) {
-      emit(AuthError('Something went wrong. Please try again.'));
+      emit(AuthError(null));
     }
   }
 
@@ -95,9 +93,9 @@ class AuthCubit extends Cubit<AuthState> {
       await _repository.resendVerificationEmail();
       emit(AuthEmailSent());
     } on DioException catch (e) {
-      emit(AuthError(e.response?.data['message'] ?? 'Failed to resend email'));
+      emit(AuthError(e.response?.data['message']));
     } catch (_) {
-      emit(AuthError('Something went wrong. Please try again.'));
+      emit(AuthError(null));
     }
   }
 }

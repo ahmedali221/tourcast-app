@@ -11,6 +11,7 @@ import 'package:tourguide_app/core/theme/app_text_styles.dart';
 import 'package:tourguide_app/core/utils/extensions.dart';
 import 'package:tourguide_app/core/utils/validators.dart';
 import 'package:tourguide_app/features/auth/viewmodel/auth_cubit.dart';
+import 'package:tourguide_app/l10n/generated/app_localizations.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -46,11 +47,15 @@ class _LoginViewState extends State<_LoginView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return BlocConsumer<AuthCubit, AuthState>(
       listener: (context, state) {
         if (state is AuthSuccess) context.go(AppRoutes.home);
         if (state is AuthError)
-          context.showSnackBar(state.message, isError: true);
+          context.showSnackBar(
+            state.message ?? l10n.commonSomethingWentWrong,
+            isError: true,
+          );
       },
       builder: (context, state) {
         return Scaffold(
@@ -80,7 +85,7 @@ class _LoginViewState extends State<_LoginView> {
                             children: [
                               const NtLogo(size: 72),
                               Text(
-                                'Your Guide. Your Business.',
+                                l10n.authTagline,
                                 style: AppTextStyles.caption.copyWith(
                                   color: AppColors.textSecondary,
                                   fontSize: 13,
@@ -94,9 +99,12 @@ class _LoginViewState extends State<_LoginView> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           spacing: 4,
                           children: [
-                            Text('Welcome Back', style: AppTextStyles.heading2),
                             Text(
-                              'Login to your guide account',
+                              l10n.loginWelcomeBack,
+                              style: AppTextStyles.heading2,
+                            ),
+                            Text(
+                              l10n.loginSubtitle,
                               style: AppTextStyles.caption,
                             ),
                           ],
@@ -106,16 +114,16 @@ class _LoginViewState extends State<_LoginView> {
                           spacing: 16,
                           children: [
                             AppTextField(
-                              label: 'Email Address',
+                              label: l10n.loginEmailLabel,
                               controller: _emailCtrl,
                               keyboardType: TextInputType.emailAddress,
-                              validator: Validators.email,
+                              validator: (v) => Validators.email(v, l10n),
                             ),
                             AppTextField(
-                              label: 'Password',
+                              label: l10n.loginPasswordLabel,
                               controller: _passwordCtrl,
                               obscureText: _obscure,
-                              validator: Validators.password,
+                              validator: (v) => Validators.password(v, l10n),
                               suffixIcon: IconButton(
                                 icon: Icon(
                                   _obscure
@@ -140,7 +148,7 @@ class _LoginViewState extends State<_LoginView> {
                                 onPressed: () =>
                                     context.push(AppRoutes.forgotPassword),
                                 child: Text(
-                                  'Forgot Password?',
+                                  l10n.loginForgotPassword,
                                   style: AppTextStyles.label.copyWith(
                                     color: AppColors.primary,
                                     fontWeight: FontWeight.w500,
@@ -149,7 +157,7 @@ class _LoginViewState extends State<_LoginView> {
                               ),
                             ),
                             AppButton(
-                              label: 'Login',
+                              label: l10n.loginButton,
                               isLoading: state is AuthLoading,
                               onPressed: () {
                                 if (_formKey.currentState!.validate()) {
@@ -167,13 +175,13 @@ class _LoginViewState extends State<_LoginView> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              "Don't have an account?",
+                              l10n.loginNoAccount,
                               style: AppTextStyles.caption,
                             ),
                             TextButton(
                               onPressed: () => context.go(AppRoutes.register),
                               child: Text(
-                                'Register',
+                                l10n.loginRegisterLink,
                                 style: AppTextStyles.caption.copyWith(
                                   color: AppColors.primary,
                                   fontWeight: FontWeight.w500,

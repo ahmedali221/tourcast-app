@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tourguide_app/core/di/locator.dart';
+import 'package:tourguide_app/core/localization/language_switcher.dart';
 import 'package:tourguide_app/core/shared/widgets/app_button.dart';
 import 'package:tourguide_app/core/shared/widgets/app_text_field.dart';
 import 'package:tourguide_app/core/shared/widgets/nt_logo.dart';
@@ -9,6 +10,7 @@ import 'package:tourguide_app/core/theme/app_text_styles.dart';
 import 'package:tourguide_app/core/utils/extensions.dart';
 import 'package:tourguide_app/core/utils/validators.dart';
 import 'package:tourguide_app/features/auth/viewmodel/auth_cubit.dart';
+import 'package:tourguide_app/l10n/generated/app_localizations.dart';
 
 class ForgotPasswordPage extends StatelessWidget {
   const ForgotPasswordPage({super.key});
@@ -41,27 +43,38 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return BlocConsumer<AuthCubit, AuthState>(
       listener: (context, state) {
-        if (state is AuthError) context.showSnackBar(state.message, isError: true);
+        if (state is AuthError) {
+          context.showSnackBar(
+            state.message ?? l10n.commonSomethingWentWrong,
+            isError: true,
+          );
+        }
       },
       builder: (context, state) {
         return Scaffold(
           backgroundColor: AppColors.surface,
-          appBar: AppBar(
-            title: const Text('Forgot Password'),
+          appBar: LanguageAppBar(
+            title: Text(l10n.forgotPasswordTitle),
             backgroundColor: AppColors.surface,
           ),
-          body: state is AuthEmailSent ? _SuccessView() : _FormView(
-            formKey: _formKey,
-            emailCtrl: _emailCtrl,
-            isLoading: state is AuthLoading,
-            onSubmit: () {
-              if (_formKey.currentState!.validate()) {
-                context.read<AuthCubit>().sendPasswordResetEmail(_emailCtrl.text.trim());
-              }
-            },
-          ),
+          body: state is AuthEmailSent
+              ? _SuccessView()
+              : _FormView(
+                  formKey: _formKey,
+                  emailCtrl: _emailCtrl,
+                  isLoading: state is AuthLoading,
+                  onSubmit: () {
+                    if (_formKey.currentState!.validate()) {
+                      context.read<AuthCubit>().sendPasswordResetEmail(
+                        _emailCtrl.text.trim(),
+                      );
+                    }
+                  },
+                ),
         );
       },
     );
@@ -83,6 +96,8 @@ class _FormView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Form(
@@ -99,26 +114,34 @@ class _FormView extends StatelessWidget {
                 color: AppColors.successTint,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.lock_reset_outlined, size: 48, color: AppColors.primary),
+              child: const Icon(
+                Icons.lock_reset_outlined,
+                size: 48,
+                color: AppColors.primary,
+              ),
             ),
             const SizedBox(height: 24),
-            Text('Reset your password', style: AppTextStyles.heading2, textAlign: TextAlign.center),
+            Text(
+              l10n.forgotPasswordHeading,
+              style: AppTextStyles.heading2,
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 8),
             Text(
-              "Enter your email and we'll send you a reset link.",
+              l10n.forgotPasswordSubtitle,
               style: AppTextStyles.caption,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
             AppTextField(
-              label: 'Email Address',
+              label: l10n.forgotPasswordEmailLabel,
               controller: emailCtrl,
               keyboardType: TextInputType.emailAddress,
-              validator: Validators.email,
+              validator: (value) => Validators.email(value, l10n),
             ),
             const SizedBox(height: 24),
             AppButton(
-              label: 'Send Reset Link',
+              label: l10n.forgotPasswordSendButton,
               isLoading: isLoading,
               onPressed: onSubmit,
             ),
@@ -132,6 +155,8 @@ class _FormView extends StatelessWidget {
 class _SuccessView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -145,13 +170,21 @@ class _SuccessView extends StatelessWidget {
                 color: AppColors.successTint,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.check_circle_outline, size: 56, color: AppColors.success),
+              child: const Icon(
+                Icons.check_circle_outline,
+                size: 56,
+                color: AppColors.success,
+              ),
             ),
             const SizedBox(height: 24),
-            Text('Check your inbox', style: AppTextStyles.heading2, textAlign: TextAlign.center),
+            Text(
+              l10n.forgotPasswordSuccessHeading,
+              style: AppTextStyles.heading2,
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 8),
             Text(
-              'A password reset link has been sent to your email address.',
+              l10n.forgotPasswordSuccessBody,
               style: AppTextStyles.body,
               textAlign: TextAlign.center,
             ),

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:tourguide_app/core/di/locator.dart';
+import 'package:tourguide_app/core/localization/language_switcher.dart';
 import 'package:tourguide_app/core/shared/widgets/app_button.dart';
 import 'package:tourguide_app/core/shared/widgets/empty_state.dart';
 import 'package:tourguide_app/core/theme/app_colors.dart';
@@ -14,6 +15,7 @@ import 'package:tourguide_app/features/verification/viewmodel/verification_cubit
 import 'package:tourguide_app/features/wallet/model/payout_model.dart';
 import 'package:tourguide_app/features/wallet/model/payout_profile_model.dart';
 import 'package:tourguide_app/features/wallet/viewmodel/wallet_cubit.dart';
+import 'package:tourguide_app/l10n/generated/app_localizations.dart';
 
 enum _PayoutStep { history, methodPicker, profileForm, amountForm }
 
@@ -45,6 +47,8 @@ class _PayoutViewState extends State<_PayoutView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return BlocListener<WalletCubit, WalletState>(
       listener: (context, state) {
         if (state is WalletLoaded) {
@@ -61,14 +65,14 @@ class _PayoutViewState extends State<_PayoutView> {
           });
         }
         if (state is PayoutProfileSaved) {
-          context.showSnackBar('Payout profile saved!');
+          context.showSnackBar(l10n.payoutProfileSaved);
           setState(() {
             _methods = state.methods;
             _step = _PayoutStep.amountForm;
           });
         }
         if (state is PayoutSuccess) {
-          context.showSnackBar('Payout request submitted');
+          context.showSnackBar(l10n.payoutRequestSubmitted);
           context.read<WalletCubit>().loadWallet();
           setState(() {
             _step = _PayoutStep.history;
@@ -76,14 +80,17 @@ class _PayoutViewState extends State<_PayoutView> {
           });
         }
         if (state is WalletError) {
-          context.showSnackBar(state.message, isError: true);
+          context.showSnackBar(
+            state.message ?? l10n.commonSomethingWentWrong,
+            isError: true,
+          );
         }
       },
       child: Scaffold(
         backgroundColor: AppColors.background,
-        appBar: AppBar(
+        appBar: LanguageAppBar(
           backgroundColor: AppColors.background,
-          title: Text(_appBarTitle),
+          title: Text(_appBarTitle(l10n)),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios_new, size: 18),
             onPressed: _onBack,
@@ -93,41 +100,42 @@ class _PayoutViewState extends State<_PayoutView> {
           duration: const Duration(milliseconds: 220),
           child: switch (_step) {
             _PayoutStep.history => _HistoryBody(
-                key: const ValueKey('history'),
-                onRequestPayout: () =>
-                    context.read<WalletCubit>().openPayoutSheet(),
-              ),
+              key: const ValueKey('history'),
+              onRequestPayout: () =>
+                  context.read<WalletCubit>().openPayoutSheet(),
+            ),
             _PayoutStep.methodPicker => _MethodPickerBody(
-                key: const ValueKey('picker'),
-                methods: _methods,
-                onPick: (m) => setState(() {
-                  _selectedMethod = m;
-                  _step = _PayoutStep.profileForm;
-                }),
-              ),
+              key: const ValueKey('picker'),
+              methods: _methods,
+              onPick: (m) => setState(() {
+                _selectedMethod = m;
+                _step = _PayoutStep.profileForm;
+              }),
+            ),
             _PayoutStep.profileForm => _ProfileFormBody(
-                key: ValueKey(_selectedMethod?.id),
-                method: _selectedMethod!,
-              ),
+              key: ValueKey(_selectedMethod?.id),
+              method: _selectedMethod!,
+            ),
             _PayoutStep.amountForm => _AmountFormBody(
-                key: const ValueKey('amount'),
-                balance: _balance,
-                savedProfile: _savedProfile,
-                onChangeProfile: () =>
-                    setState(() => _step = _PayoutStep.methodPicker),
-              ),
+              key: const ValueKey('amount'),
+              balance: _balance,
+              savedProfile: _savedProfile,
+              onChangeProfile: () =>
+                  setState(() => _step = _PayoutStep.methodPicker),
+            ),
           },
         ),
       ),
     );
   }
 
-  String get _appBarTitle => switch (_step) {
-        _PayoutStep.history => 'Payout Requests',
-        _PayoutStep.methodPicker => 'Payout Method',
-        _PayoutStep.profileForm => _selectedMethod?.name ?? 'Payment Details',
-        _PayoutStep.amountForm => 'Request Payout',
-      };
+  String _appBarTitle(AppLocalizations l10n) => switch (_step) {
+    _PayoutStep.history => l10n.walletPayoutRequestsTitle,
+    _PayoutStep.methodPicker => l10n.payoutMethodTitle,
+    _PayoutStep.profileForm =>
+      _selectedMethod?.name ?? l10n.payoutPaymentDetailsTitle,
+    _PayoutStep.amountForm => l10n.homeRequestPayout,
+  };
 
   void _onBack() {
     switch (_step) {
@@ -155,6 +163,8 @@ class _HistoryBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return BlocBuilder<WalletCubit, WalletState>(
       builder: (context, state) {
         if (state is WalletLoading || state is WalletInitial) {
@@ -172,17 +182,18 @@ class _HistoryBody extends StatelessWidget {
             children: [
               BlocBuilder<VerificationCubit, VerificationState>(
                 builder: (context, verState) {
-                  final canPayout = verState is VerificationLoaded &&
+                  final canPayout =
+                      verState is VerificationLoaded &&
                       verState.verification != null &&
                       verState.verification!.status.toUpperCase() == 'VERIFIED';
                   return AppButton(
-                    label: 'Request Payout',
+                    label: l10n.homeRequestPayout,
                     onPressed: canPayout
                         ? onRequestPayout
                         : () => context.showSnackBar(
-                              'Payouts are available once your account is verified.',
-                              isError: true,
-                            ),
+                            l10n.commonPayoutsUnavailable,
+                            isError: true,
+                          ),
                   );
                 },
               ),
@@ -198,27 +209,35 @@ class _HistoryBody extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.account_balance_wallet_outlined,
-                          size: 18, color: AppColors.primary),
+                      const Icon(
+                        Icons.account_balance_wallet_outlined,
+                        size: 18,
+                        color: AppColors.primary,
+                      ),
                       const SizedBox(width: 10),
                       Expanded(
-                        child: Text('Manage Payment Account',
-                            style: AppTextStyles.bodyMedium),
+                        child: Text(
+                          l10n.payoutManageAccount,
+                          style: AppTextStyles.bodyMedium,
+                        ),
                       ),
-                      const Icon(Icons.chevron_right,
-                          size: 18, color: AppColors.textSecondary),
+                      const Icon(
+                        Icons.chevron_right,
+                        size: 18,
+                        color: AppColors.textSecondary,
+                      ),
                     ],
                   ),
                 ),
               ),
               const SizedBox(height: 28),
-              Text('History', style: AppTextStyles.label),
+              Text(l10n.payoutHistorySection, style: AppTextStyles.label),
               const SizedBox(height: 12),
               if (payouts.isEmpty)
-                const EmptyState(
+                EmptyState(
                   icon: Icons.payments_outlined,
-                  title: 'No payout requests yet',
-                  message: 'Your payout requests will appear here.',
+                  title: l10n.payoutNoRequests,
+                  message: l10n.payoutNoRequestsMessage,
                 )
               else
                 Container(
@@ -230,24 +249,24 @@ class _HistoryBody extends StatelessWidget {
                   child: Column(
                     children: List.generate(payouts.length, (i) {
                       final p = payouts[i];
-                      final (statusColor, statusBg) =
-                          switch (p.status.toLowerCase()) {
-                        'completed' || 'paid' =>
-                          (AppColors.success, AppColors.successBg),
-                        'rejected' || 'failed' =>
-                          (AppColors.error, AppColors.errorBg),
+                      final (statusColor, statusBg) = switch (p.status
+                          .toLowerCase()) {
+                        'completed' ||
+                        'paid' => (AppColors.success, AppColors.successBg),
+                        'rejected' ||
+                        'failed' => (AppColors.error, AppColors.errorBg),
                         _ => (
-                            AppColors.primary,
-                            AppColors.primary.withValues(alpha: 0.08)
-                          ),
+                          AppColors.primary,
+                          AppColors.primary.withValues(alpha: 0.08),
+                        ),
                       };
                       return Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           border: i < payouts.length - 1
                               ? const Border(
-                                  bottom:
-                                      BorderSide(color: AppColors.divider))
+                                  bottom: BorderSide(color: AppColors.divider),
+                                )
                               : null,
                         ),
                         child: Row(
@@ -256,23 +275,31 @@ class _HistoryBody extends StatelessWidget {
                               width: 40,
                               height: 40,
                               decoration: BoxDecoration(
-                                color:
-                                    AppColors.primary.withValues(alpha: 0.08),
+                                color: AppColors.primary.withValues(
+                                  alpha: 0.08,
+                                ),
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(Icons.upload_rounded,
-                                  size: 18, color: AppColors.primary),
+                              child: const Icon(
+                                Icons.upload_rounded,
+                                size: 18,
+                                color: AppColors.primary,
+                              ),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(p.paymentMethod,
-                                      style: AppTextStyles.bodyMedium),
+                                  Text(
+                                    p.paymentMethod,
+                                    style: AppTextStyles.bodyMedium,
+                                  ),
                                   const SizedBox(height: 2),
-                                  Text(p.createdAt.toReadable(),
-                                      style: AppTextStyles.caption),
+                                  Text(
+                                    p.createdAt.toReadable(),
+                                    style: AppTextStyles.caption,
+                                  ),
                                 ],
                               ),
                             ),
@@ -281,13 +308,16 @@ class _HistoryBody extends StatelessWidget {
                               children: [
                                 Text(
                                   p.amount.toCurrency(),
-                                  style: AppTextStyles.bodyMedium
-                                      .copyWith(fontWeight: FontWeight.w700),
+                                  style: AppTextStyles.bodyMedium.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
                                 const SizedBox(height: 4),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 2),
+                                    horizontal: 8,
+                                    vertical: 2,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: statusBg,
                                     borderRadius: BorderRadius.circular(6),
@@ -323,25 +353,31 @@ class _MethodPickerBody extends StatelessWidget {
   final List<PayoutMethodModel> methods;
   final void Function(PayoutMethodModel) onPick;
 
-  const _MethodPickerBody({super.key, required this.methods, required this.onPick});
+  const _MethodPickerBody({
+    super.key,
+    required this.methods,
+    required this.onPick,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Choose how you want to receive your money.',
+            l10n.payoutChooseMethod,
             style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
           ),
           const SizedBox(height: 24),
           if (methods.isEmpty)
-            const EmptyState(
+            EmptyState(
               icon: Icons.payments_outlined,
-              title: 'No payout methods available',
-              message: 'Please contact support.',
+              title: l10n.payoutNoMethodsAvailable,
+              message: l10n.commonPleaseContactSupport,
             )
           else
             for (final m in methods) ...[
@@ -379,8 +415,11 @@ class _MethodTile extends StatelessWidget {
                 color: AppColors.primary.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(Icons.account_balance_wallet_outlined,
-                  size: 22, color: AppColors.primary),
+              child: const Icon(
+                Icons.account_balance_wallet_outlined,
+                size: 22,
+                color: AppColors.primary,
+              ),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -393,7 +432,11 @@ class _MethodTile extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, size: 20, color: AppColors.textSecondary),
+            const Icon(
+              Icons.chevron_right,
+              size: 20,
+              color: AppColors.textSecondary,
+            ),
           ],
         ),
       ),
@@ -431,6 +474,8 @@ class _ProfileFormBodyState extends State<_ProfileFormBody> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
       child: Form(
@@ -443,16 +488,24 @@ class _ProfileFormBodyState extends State<_ProfileFormBody> {
               decoration: BoxDecoration(
                 color: AppColors.primary.withValues(alpha: 0.06),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.primary.withValues(alpha: 0.15)),
+                border: Border.all(
+                  color: AppColors.primary.withValues(alpha: 0.15),
+                ),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.info_outline, size: 16, color: AppColors.primary),
+                  const Icon(
+                    Icons.info_outline,
+                    size: 16,
+                    color: AppColors.primary,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'This info is saved to your payout profile and used for all future withdrawals.',
-                      style: AppTextStyles.caption.copyWith(color: AppColors.primary),
+                      l10n.payoutInfoBanner,
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.primary,
+                      ),
                     ),
                   ),
                 ],
@@ -467,7 +520,8 @@ class _ProfileFormBodyState extends State<_ProfileFormBody> {
                 keyboardType: _keyboardType(field.type),
                 decoration: InputDecoration(hintText: field.label),
                 validator: field.required
-                    ? (v) => Validators.required(v, fieldName: field.label)
+                    ? (v) =>
+                          Validators.required(v, l10n, fieldName: field.label)
                     : null,
               ),
               const SizedBox(height: 16),
@@ -475,7 +529,7 @@ class _ProfileFormBodyState extends State<_ProfileFormBody> {
             const SizedBox(height: 8),
             BlocBuilder<WalletCubit, WalletState>(
               builder: (context, state) => AppButton(
-                label: 'Save & Continue',
+                label: l10n.payoutSaveContinue,
                 isLoading: state is WalletLoading,
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
@@ -483,9 +537,10 @@ class _ProfileFormBodyState extends State<_ProfileFormBody> {
                       for (final e in _controllers.entries)
                         e.key: e.value.text.trim(),
                     };
-                    context
-                        .read<WalletCubit>()
-                        .savePayoutProfile(widget.method.id, details);
+                    context.read<WalletCubit>().savePayoutProfile(
+                      widget.method.id,
+                      details,
+                    );
                   }
                 },
               ),
@@ -497,10 +552,10 @@ class _ProfileFormBodyState extends State<_ProfileFormBody> {
   }
 
   TextInputType _keyboardType(String type) => switch (type) {
-        'phone' => TextInputType.phone,
-        'number' => const TextInputType.numberWithOptions(decimal: true),
-        _ => TextInputType.text,
-      };
+    'phone' => TextInputType.phone,
+    'number' => const TextInputType.numberWithOptions(decimal: true),
+    _ => TextInputType.text,
+  };
 }
 
 // ─── Step 3: Amount form ──────────────────────────────────────────────────────
@@ -533,6 +588,8 @@ class _AmountFormBodyState extends State<_AmountFormBody> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
       child: Form(
@@ -541,8 +598,10 @@ class _AmountFormBodyState extends State<_AmountFormBody> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Available: ${widget.balance.toCurrency()}',
-              style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
+              l10n.payoutAvailableAmount(widget.balance.toCurrency()),
+              style: AppTextStyles.body.copyWith(
+                color: AppColors.textSecondary,
+              ),
             ),
             const SizedBox(height: 20),
             if (widget.savedProfile != null) ...[
@@ -551,26 +610,34 @@ class _AmountFormBodyState extends State<_AmountFormBody> {
                 decoration: BoxDecoration(
                   color: AppColors.successBg,
                   borderRadius: BorderRadius.circular(12),
-                  border:
-                      Border.all(color: AppColors.success.withValues(alpha: 0.3)),
+                  border: Border.all(
+                    color: AppColors.success.withValues(alpha: 0.3),
+                  ),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.check_circle_outline,
-                        size: 18, color: AppColors.success),
+                    const Icon(
+                      Icons.check_circle_outline,
+                      size: 18,
+                      color: AppColors.success,
+                    ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(widget.savedProfile!.methodName,
-                              style: AppTextStyles.bodyMedium
-                                  .copyWith(color: AppColors.success)),
+                          Text(
+                            widget.savedProfile!.methodName,
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              color: AppColors.success,
+                            ),
+                          ),
                           ...widget.savedProfile!.details.entries.map(
                             (e) => Text(
                               '${e.key.replaceAll('_', ' ')}: ${e.value}',
-                              style: AppTextStyles.caption
-                                  .copyWith(color: AppColors.success),
+                              style: AppTextStyles.caption.copyWith(
+                                color: AppColors.success,
+                              ),
                             ),
                           ),
                         ],
@@ -579,7 +646,7 @@ class _AmountFormBodyState extends State<_AmountFormBody> {
                     GestureDetector(
                       onTap: widget.onChangeProfile,
                       child: Text(
-                        'Change',
+                        l10n.payoutChange,
                         style: AppTextStyles.caption.copyWith(
                           color: AppColors.primary,
                           fontWeight: FontWeight.w600,
@@ -591,28 +658,29 @@ class _AmountFormBodyState extends State<_AmountFormBody> {
               ),
               const SizedBox(height: 20),
             ],
-            _FieldLabel('Amount (USD)'),
+            _FieldLabel(l10n.payoutAmountLabel),
             const SizedBox(height: 6),
             TextFormField(
               controller: _amountCtrl,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(
-                hintText: '0.00',
-                helperText: 'Minimum payout amount is \$10',
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
               ),
-              validator: (v) => Validators.amount(v, min: 10),
+              decoration: InputDecoration(
+                hintText: l10n.payoutAmountHint,
+                helperText: l10n.payoutMinimumHelper,
+              ),
+              validator: (v) => Validators.amount(v, l10n, min: 10),
             ),
             const SizedBox(height: 24),
             BlocBuilder<WalletCubit, WalletState>(
               builder: (context, state) => AppButton(
-                label: 'Submit Request',
+                label: l10n.payoutSubmitRequest,
                 isLoading: state is WalletLoading,
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
-                    context
-                        .read<WalletCubit>()
-                        .requestPayout(double.parse(_amountCtrl.text));
+                    context.read<WalletCubit>().requestPayout(
+                      double.parse(_amountCtrl.text),
+                    );
                   }
                 },
               ),
@@ -632,8 +700,10 @@ class _FieldLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(text,
-        style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w500));
+    return Text(
+      text,
+      style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w500),
+    );
   }
 }
 
@@ -650,7 +720,9 @@ class _ShimmerView extends StatelessWidget {
             Container(
               height: 52,
               decoration: BoxDecoration(
-                  color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             const SizedBox(height: 24),
             ...List.generate(
@@ -659,8 +731,9 @@ class _ShimmerView extends StatelessWidget {
                 margin: const EdgeInsets.only(bottom: 12),
                 height: 72,
                 decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12)),
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ],

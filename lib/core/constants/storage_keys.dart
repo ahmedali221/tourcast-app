@@ -14,6 +14,9 @@ class StorageKeys {
   static const String verificationCache = 'cache_verification';
   static const String marketplaceAppsCache = 'cache_marketplace_apps';
   static const String announcementsCache = 'cache_announcements';
+
+  // ---------- Preferences (SharedPreferences, survive logout) ----------
+  static const String appLocale = 'app_locale';
 }
 
 class CacheTTL {

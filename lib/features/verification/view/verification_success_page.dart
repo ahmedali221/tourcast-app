@@ -4,12 +4,15 @@ import 'package:tourguide_app/core/router/app_routes.dart';
 import 'package:tourguide_app/core/shared/widgets/app_button.dart';
 import 'package:tourguide_app/core/theme/app_colors.dart';
 import 'package:tourguide_app/core/theme/app_text_styles.dart';
+import 'package:tourguide_app/l10n/generated/app_localizations.dart';
 
 class VerificationSuccessPage extends StatelessWidget {
   const VerificationSuccessPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return PopScope(
       canPop: false,
       child: Scaffold(
@@ -35,19 +38,24 @@ class VerificationSuccessPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 28),
                 Text(
-                  'Documents Submitted',
+                  l10n.verificationSuccessHeading,
                   style: AppTextStyles.heading2,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Your verification documents have been submitted successfully. Our team will review them and notify you of the result.',
-                  style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
+                  l10n.verificationSuccessBody,
+                  style: AppTextStyles.body.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 12),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.surfaceVariant,
                     border: Border(
@@ -57,12 +65,18 @@ class VerificationSuccessPage extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.schedule_outlined, size: 18, color: AppColors.primary),
+                      const Icon(
+                        Icons.schedule_outlined,
+                        size: 18,
+                        color: AppColors.primary,
+                      ),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          'Review typically takes 1–3 business days.',
-                          style: AppTextStyles.caption.copyWith(color: AppColors.textPrimary),
+                          l10n.verificationSuccessInfoBanner,
+                          style: AppTextStyles.caption.copyWith(
+                            color: AppColors.textPrimary,
+                          ),
                         ),
                       ),
                     ],
@@ -70,7 +84,7 @@ class VerificationSuccessPage extends StatelessWidget {
                 ),
                 const Spacer(),
                 AppButton(
-                  label: 'Go to Home',
+                  label: l10n.verificationGoHome,
                   onPressed: () => context.go(AppRoutes.home),
                 ),
                 const SizedBox(height: 32),

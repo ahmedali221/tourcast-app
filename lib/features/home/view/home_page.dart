@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:tourguide_app/core/di/locator.dart';
+import 'package:tourguide_app/core/localization/language_switcher.dart';
 import 'package:tourguide_app/core/router/app_routes.dart';
 import 'package:tourguide_app/core/theme/app_colors.dart';
 import 'package:tourguide_app/features/notifications/view/notifications_page.dart';
@@ -12,6 +13,7 @@ import 'package:tourguide_app/core/utils/extensions.dart';
 import 'package:tourguide_app/features/announcements/model/announcement_model.dart';
 import 'package:tourguide_app/features/announcements/viewmodel/announcements_cubit.dart';
 import 'package:tourguide_app/features/home/viewmodel/home_promo_codes_cubit.dart';
+import 'package:tourguide_app/l10n/generated/app_localizations.dart';
 import 'package:tourguide_app/features/marketplace/model/app_model.dart';
 import 'package:tourguide_app/features/notifications/viewmodel/notifications_cubit.dart';
 import 'package:tourguide_app/features/profile/viewmodel/profile_cubit.dart';
@@ -28,8 +30,12 @@ class HomePage extends StatelessWidget {
         BlocProvider(create: (_) => locator<ProfileCubit>()..loadProfile()),
         BlocProvider(create: (_) => locator<VerificationCubit>()..loadStatus()),
         BlocProvider(create: (_) => locator<WalletCubit>()..loadWallet()),
-        BlocProvider(create: (_) => locator<NotificationsCubit>()..loadNotifications()),
-        BlocProvider(create: (_) => locator<AnnouncementsCubit>()..loadAnnouncements()),
+        BlocProvider(
+          create: (_) => locator<NotificationsCubit>()..loadNotifications(),
+        ),
+        BlocProvider(
+          create: (_) => locator<AnnouncementsCubit>()..loadAnnouncements(),
+        ),
         BlocProvider(create: (_) => locator<HomePromoCodesCubit>()..load()),
       ],
       child: const _HomeScaffold(),
@@ -57,7 +63,8 @@ class _DashboardBody extends StatelessWidget {
     return BlocBuilder<VerificationCubit, VerificationState>(
       builder: (context, state) {
         if (state is VerificationLoaded) {
-          if (state.verification == null) return const _StatusBanner(isNotSubmitted: true);
+          if (state.verification == null)
+            return const _StatusBanner(isNotSubmitted: true);
           final status = state.verification!.status.toUpperCase();
           if (status == 'PENDING') return const _StatusBanner(isPending: true);
           if (status == 'REJECTED') {
@@ -122,6 +129,7 @@ class _StatusBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final type = _type;
+    final l10n = AppLocalizations.of(context);
 
     final color = switch (type) {
       _BannerType.notSubmitted => AppColors.primary,
@@ -139,22 +147,19 @@ class _StatusBanner extends StatelessWidget {
       _BannerType.rejected => Icons.cancel_outlined,
     };
     final title = switch (type) {
-      _BannerType.notSubmitted => 'Verification Required',
-      _BannerType.pending => 'Account Under Review',
-      _BannerType.rejected => 'Application Rejected',
+      _BannerType.notSubmitted => l10n.homeVerificationRequiredTitle,
+      _BannerType.pending => l10n.homeAccountUnderReviewTitle,
+      _BannerType.rejected => l10n.homeApplicationRejectedTitle,
     };
     final message = switch (type) {
-      _BannerType.notSubmitted =>
-        'You need to submit your verification documents before you can access the app.',
-      _BannerType.pending =>
-        'Your guide application is being reviewed by our team. You\'ll be notified once approved.',
-      _BannerType.rejected =>
-        'Your application was not approved. Please review the notes below and contact support.',
+      _BannerType.notSubmitted => l10n.homeVerificationRequiredMessage,
+      _BannerType.pending => l10n.homePendingReviewMessage,
+      _BannerType.rejected => l10n.homeRejectedMessage,
     };
     final ctaLabel = switch (type) {
-      _BannerType.notSubmitted => 'Submit Verification',
-      _BannerType.pending => 'Contact Support',
-      _BannerType.rejected => 'Contact Support',
+      _BannerType.notSubmitted => l10n.homeSubmitVerificationCta,
+      _BannerType.pending => l10n.commonContactSupport,
+      _BannerType.rejected => l10n.commonContactSupport,
     };
     final ctaRoute = switch (type) {
       _BannerType.notSubmitted => AppRoutes.verification,
@@ -176,7 +181,10 @@ class _StatusBanner extends StatelessWidget {
               decoration: BoxDecoration(
                 color: bg,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: color.withValues(alpha: 0.35), width: 1.5),
+                border: Border.all(
+                  color: color.withValues(alpha: 0.35),
+                  width: 1.5,
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -208,9 +216,13 @@ class _StatusBanner extends StatelessWidget {
                       height: 1.5,
                     ),
                   ),
-                  if (type == _BannerType.rejected && rejectionReason?.isNotEmpty == true) ...[
+                  if (type == _BannerType.rejected &&
+                      rejectionReason?.isNotEmpty == true) ...[
                     const SizedBox(height: 12),
-                    Text('Review Notes', style: AppTextStyles.label.copyWith(color: color)),
+                    Text(
+                      l10n.homeReviewNotesLabel,
+                      style: AppTextStyles.label.copyWith(color: color),
+                    ),
                     const SizedBox(height: 6),
                     Container(
                       width: double.infinity,
@@ -218,7 +230,9 @@ class _StatusBanner extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: color.withValues(alpha: 0.25)),
+                        border: Border.all(
+                          color: color.withValues(alpha: 0.25),
+                        ),
                       ),
                       child: Text(
                         rejectionReason!,
@@ -233,7 +247,10 @@ class _StatusBanner extends StatelessWidget {
                   GestureDetector(
                     onTap: () => context.push(ctaRoute),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
                       decoration: BoxDecoration(
                         color: color,
                         borderRadius: BorderRadius.circular(8),
@@ -257,16 +274,18 @@ class _StatusBanner extends StatelessWidget {
   }
 }
 
-String _greeting() {
+String _greeting(AppLocalizations l10n) {
   final hour = DateTime.now().hour;
-  if (hour < 12) return 'Good morning';
-  if (hour < 18) return 'Good afternoon';
-  return 'Good evening';
+  if (hour < 12) return l10n.greetingMorning;
+  if (hour < 18) return l10n.greetingAfternoon;
+  return l10n.greetingEvening;
 }
 
 class _TopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Container(
       color: AppColors.surface,
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -278,7 +297,7 @@ class _TopBar extends StatelessWidget {
                 if (state is ProfileLoaded) {
                   final firstName = state.profile.fullName.split(' ').first;
                   return Text(
-                    '${_greeting()}, $firstName 👋',
+                    l10n.homeGreeting(_greeting(l10n), firstName),
                     style: AppTextStyles.heading3,
                   );
                 }
@@ -286,6 +305,7 @@ class _TopBar extends StatelessWidget {
               },
             ),
           ),
+          const LanguageSwitcher(),
           BlocBuilder<NotificationsCubit, NotificationsState>(
             builder: (context, state) {
               final unread = state is NotificationsLoaded
@@ -309,7 +329,10 @@ class _TopBar extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: AppColors.error,
                           shape: BoxShape.circle,
-                          border: Border.all(color: AppColors.surface, width: 1.5),
+                          border: Border.all(
+                            color: AppColors.surface,
+                            width: 1.5,
+                          ),
                         ),
                       ),
                     ),
@@ -328,6 +351,8 @@ class _WalletCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -354,7 +379,7 @@ class _WalletCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Your Balance',
+                l10n.homeYourBalance,
                 style: AppTextStyles.caption.copyWith(color: Colors.white70),
               ),
               const SizedBox(height: 4),
@@ -363,7 +388,9 @@ class _WalletCard extends StatelessWidget {
                   if (state is WalletLoaded) {
                     return Text(
                       state.wallet.balance.toCurrency(),
-                      style: AppTextStyles.heading1.copyWith(color: Colors.white),
+                      style: AppTextStyles.heading1.copyWith(
+                        color: Colors.white,
+                      ),
                     );
                   }
                   return Shimmer.fromColors(
@@ -383,16 +410,17 @@ class _WalletCard extends StatelessWidget {
               const SizedBox(height: 16),
               BlocBuilder<VerificationCubit, VerificationState>(
                 builder: (context, verState) {
-                  final canPayout = verState is VerificationLoaded &&
+                  final canPayout =
+                      verState is VerificationLoaded &&
                       verState.verification != null &&
                       verState.verification!.status.toUpperCase() == 'VERIFIED';
                   return GestureDetector(
                     onTap: canPayout
                         ? () => context.go(AppRoutes.wallet)
                         : () => context.showSnackBar(
-                              'Payouts are available once your account is verified.',
-                              isError: true,
-                            ),
+                            l10n.commonPayoutsUnavailable,
+                            isError: true,
+                          ),
                     child: Opacity(
                       opacity: canPayout ? 1.0 : 0.5,
                       child: Container(
@@ -400,13 +428,14 @@ class _WalletCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         decoration: BoxDecoration(
                           border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.8),
-                              width: 1.5),
+                            color: Colors.white.withValues(alpha: 0.8),
+                            width: 1.5,
+                          ),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         alignment: Alignment.center,
                         child: Text(
-                          'Request Payout',
+                          l10n.homeRequestPayout,
                           style: AppTextStyles.label.copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.w600,
@@ -428,13 +457,22 @@ class _WalletCard extends StatelessWidget {
 class _QuickActions extends StatelessWidget {
   const _QuickActions();
 
-  static const _actions = [
-    (label: 'Commissions', icon: Icons.bar_chart_rounded, route: AppRoutes.commissions),
-    (label: 'Referrals', icon: Icons.share_outlined, route: AppRoutes.referrals),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final actions = [
+      (
+        label: l10n.homeCommissions,
+        icon: Icons.bar_chart_rounded,
+        route: AppRoutes.commissions,
+      ),
+      (
+        label: l10n.homeReferrals,
+        icon: Icons.share_outlined,
+        route: AppRoutes.referrals,
+      ),
+    ];
+
     return GridView.count(
       crossAxisCount: 2,
       shrinkWrap: true,
@@ -442,7 +480,7 @@ class _QuickActions extends StatelessWidget {
       crossAxisSpacing: 12,
       mainAxisSpacing: 12,
       childAspectRatio: 1.8,
-      children: _actions
+      children: actions
           .map(
             (a) => GestureDetector(
               onTap: () => context.push(a.route),
@@ -481,17 +519,20 @@ class _Announcements extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Announcements',
+          l10n.homeAnnouncements,
           style: AppTextStyles.label.copyWith(fontWeight: FontWeight.w500),
         ),
         const SizedBox(height: 12),
         BlocBuilder<AnnouncementsCubit, AnnouncementsState>(
           builder: (context, state) {
-            if (state is AnnouncementsLoading || state is AnnouncementsInitial) {
+            if (state is AnnouncementsLoading ||
+                state is AnnouncementsInitial) {
               return SizedBox(
                 height: 200,
                 child: ListView.separated(
@@ -503,7 +544,9 @@ class _Announcements extends StatelessWidget {
               );
             }
 
-            final announcements = state is AnnouncementsLoaded ? state.announcements : <AnnouncementModel>[];
+            final announcements = state is AnnouncementsLoaded
+                ? state.announcements
+                : <AnnouncementModel>[];
 
             return SizedBox(
               height: 200,
@@ -606,6 +649,8 @@ class _PromoCodesSectionState extends State<_PromoCodesSection> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return BlocConsumer<HomePromoCodesCubit, HomePromoCodesState>(
       listener: (_, state) {
         if (state is HomePromoCodesLoaded) {
@@ -615,14 +660,20 @@ class _PromoCodesSectionState extends State<_PromoCodesSection> {
         }
       },
       builder: (context, state) {
-        final isFirstLoad = _codes.isEmpty &&
+        final isFirstLoad =
+            _codes.isEmpty &&
             (state is HomePromoCodesInitial || state is HomePromoCodesLoading);
 
         if (isFirstLoad) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('My Promo Codes', style: AppTextStyles.label.copyWith(fontWeight: FontWeight.w500)),
+              Text(
+                l10n.homeMyPromoCodes,
+                style: AppTextStyles.label.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
               const SizedBox(height: 12),
               SizedBox(
                 height: 96,
@@ -641,10 +692,18 @@ class _PromoCodesSectionState extends State<_PromoCodesSection> {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('My Promo Codes', style: AppTextStyles.label.copyWith(fontWeight: FontWeight.w500)),
+              Text(
+                l10n.homeMyPromoCodes,
+                style: AppTextStyles.label.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
               const SizedBox(height: 12),
               Container(
-                padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 20,
+                  horizontal: 16,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.surface,
                   borderRadius: BorderRadius.circular(12),
@@ -652,9 +711,13 @@ class _PromoCodesSectionState extends State<_PromoCodesSection> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.confirmation_number_outlined, size: 20, color: AppColors.textSecondary),
+                    const Icon(
+                      Icons.confirmation_number_outlined,
+                      size: 20,
+                      color: AppColors.textSecondary,
+                    ),
                     const SizedBox(width: 10),
-                    Text('No promo codes yet', style: AppTextStyles.caption),
+                    Text(l10n.homeNoPromoCodes, style: AppTextStyles.caption),
                   ],
                 ),
               ),
@@ -665,7 +728,10 @@ class _PromoCodesSectionState extends State<_PromoCodesSection> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('My Promo Codes', style: AppTextStyles.label.copyWith(fontWeight: FontWeight.w500)),
+            Text(
+              l10n.homeMyPromoCodes,
+              style: AppTextStyles.label.copyWith(fontWeight: FontWeight.w500),
+            ),
             const SizedBox(height: 12),
             SizedBox(
               height: 96,
@@ -695,6 +761,8 @@ class _PromoCodeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Container(
       width: 200,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -774,9 +842,13 @@ class _PromoCodeCard extends StatelessWidget {
                 behavior: HitTestBehavior.opaque,
                 onTap: () {
                   Clipboard.setData(ClipboardData(text: code.code));
-                  context.showSnackBar('Copied!');
+                  context.showSnackBar(l10n.commonCopied);
                 },
-                child: const Icon(Icons.copy_rounded, size: 18, color: AppColors.primary),
+                child: const Icon(
+                  Icons.copy_rounded,
+                  size: 18,
+                  color: AppColors.primary,
+                ),
               ),
             ],
           ),
@@ -786,12 +858,13 @@ class _PromoCodeCard extends StatelessWidget {
   }
 }
 
-
 class _AccountStatusBanner extends StatelessWidget {
   const _AccountStatusBanner();
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return BlocBuilder<VerificationCubit, VerificationState>(
       builder: (context, state) {
         if (state is! VerificationLoaded) return const SizedBox.shrink();
@@ -814,10 +887,9 @@ class _AccountStatusBanner extends StatelessWidget {
           color = const Color(0xFFD4A017);
           bg = const Color(0xFFFFF8E6);
           icon = Icons.hourglass_top_rounded;
-          title = 'Account Under Review';
-          message =
-              'Your verification is being reviewed. You can browse the app but cannot create promo codes, referrals, or request payouts until approved.';
-          ctaLabel = 'Contact Support';
+          title = l10n.homeAccountUnderReviewTitle;
+          message = l10n.homePendingBannerMessage;
+          ctaLabel = l10n.commonContactSupport;
           ctaRoute = AppRoutes.support;
         } else {
           // null (not submitted) — unlikely here since the dashboard only shows
@@ -833,7 +905,10 @@ class _AccountStatusBanner extends StatelessWidget {
             decoration: BoxDecoration(
               color: bg,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: color.withValues(alpha: 0.35), width: 1.5),
+              border: Border.all(
+                color: color.withValues(alpha: 0.35),
+                width: 1.5,
+              ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

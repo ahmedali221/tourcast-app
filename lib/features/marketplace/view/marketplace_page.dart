@@ -4,12 +4,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:tourguide_app/core/di/locator.dart';
+import 'package:tourguide_app/core/localization/language_switcher.dart';
 import 'package:tourguide_app/core/shared/widgets/empty_state.dart';
 import 'package:tourguide_app/core/shared/widgets/error_view.dart';
 import 'package:tourguide_app/core/theme/app_colors.dart';
 import 'package:tourguide_app/core/theme/app_text_styles.dart';
 import 'package:tourguide_app/features/marketplace/model/app_model.dart';
 import 'package:tourguide_app/features/marketplace/viewmodel/marketplace_cubit.dart';
+import 'package:tourguide_app/l10n/generated/app_localizations.dart';
 
 class MarketplacePage extends StatelessWidget {
   const MarketplacePage({super.key});
@@ -28,9 +30,11 @@ class _MarketplaceView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Marketplace')),
+      appBar: LanguageAppBar(title: Text(l10n.marketplaceTitle)),
       body: BlocBuilder<MarketplaceCubit, MarketplaceState>(
         builder: (context, state) {
           if (state is MarketplaceLoading || state is MarketplaceInitial) {
@@ -38,7 +42,7 @@ class _MarketplaceView extends StatelessWidget {
           }
           if (state is MarketplaceError) {
             return ErrorView(
-              message: state.message,
+              message: state.message ?? l10n.commonSomethingWentWrong,
               onRetry: () => context.read<MarketplaceCubit>().loadApps(),
             );
           }
@@ -71,6 +75,8 @@ class _BodyViewState extends State<_BodyView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return CustomScrollView(
       slivers: [
         SliverToBoxAdapter(
@@ -78,16 +84,17 @@ class _BodyViewState extends State<_BodyView> {
             padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
             child: _SearchBar(
               controller: _searchCtrl,
-              onChanged: (v) => context.read<MarketplaceCubit>().loadApps(search: v),
+              onChanged: (v) =>
+                  context.read<MarketplaceCubit>().loadApps(search: v),
             ),
           ),
         ),
         if (widget.apps.isEmpty)
-          const SliverFillRemaining(
+          SliverFillRemaining(
             child: EmptyState(
               icon: Icons.storefront_outlined,
-              title: 'No apps available',
-              message: 'Check back later for new apps.',
+              title: l10n.marketplaceEmptyTitle,
+              message: l10n.marketplaceEmptyMessage,
             ),
           )
         else
@@ -112,6 +119,8 @@ class _SearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Container(
       height: 44,
       decoration: BoxDecoration(
@@ -128,8 +137,8 @@ class _SearchBar extends StatelessWidget {
             child: TextField(
               controller: controller,
               onChanged: onChanged,
-              decoration: const InputDecoration(
-                hintText: 'Search apps...',
+              decoration: InputDecoration(
+                hintText: l10n.marketplaceSearchHint,
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,
@@ -162,6 +171,7 @@ class _AppCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bg = _cardColors[app.id % _cardColors.length];
+    final l10n = AppLocalizations.of(context);
 
     return GestureDetector(
       onTap: () => context.push('/marketplace/app/${app.id}'),
@@ -175,7 +185,12 @@ class _AppCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _AppIcon(iconUrl: app.iconUrl, bg: bg, size: 64, fallbackLabel: app.name),
+            _AppIcon(
+              iconUrl: app.iconUrl,
+              bg: bg,
+              size: 64,
+              fallbackLabel: app.name,
+            ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -195,7 +210,10 @@ class _AppCard extends StatelessWidget {
                     children: [
                       if (app.category != null)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.surfaceVariant,
                             borderRadius: BorderRadius.circular(6),
@@ -208,7 +226,7 @@ class _AppCard extends StatelessWidget {
                       else
                         const SizedBox.shrink(),
                       Text(
-                        'View Details →',
+                        l10n.marketplaceViewDetails,
                         style: AppTextStyles.caption.copyWith(
                           color: AppColors.primary,
                           fontWeight: FontWeight.w600,
@@ -248,12 +266,21 @@ class _AppIcon extends StatelessWidget {
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(radius),
-        boxShadow: [BoxShadow(color: bg.withValues(alpha: 0.35), blurRadius: 12, offset: const Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(
+            color: bg.withValues(alpha: 0.35),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       alignment: Alignment.center,
       child: Text(
         fallbackLabel.isNotEmpty ? fallbackLabel[0] : '?',
-        style: AppTextStyles.heading1.copyWith(color: Colors.white, fontSize: size * 0.4),
+        style: AppTextStyles.heading1.copyWith(
+          color: Colors.white,
+          fontSize: size * 0.4,
+        ),
       ),
     );
 

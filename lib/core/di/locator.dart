@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
+import 'package:tourguide_app/core/localization/locale_cubit.dart';
 import 'package:tourguide_app/core/network/api_client.dart';
 import 'package:tourguide_app/core/notifications/local_notification_service.dart';
 
@@ -65,6 +66,9 @@ Future<void> setupLocator() async {
   locator.registerLazySingleton<LocalNotificationService>(
     () => LocalNotificationService(),
   );
+
+  // Single app-wide instance: provided once at the MaterialApp root.
+  locator.registerLazySingleton<LocaleCubit>(() => LocaleCubit());
 
   // ----------------------------------------------------------------
   // 2. REPOSITORIES

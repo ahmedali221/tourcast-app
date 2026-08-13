@@ -22,7 +22,7 @@ class MarketplaceDetailLoaded extends MarketplaceState {
 }
 
 class MarketplaceError extends MarketplaceState {
-  final String message;
+  final String? message;
   MarketplaceError(this.message);
 }
 
@@ -58,11 +58,11 @@ class MarketplaceCubit extends Cubit<MarketplaceState> {
       if (!isClosed) emit(MarketplaceLoaded(apps));
     } on DioException catch (e) {
       if (cached == null && !isClosed) {
-        emit(MarketplaceError(e.response?.data['message'] ?? 'Failed to load apps'));
+        emit(MarketplaceError(e.response?.data['message']));
       }
     } catch (_) {
       if (cached == null && !isClosed) {
-        emit(MarketplaceError('Something went wrong. Please try again.'));
+        emit(MarketplaceError(null));
       }
     }
   }
@@ -74,9 +74,9 @@ class MarketplaceCubit extends Cubit<MarketplaceState> {
       final app = await _repository.getAppDetails(appId);
       if (!isClosed) emit(MarketplaceDetailLoaded(app));
     } on DioException catch (e) {
-      if (!isClosed) emit(MarketplaceError(e.response?.data['message'] ?? 'Failed to load app details'));
+      if (!isClosed) emit(MarketplaceError(e.response?.data['message']));
     } catch (_) {
-      if (!isClosed) emit(MarketplaceError('Something went wrong. Please try again.'));
+      if (!isClosed) emit(MarketplaceError(null));
     }
   }
 }

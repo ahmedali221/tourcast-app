@@ -6,6 +6,7 @@ import 'package:tourguide_app/core/theme/app_colors.dart';
 import 'package:tourguide_app/core/theme/app_text_styles.dart';
 import 'package:tourguide_app/features/auth/viewmodel/auth_cubit.dart';
 import 'package:tourguide_app/features/verification/viewmodel/verification_cubit.dart';
+import 'package:tourguide_app/l10n/generated/app_localizations.dart';
 
 class AppShell extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
@@ -45,6 +46,7 @@ class _ShellScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final verificationState = context.watch<VerificationCubit>().state;
 
     final isRestricted = verificationState is VerificationLoaded &&
@@ -81,27 +83,27 @@ class _ShellScaffold extends StatelessWidget {
           BottomNavigationBarItem(
             icon: _navIcon(Icons.home_outlined, 0, isRestricted),
             activeIcon: _navIcon(Icons.home, 0, isRestricted),
-            label: 'Home',
+            label: l10n.navHome,
           ),
           BottomNavigationBarItem(
             icon: _navIcon(Icons.storefront_outlined, 1, isRestricted),
             activeIcon: _navIcon(Icons.storefront, 1, isRestricted),
-            label: 'Marketplace',
+            label: l10n.navMarketplace,
           ),
           BottomNavigationBarItem(
             icon: _navIcon(Icons.account_balance_wallet_outlined, 2, isRestricted),
             activeIcon: _navIcon(Icons.account_balance_wallet, 2, isRestricted),
-            label: 'Wallet',
+            label: l10n.navWallet,
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.headset_mic_outlined),
-            activeIcon: Icon(Icons.headset_mic),
-            label: 'Support',
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.headset_mic_outlined),
+            activeIcon: const Icon(Icons.headset_mic),
+            label: l10n.navSupport,
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Profile',
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.person_outline),
+            activeIcon: const Icon(Icons.person),
+            label: l10n.navProfile,
           ),
         ],
       ),

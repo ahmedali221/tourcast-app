@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:tourguide_app/core/di/locator.dart';
+import 'package:tourguide_app/core/localization/language_switcher.dart';
 import 'package:tourguide_app/core/shared/widgets/app_button.dart';
 import 'package:tourguide_app/core/shared/widgets/empty_state.dart';
 import 'package:tourguide_app/core/shared/widgets/error_view.dart';
@@ -12,6 +13,7 @@ import 'package:tourguide_app/core/utils/extensions.dart';
 import 'package:tourguide_app/core/utils/validators.dart';
 import 'package:tourguide_app/features/wallet/model/payout_profile_model.dart';
 import 'package:tourguide_app/features/wallet/viewmodel/wallet_cubit.dart';
+import 'package:tourguide_app/l10n/generated/app_localizations.dart';
 
 class PaymentMethodsPage extends StatelessWidget {
   const PaymentMethodsPage({super.key});
@@ -38,11 +40,13 @@ class _PaymentMethodsViewState extends State<_PaymentMethodsView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return BlocListener<WalletCubit, WalletState>(
       listener: (context, state) {
         if (state is PaymentMethodsLoaded) {
           if (_showForm) {
-            context.showSnackBar('Payment account saved!');
+            context.showSnackBar(l10n.paymentMethodsSaved);
             setState(() {
               _showForm = false;
               _selectedMethod = null;
@@ -50,16 +54,21 @@ class _PaymentMethodsViewState extends State<_PaymentMethodsView> {
           }
         }
         if (state is WalletError) {
-          context.showSnackBar(state.message, isError: true);
+          context.showSnackBar(
+            state.message ?? l10n.commonSomethingWentWrong,
+            isError: true,
+          );
         }
       },
       child: Scaffold(
         backgroundColor: AppColors.background,
-        appBar: AppBar(
+        appBar: LanguageAppBar(
           backgroundColor: AppColors.background,
-          title: Text(_showForm
-              ? (_selectedMethod?.name ?? 'Payment Details')
-              : 'Payment Methods'),
+          title: Text(
+            _showForm
+                ? (_selectedMethod?.name ?? l10n.payoutPaymentDetailsTitle)
+                : l10n.paymentMethodsTitle,
+          ),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios_new, size: 18),
             onPressed: () {
@@ -81,9 +90,10 @@ class _PaymentMethodsViewState extends State<_PaymentMethodsView> {
                   key: ValueKey(_selectedMethod!.id),
                   method: _selectedMethod!,
                   onSaved: (details) {
-                    context
-                        .read<WalletCubit>()
-                        .updatePaymentMethod(_selectedMethod!.id, details);
+                    context.read<WalletCubit>().updatePaymentMethod(
+                      _selectedMethod!.id,
+                      details,
+                    );
                   },
                 )
               : _MethodListBody(
@@ -105,12 +115,14 @@ class _PaymentMethodsViewState extends State<_PaymentMethodsView> {
 
 class _MethodListBody extends StatelessWidget {
   final void Function(PayoutMethodModel method, Map<String, dynamic>? existing)
-      onSetup;
+  onSetup;
 
   const _MethodListBody({super.key, required this.onSetup});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return BlocBuilder<WalletCubit, WalletState>(
       builder: (context, state) {
         if (state is WalletLoading || state is WalletInitial) {
@@ -118,7 +130,7 @@ class _MethodListBody extends StatelessWidget {
         }
         if (state is WalletError) {
           return ErrorView(
-            message: state.message,
+            message: state.message ?? l10n.commonSomethingWentWrong,
             onRetry: () => context.read<WalletCubit>().loadPaymentMethods(),
           );
         }
@@ -128,10 +140,10 @@ class _MethodListBody extends StatelessWidget {
         final saved = state.savedProfile;
 
         if (methods.isEmpty) {
-          return const EmptyState(
+          return EmptyState(
             icon: Icons.payments_outlined,
-            title: 'No payment methods available',
-            message: 'Please contact support.',
+            title: l10n.paymentMethodsNoneAvailable,
+            message: l10n.commonPleaseContactSupport,
           );
         }
 
@@ -156,7 +168,9 @@ class _MethodListBody extends StatelessWidget {
               ],
 
               Text(
-                saved == null ? 'Choose a payment method' : 'All Methods',
+                saved == null
+                    ? l10n.paymentMethodsChoose
+                    : l10n.paymentMethodsAll,
                 style: AppTextStyles.label,
               ),
               const SizedBox(height: 12),
@@ -168,10 +182,8 @@ class _MethodListBody extends StatelessWidget {
                   child: _MethodCard(
                     method: method,
                     isActive: isActive,
-                    onTap: () => onSetup(
-                      method,
-                      isActive ? saved?.details : null,
-                    ),
+                    onTap: () =>
+                        onSetup(method, isActive ? saved?.details : null),
                   ),
                 );
               }),
@@ -193,6 +205,8 @@ class _ActiveAccountCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -223,13 +237,16 @@ class _ActiveAccountCard extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
-                      'ACTIVE',
+                      l10n.paymentMethodsActiveBadge,
                       style: AppTextStyles.caption.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.w700,
@@ -242,7 +259,10 @@ class _ActiveAccountCard extends StatelessWidget {
                   GestureDetector(
                     onTap: onEdit,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 5,
+                      ),
                       decoration: BoxDecoration(
                         border: Border.all(
                           color: Colors.white.withValues(alpha: 0.7),
@@ -250,7 +270,7 @@ class _ActiveAccountCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        'Edit',
+                        l10n.commonEdit,
                         style: AppTextStyles.caption.copyWith(
                           color: Colors.white,
                           fontWeight: FontWeight.w600,
@@ -281,7 +301,9 @@ class _ActiveAccountCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           '${e.value}',
-                          style: AppTextStyles.caption.copyWith(color: Colors.white),
+                          style: AppTextStyles.caption.copyWith(
+                            color: Colors.white,
+                          ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -312,6 +334,8 @@ class _MethodCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -322,7 +346,9 @@ class _MethodCard extends StatelessWidget {
               : AppColors.surface,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: isActive ? AppColors.primary.withValues(alpha: 0.4) : AppColors.divider,
+            color: isActive
+                ? AppColors.primary.withValues(alpha: 0.4)
+                : AppColors.divider,
             width: isActive ? 1.5 : 1,
           ),
         ),
@@ -360,7 +386,7 @@ class _MethodCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  'Active',
+                  l10n.commonActive,
                   style: AppTextStyles.caption.copyWith(
                     color: AppColors.primary,
                     fontWeight: FontWeight.w600,
@@ -370,7 +396,7 @@ class _MethodCard extends StatelessWidget {
               )
             else
               Text(
-                'Set up',
+                l10n.paymentMethodsSetUp,
                 style: AppTextStyles.caption.copyWith(
                   color: AppColors.primary,
                   fontWeight: FontWeight.w500,
@@ -420,7 +446,8 @@ class _MethodFormBodyState extends State<_MethodFormBody> {
     super.didChangeDependencies();
     if (_controllers.isEmpty) {
       final cubitState = context.read<WalletCubit>().state;
-      final savedDetails = cubitState is PaymentMethodsLoaded &&
+      final savedDetails =
+          cubitState is PaymentMethodsLoaded &&
               cubitState.savedProfile?.payoutMethodId == widget.method.id
           ? cubitState.savedProfile?.details
           : null;
@@ -442,7 +469,9 @@ class _MethodFormBodyState extends State<_MethodFormBody> {
   @override
   Widget build(BuildContext context) {
     final cubitState = context.watch<WalletCubit>().state;
-    final isEditing = cubitState is PaymentMethodsLoaded &&
+    final l10n = AppLocalizations.of(context);
+    final isEditing =
+        cubitState is PaymentMethodsLoaded &&
         cubitState.savedProfile?.payoutMethodId == widget.method.id;
 
     return SingleChildScrollView(
@@ -458,47 +487,58 @@ class _MethodFormBodyState extends State<_MethodFormBody> {
                 color: AppColors.primary.withValues(alpha: 0.06),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                    color: AppColors.primary.withValues(alpha: 0.15)),
+                  color: AppColors.primary.withValues(alpha: 0.15),
+                ),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.info_outline,
-                      size: 16, color: AppColors.primary),
+                  const Icon(
+                    Icons.info_outline,
+                    size: 16,
+                    color: AppColors.primary,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       isEditing
-                          ? 'Update your saved payment details for ${widget.method.name}.'
-                          : 'This will become your active payout account.',
-                      style: AppTextStyles.caption
-                          .copyWith(color: AppColors.primary),
+                          ? l10n.paymentMethodsUpdateInfo(widget.method.name)
+                          : l10n.paymentMethodsBecomeActiveInfo,
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.primary,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 24),
-            ...widget.method.fieldSchema.expand((field) => [
-              Text(
-                field.label,
-                style: AppTextStyles.caption
-                    .copyWith(fontWeight: FontWeight.w500),
-              ),
-              const SizedBox(height: 6),
-              TextFormField(
-                controller: _controllers[field.key],
-                keyboardType: _keyboardType(field.type),
-                decoration: InputDecoration(hintText: field.label),
-                validator: field.required
-                    ? (v) => Validators.required(v, fieldName: field.label)
-                    : null,
-              ),
-              const SizedBox(height: 16),
-            ]),
+            ...widget.method.fieldSchema.expand(
+              (field) => [
+                Text(
+                  field.label,
+                  style: AppTextStyles.caption.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                TextFormField(
+                  controller: _controllers[field.key],
+                  keyboardType: _keyboardType(field.type),
+                  decoration: InputDecoration(hintText: field.label),
+                  validator: field.required
+                      ? (v) =>
+                            Validators.required(v, l10n, fieldName: field.label)
+                      : null,
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
             const SizedBox(height: 8),
             BlocBuilder<WalletCubit, WalletState>(
               builder: (context, state) => AppButton(
-                label: isEditing ? 'Save Changes' : 'Set as Active Account',
+                label: isEditing
+                    ? l10n.editProfileSaveChanges
+                    : l10n.paymentMethodsSetActiveButton,
                 isLoading: state is WalletLoading,
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
@@ -518,10 +558,10 @@ class _MethodFormBodyState extends State<_MethodFormBody> {
   }
 
   TextInputType _keyboardType(String type) => switch (type) {
-        'phone' => TextInputType.phone,
-        'number' => const TextInputType.numberWithOptions(decimal: true),
-        _ => TextInputType.text,
-      };
+    'phone' => TextInputType.phone,
+    'number' => const TextInputType.numberWithOptions(decimal: true),
+    _ => TextInputType.text,
+  };
 }
 
 // ─── Shimmer ──────────────────────────────────────────────────────────────────

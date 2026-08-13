@@ -23,7 +23,7 @@ class VerificationLoaded extends VerificationState {
 class VerificationSubmitted extends VerificationState {}
 
 class VerificationError extends VerificationState {
-  final String message;
+  final String? message;
   VerificationError(this.message);
 }
 
@@ -56,11 +56,11 @@ class VerificationCubit extends Cubit<VerificationState> {
       if (!isClosed) emit(VerificationLoaded(verification));
     } on DioException catch (e) {
       if (cached == null && !isClosed) {
-        emit(VerificationError(e.response?.data['message'] ?? 'Failed to load status'));
+        emit(VerificationError(e.response?.data['message']));
       }
     } catch (_) {
       if (cached == null && !isClosed) {
-        emit(VerificationError('Something went wrong. Please try again.'));
+        emit(VerificationError(null));
       }
     }
   }
@@ -86,9 +86,9 @@ class VerificationCubit extends Cubit<VerificationState> {
       await CacheService.invalidate(StorageKeys.verificationCache);
       if (!isClosed) emit(VerificationSubmitted());
     } on DioException catch (e) {
-      if (!isClosed) emit(VerificationError(e.response?.data['message'] ?? 'Submission failed'));
+      if (!isClosed) emit(VerificationError(e.response?.data['message']));
     } catch (_) {
-      if (!isClosed) emit(VerificationError('Something went wrong. Please try again.'));
+      if (!isClosed) emit(VerificationError(null));
     }
   }
 }

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:tourguide_app/l10n/generated/app_localizations.dart';
 
 class SubscriptionPage extends StatelessWidget {
   const SubscriptionPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: Text('Subscriptions Page')),
-    );
+    final l10n = AppLocalizations.of(context);
+    return Scaffold(body: Center(child: Text(l10n.subscriptionPageStub)));
   }
 }

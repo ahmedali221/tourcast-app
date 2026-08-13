@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tourguide_app/core/di/locator.dart';
+import 'package:tourguide_app/core/localization/locale_cubit.dart';
 import 'package:tourguide_app/core/notifications/local_notification_service.dart';
 import 'package:tourguide_app/core/router/app_router.dart';
 import 'package:tourguide_app/core/sync/background_sync.dart';
 import 'package:tourguide_app/core/sync/sync_keys.dart';
 import 'package:tourguide_app/core/theme/app_theme.dart';
+import 'package:tourguide_app/l10n/generated/app_localizations.dart';
 import 'package:workmanager/workmanager.dart';
 
 void main() async {
@@ -60,11 +63,21 @@ class NileTechApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'NileTech Tour Guide',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
-      routerConfig: appRouter,
+    return BlocProvider<LocaleCubit>(
+      create: (_) => locator<LocaleCubit>(),
+      child: BlocBuilder<LocaleCubit, Locale?>(
+        builder: (context, locale) {
+          return MaterialApp.router(
+            title: 'NileTech Tour Guide',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.light,
+            routerConfig: appRouter,
+            locale: locale,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          );
+        },
+      ),
     );
   }
 }

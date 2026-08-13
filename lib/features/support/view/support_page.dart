@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:tourguide_app/core/di/locator.dart';
+import 'package:tourguide_app/core/localization/language_switcher.dart';
 import 'package:tourguide_app/core/router/app_routes.dart';
 import 'package:tourguide_app/core/shared/widgets/empty_state.dart';
 import 'package:tourguide_app/core/shared/widgets/error_view.dart';
@@ -13,6 +14,7 @@ import 'package:tourguide_app/core/theme/app_text_styles.dart';
 import 'package:tourguide_app/core/utils/extensions.dart';
 import 'package:tourguide_app/features/support/model/ticket_model.dart';
 import 'package:tourguide_app/features/support/viewmodel/support_cubit.dart';
+import 'package:tourguide_app/l10n/generated/app_localizations.dart';
 
 class SupportPage extends StatelessWidget {
   const SupportPage({super.key});
@@ -37,13 +39,6 @@ class _SupportViewState extends State<_SupportView> {
   String? _statusFilter;
   Timer? _pollTimer;
 
-  static const _filters = [
-    (label: 'All', value: null),
-    (label: 'Open', value: 'OPEN'),
-    (label: 'Pending', value: 'PENDING'),
-    (label: 'Closed', value: 'CLOSED'),
-  ];
-
   void _syncTimer(List<TicketModel> tickets) {
     final hasOpen = tickets.any((t) => t.status.toUpperCase() == 'OPEN');
     if (hasOpen && _pollTimer == null) {
@@ -64,14 +59,24 @@ class _SupportViewState extends State<_SupportView> {
 
   List<TicketModel> _applyFilter(List<TicketModel> tickets) {
     if (_statusFilter == null) return tickets;
-    return tickets.where((t) => t.status.toUpperCase() == _statusFilter).toList();
+    return tickets
+        .where((t) => t.status.toUpperCase() == _statusFilter)
+        .toList();
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final filters = [
+      (label: l10n.supportFilterAll, value: null),
+      (label: l10n.supportFilterOpen, value: 'OPEN'),
+      (label: l10n.supportFilterPending, value: 'PENDING'),
+      (label: l10n.supportFilterClosed, value: 'CLOSED'),
+    ];
+
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Support Tickets')),
+      appBar: LanguageAppBar(title: Text(l10n.supportTicketsTitle)),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           final created = await context.push<bool>(AppRoutes.newTicket);
@@ -89,25 +94,34 @@ class _SupportViewState extends State<_SupportView> {
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              itemCount: _filters.length,
+              itemCount: filters.length,
               itemBuilder: (_, i) {
-                final filter = _filters[i];
+                final filter = filters[i];
                 final selected = _statusFilter == filter.value;
                 return GestureDetector(
                   onTap: () => setState(() => _statusFilter = filter.value),
                   child: Container(
                     margin: const EdgeInsets.only(right: 8),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: selected ? AppColors.primary : AppColors.surface,
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: selected ? AppColors.primary : AppColors.divider),
+                      border: Border.all(
+                        color: selected ? AppColors.primary : AppColors.divider,
+                      ),
                     ),
                     child: Text(
                       filter.label,
                       style: AppTextStyles.caption.copyWith(
-                        color: selected ? Colors.white : AppColors.textSecondary,
-                        fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                        color: selected
+                            ? Colors.white
+                            : AppColors.textSecondary,
+                        fontWeight: selected
+                            ? FontWeight.w600
+                            : FontWeight.w400,
                       ),
                     ),
                   ),
@@ -123,7 +137,7 @@ class _SupportViewState extends State<_SupportView> {
                 }
                 if (state is SupportError) {
                   return ErrorView(
-                    message: state.message,
+                    message: state.message ?? l10n.commonSomethingWentWrong,
                     onRetry: () => context.read<SupportCubit>().loadTickets(),
                   );
                 }
@@ -147,11 +161,12 @@ class _TicketsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     if (tickets.isEmpty) {
-      return const EmptyState(
+      return EmptyState(
         icon: Icons.support_agent_rounded,
-        title: 'No tickets yet',
-        message: 'Tap + to open a new support ticket.',
+        title: l10n.supportEmptyTitle,
+        message: l10n.supportEmptyMessage,
       );
     }
 
@@ -207,6 +222,13 @@ class _TicketCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasUnread = ticket.hasUnread;
+    final l10n = AppLocalizations.of(context);
+    final statusLabel = switch (ticket.status.toUpperCase()) {
+      'OPEN' => l10n.supportFilterOpen,
+      'PENDING' => l10n.supportFilterPending,
+      'CLOSED' => l10n.supportFilterClosed,
+      _ => ticket.status,
+    };
 
     return GestureDetector(
       onTap: () async {
@@ -220,7 +242,9 @@ class _TicketCard extends StatelessWidget {
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: hasUnread ? AppColors.primary.withValues(alpha: 0.35) : AppColors.divider,
+            color: hasUnread
+                ? AppColors.primary.withValues(alpha: 0.35)
+                : AppColors.divider,
             width: hasUnread ? 1.5 : 1,
           ),
         ),
@@ -243,14 +267,19 @@ class _TicketCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: _statusBg,
                     borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: _statusColor.withValues(alpha: 0.3)),
+                    border: Border.all(
+                      color: _statusColor.withValues(alpha: 0.3),
+                    ),
                   ),
                   child: Text(
-                    ticket.status.toUpperCase(),
+                    statusLabel,
                     style: AppTextStyles.caption.copyWith(
                       color: _statusColor,
                       fontWeight: FontWeight.w600,
@@ -269,7 +298,9 @@ class _TicketCard extends StatelessWidget {
                   child: Text(
                     ticket.lastMessage ?? '',
                     style: AppTextStyles.caption.copyWith(
-                      color: hasUnread ? AppColors.textPrimary : AppColors.textSecondary,
+                      color: hasUnread
+                          ? AppColors.textPrimary
+                          : AppColors.textSecondary,
                       fontWeight: hasUnread ? FontWeight.w500 : FontWeight.w400,
                       fontSize: 12,
                     ),
@@ -298,7 +329,10 @@ class _TicketCard extends StatelessWidget {
                 const SizedBox(width: 6),
                 _Chip(label: ticket.priority, color: _priorityColor),
                 const Spacer(),
-                Text(ticket.createdAt.toReadable(), style: AppTextStyles.caption.copyWith(fontSize: 11)),
+                Text(
+                  ticket.createdAt.toReadable(),
+                  style: AppTextStyles.caption.copyWith(fontSize: 11),
+                ),
               ],
             ),
           ],
@@ -347,7 +381,10 @@ class _ShimmerView extends StatelessWidget {
             (_) => Container(
               margin: const EdgeInsets.only(bottom: 12),
               height: 90,
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
             ),
           ),
         ),

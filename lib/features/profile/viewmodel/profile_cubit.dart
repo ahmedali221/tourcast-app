@@ -20,7 +20,7 @@ class ProfileLoaded extends ProfileState {
 class ProfileUpdated extends ProfileState {}
 
 class ProfileError extends ProfileState {
-  final String message;
+  final String? message;
   ProfileError(this.message);
 }
 
@@ -50,11 +50,11 @@ class ProfileCubit extends Cubit<ProfileState> {
       if (!isClosed) emit(ProfileLoaded(profile));
     } on DioException catch (e) {
       if (cached == null && !isClosed) {
-        emit(ProfileError(e.response?.data['message'] ?? 'Failed to load profile'));
+        emit(ProfileError(e.response?.data['message']));
       }
     } catch (_) {
       if (cached == null && !isClosed) {
-        emit(ProfileError('Something went wrong. Please try again.'));
+        emit(ProfileError(null));
       }
     }
   }
@@ -68,9 +68,9 @@ class ProfileCubit extends Cubit<ProfileState> {
       final profile = await _repository.getProfile();
       if (!isClosed) emit(ProfileLoaded(profile));
     } on DioException catch (e) {
-      if (!isClosed) emit(ProfileError(e.response?.data['message'] ?? 'Failed to update profile'));
+      if (!isClosed) emit(ProfileError(e.response?.data['message']));
     } catch (_) {
-      if (!isClosed) emit(ProfileError('Something went wrong. Please try again.'));
+      if (!isClosed) emit(ProfileError(null));
     }
   }
 
@@ -83,9 +83,9 @@ class ProfileCubit extends Cubit<ProfileState> {
       final profile = await _repository.getProfile();
       if (!isClosed) emit(ProfileLoaded(profile));
     } on DioException catch (e) {
-      if (!isClosed) emit(ProfileError(e.response?.data['message'] ?? 'Failed to upload photo'));
+      if (!isClosed) emit(ProfileError(e.response?.data['message']));
     } catch (_) {
-      if (!isClosed) emit(ProfileError('Something went wrong. Please try again.'));
+      if (!isClosed) emit(ProfileError(null));
     }
   }
 
@@ -96,9 +96,9 @@ class ProfileCubit extends Cubit<ProfileState> {
       await _repository.deleteAccount(reason: reason);
       if (!isClosed) emit(ProfileUpdated());
     } on DioException catch (e) {
-      if (!isClosed) emit(ProfileError(e.response?.data['message'] ?? 'Failed to delete account'));
+      if (!isClosed) emit(ProfileError(e.response?.data['message']));
     } catch (_) {
-      if (!isClosed) emit(ProfileError('Something went wrong. Please try again.'));
+      if (!isClosed) emit(ProfileError(null));
     }
   }
 }

@@ -17,7 +17,7 @@ class KnowledgeCenterLoaded extends KnowledgeCenterState {
 }
 
 class KnowledgeCenterError extends KnowledgeCenterState {
-  final String message;
+  final String? message;
   KnowledgeCenterError(this.message);
 }
 
@@ -31,12 +31,15 @@ class KnowledgeCenterCubit extends Cubit<KnowledgeCenterState> {
   Future<void> loadArticles({String? category, int? appId}) async {
     emit(KnowledgeCenterLoading());
     try {
-      final articles = await _repository.getArticles(category: category, appId: appId);
+      final articles = await _repository.getArticles(
+        category: category,
+        appId: appId,
+      );
       emit(KnowledgeCenterLoaded(articles));
     } on DioException catch (e) {
-      emit(KnowledgeCenterError(e.response?.data['message'] ?? 'Failed to load articles'));
+      emit(KnowledgeCenterError(e.response?.data['message']));
     } catch (_) {
-      emit(KnowledgeCenterError('Something went wrong. Please try again.'));
+      emit(KnowledgeCenterError(null));
     }
   }
 }
